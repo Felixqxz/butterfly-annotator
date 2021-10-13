@@ -1,0 +1,5 @@
+# heroku.yml
+# for heroku
+build:
+  docker:
+    web: Dockerfile

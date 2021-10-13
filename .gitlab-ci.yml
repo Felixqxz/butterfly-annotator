@@ -1,0 +1,28 @@
+default:
+  image: python:3.8
+
+variables:
+  PORT: 5000
+
+stages:
+  - test
+  - deploy
+
+test-job:
+  stage: test
+  script:
+    - python3.8 -m venv venv
+    - . venv/bin/activate
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+  
+
+deploy-heroku:
+  only:
+    - master
+  stage: deploy
+  script:
+    - apt-get update -qy
+    - apt-get install -y ruby-dev
+    - gem install dpl
+    - dpl --provider=heroku --app=butterfly-annotator --api-key=02853a5b-551b-48df-a9a5-e101533f2b85
