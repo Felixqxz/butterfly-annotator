@@ -5,19 +5,19 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && \
     apt-get install -y python-pip python-dev
 
-COPY . /c-camp
+COPY . /butterfly-annotator
 
-WORKDIR /c-camp
+WORKDIR /butterfly-annotator
 
 RUN python3.8 -m venv venv
 RUN . venv/bin/activate
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-WORKDIR /c-camp
+WORKDIR /butterfly-annotator
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-ENV FLASK_APP=charityWeb/app.py
+ENV FLASK_APP=website/app.py
 ENV FLASK_ENV=development
 ENV FLASK_RUN_HOST=0.0.0.0
 
