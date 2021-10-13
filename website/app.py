@@ -1,10 +1,23 @@
-from flask import Flask
+from flask import Flask, jsonify
+from flask_cors import CORS
 
+
+# configuration
+DEBUG = True
+
+# instantiate the app
 app = Flask(__name__)
+app.config.from_object(__name__)
 
-@app.route('/')
-def index():
-    return "Hello World!"
+# enable CORS
+CORS(app, resources={r'/*': {'origins': '*'}})
 
-if __name__ == "__main__":
-    app.run(debug=False)
+
+# sanity check route
+@app.route('/', methods=['GET'])
+def ping_pong():
+    return jsonify('Hello World!')
+
+
+if __name__ == '__main__':
+    app.run()
