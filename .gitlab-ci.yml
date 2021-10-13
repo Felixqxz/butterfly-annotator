@@ -5,16 +5,16 @@ variables:
   PORT: 5000
 
 stages:
-  - test
+  # - test
   - deploy
 
-test-job:
-  stage: test
-  script:
-    - python3.8 -m venv venv
-    - . venv/bin/activate
-    - pip install --upgrade pip
-    - pip install -r requirements.txt
+# test-job:
+#   stage: test
+#   script:
+#     - python3.8 -m venv venv
+#     - . venv/bin/activate
+#     - pip install --upgrade pip
+#     - pip install -r requirements.txt
   
 
 deploy-heroku:
