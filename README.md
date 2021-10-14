@@ -15,10 +15,8 @@ cd butterfly-annotator
 python3.8 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip && pip install -r requirements.txt
-export FLASK_APP=website/app.py
-export FLASK_ENV=development
-flask create_all # Create database and tables inside it
-flask populate   # Populate tables with some initial data
+flask create_all # Create database and tables inside it, you should see a test.db in current folder
+flask populate   # Populate tables with some initial data //haven't been deployed yet
 flask run        # Spin the server
 ```
 You can now browse to <http://localhost:5000> and see the app live.
