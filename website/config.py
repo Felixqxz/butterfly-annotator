@@ -12,7 +12,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 class TestConfig(Config):
-    Testing = True
+    TESTING = True
 
 class ProductionConfig(Config):
     DEBUG = False
