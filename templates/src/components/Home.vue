@@ -22,7 +22,7 @@ export default {
           this.msg = res.data;
         })
         .catch((error) => {
-          console.error(error);
+          console.error(error); // TODO: handle error correctly
         });
     },
   },
