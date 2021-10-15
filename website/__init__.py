@@ -5,13 +5,12 @@ from flask_cors import CORS
 from .config import config_by_name
 from .db import db
 
-
 def create_app(config_name=None):
     # create and configure the app
     app = Flask(__name__)
 
     if config_name is None:
-        app.config.from_object(config_by_name["default"])
+        app.config.from_object(config_by_name['default'])
     else:
         app.config.from_object(config_by_name[config_name])
 
@@ -25,7 +24,6 @@ def create_app(config_name=None):
         return jsonify('Hello World!')
 
     return app
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
