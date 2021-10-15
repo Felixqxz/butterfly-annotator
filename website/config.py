@@ -8,7 +8,7 @@ class Config:
     """
     DEBUG = True
     TESTING = False
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///butterfly.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 class TestConfig(Config):
