@@ -5,29 +5,28 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from 'axios'
 
 export default {
   name: 'Home',
   data() {
     return {
       msg: '',
-    };
+    }
   },
   methods: {
     getMessage() {
-      const path = 'http://localhost:5000/';
-      axios.get(path)
+      axios.get(this.$hostname)
         .then((res) => {
-          this.msg = res.data;
+          this.msg = res.data
         })
         .catch((error) => {
-          console.error(error); // TODO: handle error correctly
-        });
+          console.error(error) // TODO: handle error correctly
+        })
     },
   },
   created() {
-    this.getMessage();
+    this.getMessage()
   },
-};
+}
 </script>
