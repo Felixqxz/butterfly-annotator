@@ -20,6 +20,12 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username
 
+    @staticmethod
+    def get_user(user_id):
+        if user_id is None:
+            return None
+        # TODO
+
 class ImageBank(db.Model):
     """
     Represents a bank of images to annotate.
