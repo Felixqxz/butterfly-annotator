@@ -24,8 +24,8 @@ class Config:
         self.sql_alchemy_track_modifications = sql_alchemy_track_modifications
 
 config_by_name = {
-    "development": Config(debug = True, testing = False, sql_alchemy_track_modifications = True),
-    "testing": Config(debug = True, testing = True, sql_alchemy_track_modifications = True),
-    "production": Config(debug = False, testing = False, sql_alchemy_track_modifications = False),
-    "default": Config(debug = True, testing = False, sql_alchemy_track_modifications = True)
+    'development': Config(debug = True, testing = False, sql_alchemy_track_modifications = True),
+    'testing': Config(debug = True, testing = True, sql_alchemy_track_modifications = True),
+    'production': Config(debug = False, testing = False, sql_alchemy_track_modifications = False),
+    'default': Config(debug = True, testing = False, sql_alchemy_track_modifications = True)
 }
