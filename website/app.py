@@ -24,8 +24,8 @@ def create_app(config_name=None):
     def ping_pong():
         return jsonify('Hello World!')
 
-    from .images.dir_api import list_images_setup
-    list_images_setup(app)
+    from .images.image_api import image_api
+    app.register_blueprint(image_api)
 
     return app
 
