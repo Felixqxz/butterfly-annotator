@@ -2,7 +2,7 @@
   <div>
     <div class="jumbotron">
       <h1>Test!</h1>
-      <h2>This is bank {{ $route.bankName }}</h2>
+      <h2>This is bank {{ bankName }}</h2>
     </div>
     <div class="container container-fluid">
       <figure class="figure col col-md-4 col-sm-6 col-xs-12 no-drag" v-for="image in images" v-bind:key="image.id">
