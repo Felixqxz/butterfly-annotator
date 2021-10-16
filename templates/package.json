@@ -1,5 +1,5 @@
 {
-  "name": "tamplates",
+  "name": "butterfly_annotator",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -15,7 +15,7 @@
     "vuex": "^3.4.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-babel": "^3.3.0",
     "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-plugin-vuex": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
