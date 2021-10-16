@@ -33,7 +33,7 @@
 
           </b-form>
           <br>
-          <div class="text-left"><a href="/login" class="text-info">Need an account?</a></div>
+          <div class="text-left"><a href="/login" class="text-info">Already have an account?</a></div>
         </div>
       </div>
     </div>
