@@ -4,7 +4,8 @@ import router from './router'
 import 'bootstrap/dist/css/bootstrap.css'
 
 Vue.config.productionTip = false
-Vue.prototype.$hostname = 'http://localhost:5000'
+// default Flask port = 5000
+Vue.prototype.$hostname = 'http://localhost:' + (process.env.PORT ? process.env.PORT : '5000')
 
 new Vue({
   router,
