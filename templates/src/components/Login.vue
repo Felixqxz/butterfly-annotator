@@ -22,6 +22,8 @@
       <b-button type="submit" variant="primary">Login</b-button>
       <b-button type="reset" variant="danger">Reset</b-button>
     </b-form>
+    <br>
+    <b-button variant="outline-primary" href="/register">Register if you don't have an account</b-button>
   </div>
 </template>
 
@@ -39,14 +41,12 @@ export default {
   methods: {
     onSubmit(evt) {
       evt.preventDefault();
-      alert(JSON.stringify(this.form));
+      console.log(this.form)
     },
     onReset(evt) {
       evt.preventDefault();
-      // Reset our form values
       this.form.username = "";
       this.form.password = "";
-      // Trick to reset/clear native browser form validation state
       this.show = false;
       this.$nextTick(() => {
         this.show = true;

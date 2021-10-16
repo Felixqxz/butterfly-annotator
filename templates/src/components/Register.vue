@@ -31,6 +31,9 @@
       <b-button type="submit" variant="primary">Register</b-button>
       <b-button type="reset" variant="danger">Reset</b-button>
     </b-form>
+
+    <br>
+    <b-button variant="outline-primary" href="/login">Login if you have an account</b-button>
   </div>
 </template>
 
