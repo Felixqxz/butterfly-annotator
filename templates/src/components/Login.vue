@@ -19,8 +19,8 @@
             <b-button class="btn btn-info btn-md" type="submit" variant="primary">Sign in</b-button>
 
           </b-form>
-
-          <div class="text-right" href="/register"><a href="/register" class="text-info">Need an account?</a></div>
+          <br>
+          <div class="text-left"><a href="/register" class="text-info">Need an account?</a></div>
         </div>
       </div>
     </div>
