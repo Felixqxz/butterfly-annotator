@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <Header></Header>
     <div id="login-row" class="row justify-content-center align-items-center">
       <div id="login-column" class="col-md-6">
         <div id="login-box" class="col-md-12">
@@ -32,7 +33,7 @@
 
           </b-form>
           <br>
-          <div class="text-left"><a href="/register" class="text-info">Need an account?</a></div>
+          <div class="text-left"><a href="/login" class="text-info">Need an account?</a></div>
         </div>
       </div>
     </div>
@@ -40,7 +41,12 @@
 </template>
 
 <script>
+import Header from '../components/Header.vue'
+
 export default {
+  components: {
+    Header
+  },
   data() {
     return {
       form: {
