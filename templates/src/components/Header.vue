@@ -11,7 +11,7 @@
         </b-navbar-nav>
 
         <b-navbar-nav>
-          <b-nav-item href="#">Image Bank</b-nav-item>
+          <b-nav-item href="#">Image bank</b-nav-item>
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
