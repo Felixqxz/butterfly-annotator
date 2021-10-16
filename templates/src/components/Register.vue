@@ -63,26 +63,6 @@ export default {
       evt.preventDefault();
       alert(JSON.stringify(this.form));
     },
-    onReset(evt) {
-      evt.preventDefault();
-      // Reset our form values
-      this.form.username = "";
-      this.form.password = "";
-      this.form.confirmedPassword = "";
-      this.form.email = "";
-      // Trick to reset/clear native browser form validation state
-      this.show = false;
-      this.$nextTick(() => {
-        this.show = true;
-      });
-    },
   },
 };
 </script>
-
-<style>
-.login_table {
-  margin: 50px 100px;
-  text-align: center;
-}
-</style>
