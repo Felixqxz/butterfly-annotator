@@ -1,11 +1,12 @@
 <template>
-  <div class="container">
-    <button type="button" class="btn btn-primary">{{ msg }}</button>
+  <div>
+    <Header></Header>
   </div>
 </template>
 
 <script>
 import axios from 'axios'
+import Header from '../components/Header.vue'
 
 export default {
   name: 'Home',
@@ -28,5 +29,8 @@ export default {
   created() {
     this.getMessage()
   },
+  components: {
+    Header
+  }
 }
 </script>
