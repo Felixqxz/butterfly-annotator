@@ -1,14 +1,28 @@
 <template>
   <b-container fluid>
     <div class="container">
-      <button type="button" class="btn btn-primary">Import text</button>
-      <button type="button" class="btn btn-primary">Upload image</button>
+      <b-row>
+        <b-col sm="3">
+          <button type="button" class="btn btn-primary">Import text</button>
+          <!-- <button type="button" class="btn btn-primary">Upload image</button> -->
+        </b-col>
+        <b-col sm="6">
+          <b-form-file
+            v-model="image_file"
+            class="mt-3"
+            placeholder="Choose a image or drop it here!"
+            accept="image/jpeg, image/png"
+          ></b-form-file>
+          <b-button @click="image_file = null">Reset</b-button>
+          <b-button @click="uploadImage">upload</b-button>
+        </b-col>
+      </b-row>
 
       <b-row>
-        <b-col sm="1">
+        <b-col sm="2">
           <button type="button" class="btn btn-primary">Select words</button>
         </b-col>
-        <b-col sm="5">
+        <b-col sm="4">
           <b-form-textarea
             id="textarea-auto-height"
             placeholder="Auto height textarea"
@@ -16,9 +30,51 @@
             max-rows="8"
           ></b-form-textarea>
         </b-col>
+        <figure
+          class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
+          v-for="image in images"
+          v-bind:key="image.id"
+        >
+          <img
+            :src="image.url"
+            class="figure-img img-fluid rounded"
+            :alt="image.id"
+          />
+          <figcaption class="figure-caption text-center">butterfly</figcaption>
+        </figure>
       </b-row>
-      
     </div>
+
+    <!-- <div>
+      <b-button v-b-modal.modal-prevent-closing>Upload image</b-button>
+      <b-modal
+        id="modal-prevent-closing"
+        ref="modal"
+        title="Upload Your Image"
+        @show="resetModal"
+        @hidden="resetModal"
+        @ok="handleOk"
+      >
+        <form ref="form" @submit.stop.prevent="handleSubmit">
+          <b-form-group
+            label="Image"
+            label-for="image-input"
+            invalid-feedback="If you want to upload, you must choose an image first!"
+            :state="imageState"
+          >
+            <b-form-file
+              id="image-input"
+              v-model="image_file"
+              class="mt-3"
+              placeholder="Choose a image or drop it here!"
+              accept="image/jpeg, image/png"
+              :state="imageState"
+              required
+            ></b-form-file>
+          </b-form-group>
+        </form>
+      </b-modal>
+    </div> -->
   </b-container>
 </template>
 
@@ -31,21 +87,83 @@ export default {
     return {
       msg: "",
       text: "",
+      images: [],
+      file_url: "",
+      image_file: null,
+      imageState: null,
     };
   },
   methods: {
-    // getMessage() {
-    //   axios.get(this.$hostname)
-    //     .then((res) => {
-    //       this.msg = res.data
-    //     })
-    //     .catch((error) => {
-    //       console.error(error) // TODO: handle error correctly
-    //     })
+    getImages() {
+      axios
+        .get(this.$hostname + "/api/images")
+        .then((res) => {
+          let data = res.data;
+          this.images = data.images;
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    uploadImage() {
+      if (this.image_file == null) {
+      }
+      const image = {
+        image_bank: "butterfly",
+        image_file: this.image_file,
+      }
+      console.log(this.image_file)
+      // let request = this.$http.post('/api/image/upload', image)
+      axios
+        .post(this.$hostname + "/api/image/upload", image)
+        .then((res) => {
+          if (res.data.code == 200) {
+            this.$message({
+              type: "success",
+              message: "Upload an image successfully!",
+            });
+          } else {
+            this.$message({
+              message: "Failed to upload an image！",
+              type: "warning",
+            });
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          // todo: do something here
+        });
+    },
+    // checkFormValidity() {
+    //   const valid = this.$refs.form.checkValidity();
+    //   this.imageState = valid;
+    //   return valid;
+    // },
+    // resetModal() {
+    //   this.image_file = "";
+    //   this.imageState = null;
+    // },
+    // handleOk(bvModalEvt) {
+    //   // Prevent modal from closing
+    //   bvModalEvt.preventDefault();
+    //   // Trigger submit handler
+    //   this.handleSubmit();
+    // },
+    // handleSubmit() {
+    //   // Exit when the form isn't valid
+    //   if (!this.checkFormValidity()) {
+    //     return;
+    //   }
+    //   console.log(this.image_file)
+    //   // Hide the modal manually
+    //   this.$nextTick(() => {
+    //     this.$bvModal.hide("modal-prevent-closing");
+    //   });
     // },
   },
   created() {
     // this.getMessage()
+    this.getImages();
   },
 };
 </script>
