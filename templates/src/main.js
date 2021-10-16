@@ -6,9 +6,10 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 Vue.config.productionTip = false
-Vue.prototype.$hostname = 'http://localhost:5000'
+Vue.prototype.$hostname = 'http://localhost:' + (process.env.PORT ? process.env.PORT : '5000')
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
+// default Flask port = 5000
 
 new Vue({
   router,
