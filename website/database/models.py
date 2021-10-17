@@ -33,14 +33,14 @@ class ImageBank(db.Model):
     __tablename__ = 'image_bank'
 
     id = db.Column(db.Integer, primary_key=True)
-    bankname = db.Column(db.String(25), unique=True)
+    bank_name = db.Column(db.String(25), unique=True)
     images = relationship('ImageToAnnotate', back_populates='image_bank')
 
-    def __init__(self, bankname):
-        self.bankname = bankname
+    def __init__(self, bank_name):
+        self.bank_name = bank_name
 
     def __repr__(self):
-        return '<ImageBank %r>' % self.bankname
+        return '<ImageBank %r>' % self.bank_name
 
 class ImageToAnnotate(db.Model):
     """
@@ -51,4 +51,29 @@ class ImageToAnnotate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     image_bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
     image_bank = relationship('ImageBank', back_populates='images')
-    file_url = db.Column(db.String())
+    # The URL contains the filename which also serves as a name to the image
+    file_url = db.Column(db.String(), unique=True)
+    annotations = relationship('ImageAnnotation', back_populates='annotation.image')
+
+    def __init__(self, image_bank_id, file_url):
+        self.image_bank_id = image_bank_id
+        self.file_url = file_url
+
+class ImageAnnotation(db.Model):
+    """
+    Represents an annotation on an `ImageToAnnotate`.
+    """
+    __tablename__ = 'annotation'
+
+    id = db.Column(db.Integer, primary_key=True)
+    image_id = db.Column(db.Integer, db.ForeignKey('image.id'))
+    tag = db.Column(db.String())
+    region_info = db.Column(db.String())
+    # If True, then rectangular region; otherwise, polygonal
+    is_rectangle = db.Column(db.Boolean)
+    image = relationship('ImageToAnnotate', back_populates='annotations')
+
+    def __init__(self, image_id, tag, region_info):
+        self.image_id = image_id
+        self.tag = tag
+        self.region_info = region_info
