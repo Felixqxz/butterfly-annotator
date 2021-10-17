@@ -152,11 +152,11 @@ export default {
       axios
         .get(this.$hostname + "/api/images")
         .then((res) => {
-          let data = res.data;
-          this.images = data.images;
+          let data = res.data
+          this.images = data.images
         })
         .catch((err) => {
-          console.log(err);
+          console.log(err)
         });
     },
     // Handle upload image feature, still have problems
@@ -169,32 +169,42 @@ export default {
         image_bank: "butterfly",
         image_file: this.image_file,
       };
-      console.log(this.image_file);
-      console.log(image);
+      console.log(this.image_file)
+      console.log(image)
       axios
         .post(this.$hostname + "/api/image/upload", image)
         .then((res) => {
-          console.log(res);
-          console.log(res.data);
+          console.log(res)
+          console.log(res.data)
           if (res.status == 200) {
-            this.$bvModal.show("success-message-modal");
+            this.$bvModal.show("success-message-modal")
           } else {
-            this.$bvModal.show("failed-message-modal");
+            this.$bvModal.show("failed-message-modal")
           }
         })
         .catch((err) => {
-          console.log(err);
+          console.log(err)
         });
     },
     // Handle text import feature
     readFile() {
-      var fileReader = new FileReader();
-      fileReader.readAsText(this.textFile);
+      var fileReader = new FileReader()
+      fileReader.readAsText(this.textFile)
       fileReader.onload = () => {
-        this.text = fileReader.result;
+        this.text = fileReader.result
       };
     },
-
+    getCount() {
+      console.log('enter')
+      axios
+        .get(this.$hostname + "/api/image/getImage")
+        .then((res) => {
+          console.log(res)
+        })
+        .catch((err) => {
+          console.log(err)
+        });
+    }
     // checkFormValidity() {
     //   const valid = this.$refs.form.checkValidity();
     //   this.imageState = valid;
@@ -223,7 +233,8 @@ export default {
     // },
   },
   created() {
-    this.getImages();
+    this.getImages()
+    this.getCount()
   },
 };
 </script>

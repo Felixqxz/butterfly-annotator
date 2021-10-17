@@ -3,10 +3,12 @@ The part of the API that allows access to the images of a database.
 """
 from flask.json import jsonify
 from flask import Blueprint, request, make_response, Response
+import os
 from ..database.access import db
 from flask_cors import cross_origin
 from ..database.models import ImageToAnnotate
 
+basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
 
 @image_api.route('/api/bank/<bank>', methods=['GET'])
@@ -36,6 +38,13 @@ def get_all_images():
         'images': images
     })
 
+@image_api.route('/api/image/', methods=['POST'])
+def upload_test():
+    f = request.files['pic']
+    f.save(f.filename)
+    # return 'successfully', 200
+    return Response(filename=f.filename)
+
 @image_api.route('/api/image/upload', methods=['POST'])
 def upload_image():
 
@@ -52,6 +61,10 @@ def upload_image():
     if not pic:
         return 'No pic uploaded', 400
 
+    path = basedir + "/website/images/source_images/"
+    file_path = path + pic.filename
+    pic.save(file_path)
+
     image_bank_id = 1
     # image_bank = "butterfly"
     file_url = "file_url"
@@ -64,10 +77,20 @@ def upload_image():
 
     return 'Image has been uploaded', 200
 
+@image_api.route('/api/image/getImage', methods=['GET'])
+def get_image():
+    images = ImageToAnnotate.query.filter_by(image_bank_id=1).count()
+    return jsonify({
+        'count': images
+    })
+
 @image_api.route('/api/image/get/<int:id>')
 def get_img(id):
     img = ImageToAnnotate.query.filter_by(id=id).first()
     if not img:
         return 'No image with that id', 404
+
+    response = make_response(img.img)
+    response.headers['Content-Type'] = 'image/png'
 
     return Response(img.img)
