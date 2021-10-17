@@ -53,6 +53,8 @@ class ImageToAnnotate(db.Model):
     image_bank = relationship('ImageBank', back_populates='images')
     # The URL contains the filename which also serves as a name to the image
     file_url = db.Column(db.String(), unique=True)
+    width = db.Column(db.SmallInteger)
+    height = db.Column(db.SmallInteger)
     annotations = relationship('ImageAnnotation', back_populates='annotation.image')
 
     def __init__(self, image_bank_id, file_url):
@@ -69,8 +71,6 @@ class ImageAnnotation(db.Model):
     image_id = db.Column(db.Integer, db.ForeignKey('image.id'))
     tag = db.Column(db.String())
     region_info = db.Column(db.String())
-    # If True, then rectangular region; otherwise, polygonal
-    is_rectangle = db.Column(db.Boolean)
     image = relationship('ImageToAnnotate', back_populates='annotations')
 
     def __init__(self, image_id, tag, region_info):
