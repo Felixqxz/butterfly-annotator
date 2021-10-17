@@ -2,15 +2,19 @@
   <b-container fluid>
     <div class="container">
       <b-row>
-        <b-col sm="3">
-          <button type="button" class="btn btn-primary">Import text</button>
-          <!-- <button type="button" class="btn btn-primary">Upload image</button> -->
+        <b-col sm="6">
+          <b-form-file
+            v-model="textFile"
+            placeholder="Please choose a .txt file!"
+            accept=".txt"
+          ></b-form-file>
+          <b-button @click="textFile = null">Reset</b-button>
+          <b-button @click="readFile">Import</b-button>
         </b-col>
         <b-col sm="6">
           <b-form-file
             v-model="image_file"
-            class="mt-3"
-            placeholder="Choose a image or drop it here!"
+            placeholder="Please choose a image or drop it here!"
             accept="image/jpeg, image/png"
           ></b-form-file>
           <b-button @click="image_file = null">Reset</b-button>
@@ -25,6 +29,7 @@
         <b-col sm="4">
           <b-form-textarea
             id="textarea-auto-height"
+            v-model="text"
             placeholder="Auto height textarea"
             rows="3"
             max-rows="8"
@@ -80,7 +85,10 @@
       <div class="d-block text-center">
         <h3>Upload an image successfully!</h3>
       </div>
-      <b-button class="mt-3" block @click="$bvModal.hide('success-message-modal')"
+      <b-button
+        class="mt-3"
+        block
+        @click="$bvModal.hide('success-message-modal')"
         >Close Me</b-button
       >
     </b-modal>
@@ -89,7 +97,10 @@
       <div class="d-block text-center">
         <h3>Failed to upload an image!</h3>
       </div>
-      <b-button class="mt-3" block @click="$bvModal.hide('failed-message-modal')"
+      <b-button
+        class="mt-3"
+        block
+        @click="$bvModal.hide('failed-message-modal')"
         >Close Me</b-button
       >
     </b-modal>
@@ -98,11 +109,13 @@
       <div class="d-block text-center">
         <h3>Please upload an image!</h3>
       </div>
-      <b-button class="mt-3" block @click="$bvModal.hide('no-image-message-modal')"
+      <b-button
+        class="mt-3"
+        block
+        @click="$bvModal.hide('no-image-message-modal')"
         >Close Me</b-button
       >
     </b-modal>
-
   </b-container>
 </template>
 
@@ -122,6 +135,7 @@ export default {
       dismissSecs: 10,
       dismissCountDown: 0,
       showDismissibleAlert: false,
+      textFile: null
     };
   },
   methods: {
@@ -138,8 +152,8 @@ export default {
     },
     uploadImage() {
       if (this.image_file == null) {
-        this.$bvModal.show('no-image-message-modal')
-        return
+        this.$bvModal.show("no-image-message-modal");
+        return;
       }
       let image = {
         image_bank: "butterfly",
@@ -150,12 +164,12 @@ export default {
       axios
         .post(this.$hostname + "/api/image/upload", image)
         .then((res) => {
-          console.log(res)
-          console.log(res.data)
+          console.log(res);
+          console.log(res.data);
           if (res.status == 200) {
-            this.$bvModal.show('success-message-modal')
+            this.$bvModal.show("success-message-modal");
           } else {
-            this.$bvModal.show('failed-message-modal')
+            this.$bvModal.show("failed-message-modal");
           }
         })
         .catch((err) => {
@@ -168,6 +182,30 @@ export default {
     },
     showAlert() {
       this.dismissCountDown = this.dismissSecs;
+    },
+    readFile() {
+      var fileReader = new FileReader();
+      fileReader.readAsText(this.textFile)
+      fileReader.onload = () => {
+      this.text = fileReader.result
+    }
+      // let fileSelect = document.querySelector("input[type=file]").files[0]; //找到文件上传的元素
+      // console.log(fileSelect)
+      // let reader = new FileReader();
+      // if (typeof FileReader === "undefined") {
+      //   console.log("您的浏览器不支持FileReader接口");
+      //   return;
+      // }
+      // reader.readAsText(fileSelect, "gb2312"); //注意读取中文的是用这个编码，不是utf-8
+      // const _this = this;
+      // reader.onload = function () {
+      //   // console.log(reader.result)
+      //   _this.$nextTick(() => {
+      //     _this.voiceContent = reader.result;
+      //     // console.log(_this.voiceContent)
+      //   });
+      // };
+      // console.log(reader);
     },
 
     // checkFormValidity() {
