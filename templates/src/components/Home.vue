@@ -14,6 +14,7 @@
         <b-col sm="6">
           <b-form-file
             v-model="image_file"
+            name="pic"
             placeholder="Please choose a image or drop it here!"
             accept="image/jpeg, image/png"
           ></b-form-file>
@@ -126,16 +127,16 @@ export default {
   name: "Home",
   data() {
     return {
-      msg: "",
+      // Text area
       text: "",
+      // The .txt file uploaded
+      textFile: null,
+      // This may be deleted
       images: [],
-      file_url: "",
+      // The image uploaded
       image_file: null,
+      // This may be deleted
       imageState: null,
-      dismissSecs: 10,
-      dismissCountDown: 0,
-      showDismissibleAlert: false,
-      textFile: null
     };
   },
   methods: {
@@ -150,6 +151,7 @@ export default {
           console.log(err);
         });
     },
+    // Handle upload image feature, still have problems
     uploadImage() {
       if (this.image_file == null) {
         this.$bvModal.show("no-image-message-modal");
@@ -157,7 +159,7 @@ export default {
       }
       let image = {
         image_bank: "butterfly",
-        image_file: this.image_file.name,
+        image_file: this.image_file,
       };
       console.log(this.image_file);
       console.log(image);
@@ -176,36 +178,13 @@ export default {
           console.log(err);
         });
     },
-
-    countDownChanged(dismissCountDown) {
-      this.dismissCountDown = dismissCountDown;
-    },
-    showAlert() {
-      this.dismissCountDown = this.dismissSecs;
-    },
+    // Handle text import feature
     readFile() {
       var fileReader = new FileReader();
-      fileReader.readAsText(this.textFile)
+      fileReader.readAsText(this.textFile);
       fileReader.onload = () => {
-      this.text = fileReader.result
-    }
-      // let fileSelect = document.querySelector("input[type=file]").files[0]; //找到文件上传的元素
-      // console.log(fileSelect)
-      // let reader = new FileReader();
-      // if (typeof FileReader === "undefined") {
-      //   console.log("您的浏览器不支持FileReader接口");
-      //   return;
-      // }
-      // reader.readAsText(fileSelect, "gb2312"); //注意读取中文的是用这个编码，不是utf-8
-      // const _this = this;
-      // reader.onload = function () {
-      //   // console.log(reader.result)
-      //   _this.$nextTick(() => {
-      //     _this.voiceContent = reader.result;
-      //     // console.log(_this.voiceContent)
-      //   });
-      // };
-      // console.log(reader);
+        this.text = fileReader.result;
+      };
     },
 
     // checkFormValidity() {

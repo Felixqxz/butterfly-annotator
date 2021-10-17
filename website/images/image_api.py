@@ -5,6 +5,7 @@ from flask.json import jsonify
 from flask import Blueprint, request, make_response
 from ..database.access import db
 from flask_cors import cross_origin
+from ..database.models import ImageToAnnotate
 
 image_api = Blueprint('image_api', __name__)
 
@@ -38,12 +39,27 @@ def get_all_images():
 @image_api.route('/api/image/upload', methods=['POST'])
 def upload_image():
 
-    method = request.method
+    # method = request.method
 
-    image_bank = request.json.get('image_bank') or 'null image_bank'
-    image_file = request.json.get("image_file") or 'null image_file'
-    res = make_response(jsonify(image_bank = image_bank, image_file = image_file, method = method))
-    res.status = 200
+    # image_bank = request.json.get('image_bank') or 'null image_bank'
+    # image_file = request.json.get("image_file") or 'null image_file'
+    # res = make_response(jsonify(image_bank = image_bank, image_file = image_file, method = method))
+    # res.status = 200
 
-    return res
-    
+    # return res
+    pic = request.files['pic']
+
+    if not pic:
+        return 'No pic uploaded', 400
+
+    image_bank_id = 1
+    image_bank = "butterfly"
+    file_url = "file_url"
+    # There may be some issues with database
+    img = pic.read()
+
+    imageToAnnotate = ImageToAnnotate(image_bank_id=image_bank_id, image_bank=image_bank, file_url=file_url, img=img)
+    db.session.add(imageToAnnotate)
+    db.session.commit()
+
+    return 'Image has been uploaded', 200
