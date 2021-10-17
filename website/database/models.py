@@ -57,9 +57,11 @@ class ImageToAnnotate(db.Model):
     height = db.Column(db.SmallInteger)
     annotations = relationship('ImageAnnotation', back_populates='annotation.image')
 
-    def __init__(self, image_bank_id, file_url):
+    def __init__(self, image_bank_id, file_url, width, height):
         self.image_bank_id = image_bank_id
         self.file_url = file_url
+        self.width = width
+        self.height = height
 
 class ImageAnnotation(db.Model):
     """
