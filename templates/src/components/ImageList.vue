@@ -1,7 +1,21 @@
 <template>
   <div class="container">
     <h2 class="bank-name">Bank: {{ bankName }}</h2>
-
+    <form>
+      <div class="row">
+        <div class="col-10">
+          <div class="input-group">
+            <div class="input-group-prepend"><span class="input-group-text">
+              <ion-icon name="search-outline"></ion-icon></span>
+            </div>
+            <input type="text" class="form-control" placeholder="Search..."/>
+          </div>
+        </div>
+        <div class="col-2">
+          <!-- sort by: + options (dropdown menu?) TODO -->
+        </div>
+      </div>
+    </form>
     <div class="row">
       <div class="col-md-4 col-sm-6 col-xs-12" v-for="(image, index) in images" v-bind:key="image.id">
         <div class="card no-drag image-to-annotate">
