@@ -1,0 +1,43 @@
+.no-drag {
+    -webkit-user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.image-hover-container {
+    overflow: hidden;
+}
+
+.image-hover-container {
+    overflow: hidden;
+}
+
+.image-hover {
+    transform: scale(1.0);
+    transform-origin: center;
+    transition: 400ms transform;
+}
+
+.image-hover:hover {
+    transform: scale(1.2);
+    transform-origin: center;
+}
+
+.image-to-annotate {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.bank-name {
+    margin-top: 1rem;
+}
+
+.card {
+    transition: border-color 0.3s;
+}
+
+.card:hover {
+    border-color: gray;
+}
