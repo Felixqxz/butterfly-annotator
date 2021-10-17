@@ -36,13 +36,14 @@ def get_all_images():
     })
 
 @image_api.route('/api/image/upload', methods=['POST'])
-@cross_origin()
 def upload_image():
 
     method = request.method
 
-    image_bank = request.form.get("image_bank")
-    image_file = request.form.get("image_file")
-    res = make_response(jsonify(method = method, image_bank = image_bank, image_file = image_file))
+    image_bank = request.json.get('image_bank') or 'null image_bank'
+    image_file = request.json.get("image_file") or 'null image_file'
+    res = make_response(jsonify(image_bank = image_bank, image_file = image_file, method = method))
     res.status = 200
+
     return res
+    

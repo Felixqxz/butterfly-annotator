@@ -94,6 +94,15 @@
       >
     </b-modal>
 
+    <b-modal id="no-image-message-modal" hide-footer>
+      <div class="d-block text-center">
+        <h3>Please upload an image!</h3>
+      </div>
+      <b-button class="mt-3" block @click="$bvModal.hide('no-image-message-modal')"
+        >Close Me</b-button
+      >
+    </b-modal>
+
   </b-container>
 </template>
 
@@ -129,30 +138,28 @@ export default {
     },
     uploadImage() {
       if (this.image_file == null) {
+        this.$bvModal.show('no-image-message-modal')
+        return
       }
       let image = {
         image_bank: "butterfly",
-        image_file: "12345",
+        image_file: this.image_file.name,
       };
       console.log(this.image_file);
       console.log(image);
       axios
         .post(this.$hostname + "/api/image/upload", image)
         .then((res) => {
-          console.log("123");
           console.log(res)
           console.log(res.data)
-          if (res.data.code == 200) {
-            console.log("123");
+          if (res.status == 200) {
             this.$bvModal.show('success-message-modal')
           } else {
-            console.log("456");
             this.$bvModal.show('failed-message-modal')
           }
         })
         .catch((err) => {
           console.log(err);
-          // todo: do something here
         });
     },
 
@@ -191,7 +198,6 @@ export default {
     // },
   },
   created() {
-    // this.getMessage()
     this.getImages();
   },
 };
