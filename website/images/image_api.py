@@ -2,7 +2,7 @@
 The part of the API that allows access to the images of a database.
 """
 from flask.json import jsonify
-from flask import Blueprint, request, make_response
+from flask import Blueprint, request, make_response, Response
 from ..database.access import db
 from flask_cors import cross_origin
 from ..database.models import ImageToAnnotate
@@ -47,19 +47,27 @@ def upload_image():
     # res.status = 200
 
     # return res
-    pic = request.files['pic']
+    pic = request.files["pic"]
 
     if not pic:
         return 'No pic uploaded', 400
 
     image_bank_id = 1
-    image_bank = "butterfly"
+    # image_bank = "butterfly"
     file_url = "file_url"
     # There may be some issues with database
     img = pic.read()
 
-    imageToAnnotate = ImageToAnnotate(image_bank_id=image_bank_id, image_bank=image_bank, file_url=file_url, img=img)
+    imageToAnnotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url, img=img)
     db.session.add(imageToAnnotate)
     db.session.commit()
 
     return 'Image has been uploaded', 200
+
+@image_api.route('/api/image/get/<int:id>')
+def get_img(id):
+    img = ImageToAnnotate.query.filter_by(id=id).first()
+    if not img:
+        return 'No image with that id', 404
+
+    return Response(img.img)

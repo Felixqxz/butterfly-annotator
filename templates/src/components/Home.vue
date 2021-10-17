@@ -12,14 +12,16 @@
           <b-button @click="readFile">Import</b-button>
         </b-col>
         <b-col sm="6">
-          <b-form-file
-            v-model="image_file"
-            name="pic"
-            placeholder="Please choose a image or drop it here!"
-            accept="image/jpeg, image/png"
-          ></b-form-file>
-          <b-button @click="image_file = null">Reset</b-button>
-          <b-button @click="uploadImage">upload</b-button>
+          <form enctype="multipart/form-data">
+            <b-form-file
+              v-model="image_file"
+              name="pic"
+              placeholder="Please choose a image or drop it here!"
+              accept="image/jpeg, image/png"
+            ></b-form-file>
+            <b-button @click="image_file = null">Reset</b-button>
+            <b-button @click="uploadImage">upload</b-button>
+          </form>
         </b-col>
       </b-row>
 
@@ -50,6 +52,12 @@
         </figure>
       </b-row>
     </div>
+
+    <form action="http://localhost:5000/api/image/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="pic">
+      <input type="submit" value="Upload a file">
+      <!-- <b-form-file name="file_upload[]" :multiple="true" :file-name-formatter="formatAssetUpload" no-drop placeholder="Click to choose"></b-form-file> -->
+    </form>
 
     <!-- <div>
       <b-button v-b-modal.modal-prevent-closing>Upload image</b-button>

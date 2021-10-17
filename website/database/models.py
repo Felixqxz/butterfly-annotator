@@ -52,3 +52,4 @@ class ImageToAnnotate(db.Model):
     image_bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
     image_bank = relationship('ImageBank', back_populates='images')
     file_url = db.Column(db.String())
+    img = db.Column(db.Text, nullable=False)
