@@ -17,7 +17,8 @@ def create_app(config_name=None):
         app.config.from_object(config_by_name[config_name])
     db.init_app(app)
     # enable CORS
-    CORS(app, resources={r'/*': {'origins': '*'}})
+    # CORS(app, resources={r'/*': {'origins': '*'}})
+    CORS(app, resources=r'/*')
     # Add routes
     from .images.image_api import image_api
     app.register_blueprint(image_api)

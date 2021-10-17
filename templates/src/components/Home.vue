@@ -75,6 +75,25 @@
         </form>
       </b-modal>
     </div> -->
+
+    <b-modal id="success-message-modal" hide-footer>
+      <div class="d-block text-center">
+        <h3>Upload an image successfully!</h3>
+      </div>
+      <b-button class="mt-3" block @click="$bvModal.hide('success-message-modal')"
+        >Close Me</b-button
+      >
+    </b-modal>
+
+    <b-modal id="failed-message-modal" hide-footer>
+      <div class="d-block text-center">
+        <h3>Failed to upload an image!</h3>
+      </div>
+      <b-button class="mt-3" block @click="$bvModal.hide('failed-message-modal')"
+        >Close Me</b-button
+      >
+    </b-modal>
+
   </b-container>
 </template>
 
@@ -91,6 +110,9 @@ export default {
       file_url: "",
       image_file: null,
       imageState: null,
+      dismissSecs: 10,
+      dismissCountDown: 0,
+      showDismissibleAlert: false,
     };
   },
   methods: {
@@ -108,25 +130,24 @@ export default {
     uploadImage() {
       if (this.image_file == null) {
       }
-      const image = {
+      let image = {
         image_bank: "butterfly",
-        image_file: this.image_file,
-      }
-      console.log(this.image_file)
-      // let request = this.$http.post('/api/image/upload', image)
+        image_file: "12345",
+      };
+      console.log(this.image_file);
+      console.log(image);
       axios
         .post(this.$hostname + "/api/image/upload", image)
         .then((res) => {
+          console.log("123");
+          console.log(res)
+          console.log(res.data)
           if (res.data.code == 200) {
-            this.$message({
-              type: "success",
-              message: "Upload an image successfully!",
-            });
+            console.log("123");
+            this.$bvModal.show('success-message-modal')
           } else {
-            this.$message({
-              message: "Failed to upload an image！",
-              type: "warning",
-            });
+            console.log("456");
+            this.$bvModal.show('failed-message-modal')
           }
         })
         .catch((err) => {
@@ -134,6 +155,14 @@ export default {
           // todo: do something here
         });
     },
+
+    countDownChanged(dismissCountDown) {
+      this.dismissCountDown = dismissCountDown;
+    },
+    showAlert() {
+      this.dismissCountDown = this.dismissSecs;
+    },
+
     // checkFormValidity() {
     //   const valid = this.$refs.form.checkValidity();
     //   this.imageState = valid;

@@ -2,8 +2,9 @@
 The part of the API that allows access to the images of a database.
 """
 from flask.json import jsonify
-from flask import Blueprint, request
+from flask import Blueprint, request, make_response
 from ..database.access import db
+from flask_cors import cross_origin
 
 image_api = Blueprint('image_api', __name__)
 
@@ -34,20 +35,14 @@ def get_all_images():
         'images': images
     })
 
-@image_api.route('/api/test', methods=['GET'])
-def get_all_images_from_database():
-    images = []
-    images.append({
-        'id': 1,
-        'url': 'https://cdn.mos.cms.futurecdn.net/MutKXr3Z2za46Zdi3XM3BM-1200-80.jpg'
-    })
-    return jsonify({
-        'bankName': 'Butterfly',
-        'images': images
-    })
-
 @image_api.route('/api/image/upload', methods=['POST'])
-def upload_image(image):
+@cross_origin()
+def upload_image():
+
+    method = request.method
+
     image_bank = request.form.get("image_bank")
     image_file = request.form.get("image_file")
-    return image_bank + image_file
+    res = make_response(jsonify(method = method, image_bank = image_bank, image_file = image_file))
+    res.status = 200
+    return res
