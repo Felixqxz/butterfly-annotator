@@ -6,6 +6,19 @@ from flask import Blueprint
 
 image_api = Blueprint('image_api', __name__)
 
+
+@image_api.route('/api/bank-list', methods=['GET'])
+def list_banks():
+    banks = []
+    for i in range(7):
+        banks.append({
+            'id': i,
+            'name': 'Coucou ' + str(i),
+            'description': 'This is the bank number ' + str(i),
+        })
+    return jsonify(banks)
+
+
 @image_api.route('/api/bank/<bank>', methods=['GET'])
 def list_images(bank):
     images = []
