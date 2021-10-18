@@ -66,12 +66,12 @@ def upload_image():
     pic.save(file_path)
 
     image_bank_id = 1
-    # image_bank = "butterfly"
-    file_url = "file_url"
+    # image_bank = "Butterfly"
+    file_url = "../../../website/images/source_images/" + pic.filename
     # There may be some issues with database
     img = pic.read()
 
-    imageToAnnotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url, img=img)
+    imageToAnnotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url, img=img, image_name=pic.filename)
     db.session.add(imageToAnnotate)
     db.session.commit()
 
@@ -79,9 +79,19 @@ def upload_image():
 
 @image_api.route('/api/image/getImage', methods=['GET'])
 def get_image():
-    images = ImageToAnnotate.query.filter_by(image_bank_id=1).count()
+    images = []
+    count = ImageToAnnotate.query.filter_by(image_bank_id=1).count()
+    for i in range(count):
+        image = ImageToAnnotate.query.filter_by(id=i+1).first()
+        images.append({
+            'id': i,
+            'url': image.file_url,
+            'imageName': image.image_name,
+        })
+    
     return jsonify({
-        'count': images
+        'bankName': 'Butterfly',
+        'images': images
     })
 
 @image_api.route('/api/image/get/<int:id>')
