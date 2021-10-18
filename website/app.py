@@ -54,8 +54,8 @@ def register():
 
     user = db.session.query(User).filter(User.username == username).first()
     if user:
-        return jsonify({"status": 401,
-                        "reason": "Username already exists"})
+        return jsonify({"status": 401,    
+                       "data": {"message": "User already exists"}})
     else:
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=password_hash)
@@ -63,14 +63,14 @@ def register():
         db.session.commit()
         login_user(user)
         flash('Logged in successfully.')
-        return jsonify({"status": 200, "username": user.username, "email": user.email})
+        return jsonify({"status": 200, "data": {"username": user.username, "email": user.email}})
 
 
 @app.route('/login', methods=['POST'])
 def login():
     if current_user.get_id() != None:
         return jsonify({"status": 401,    
-                        "reason": "User already logged in"})
+                       "data": {"message": "User already logged in"}})
 
     user_info = request.get_json(force=True)
     username = user_info.get('username')
@@ -81,19 +81,23 @@ def login():
         if bcrypt.check_password_hash(user.password_hash, password):
             login_user(user)
             flash('Logged in successfully.')
-            return jsonify({"status": 200, "username": user.username, "email": user.email})
+            return jsonify({"status": 200, "data": {"username": user.username, "email": user.email}})
         else:
             return jsonify({"status": 401,    
-                        "reason": "Password incorrect"})
+                       "data": {"message": "Password incorrect"}})
     else:
         return jsonify({"status": 401,    
-                        "reason": "Username or Password Error"})
+                       "data": {"message": "Username or password error"}})
 
 @app.route('/logout', methods=['POST'])
 def logout():
-    logout_user()
-    return jsonify(**{'result': 200,
-                      'data': {'message': 'logout success'}})
+    if current_user.get_id() != None:
+        logout_user()
+        return jsonify({"status": 200,
+                        "data": {"message": "Log out success"}})
+    else:
+        return jsonify({"status": 401,    
+                       "data": {"message": "Log out fail"}})
 
 if __name__ == '__main__':
     app.run()
