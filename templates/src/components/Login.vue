@@ -45,9 +45,23 @@ export default {
     };
   },
   methods: {
-    onSubmit(evt) {
-      evt.preventDefault();
-      alert(JSON.stringify(this.form));
+    onSubmit() {
+      this.$refs[form].validate((valid) => {
+        console.log("log...")
+        if (valid) {
+          const _this = this;
+          axios.post(this.$hostname + "/login", this.form).then((res) => {
+            console.log(res);
+            const token = res.headers["authorization"];
+            _this.$store.commit("SET_TOKEN", token);
+            _this.$store.commit("SET_USERINFO", res.data.data);
+            _this.$router.push("/");
+          });
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
+      });
     },
   },
 };

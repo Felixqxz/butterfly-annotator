@@ -4,7 +4,7 @@ from flask_login import LoginManager
 from .database.access import db
 from .config import config_by_name
 from .database.loaders import setup_user_loader
-from flask_login import login_user, current_user
+from flask_login import login_user, current_user, logout_user
 from .database.models import User
 from flask_bcrypt import Bcrypt
 from flask.json import jsonify
@@ -29,6 +29,7 @@ def create_app(config_name=None):
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = 'login'
+    login_manager.login_message_category = "info"
     setup_user_loader(login_manager)
 
     
@@ -42,7 +43,7 @@ def create_app(config_name=None):
 app = create_app()
 
 bcrypt = Bcrypt(app)
-app.secret_key = '766574a7486ff3209b5b2a347a854f168d0a5d2af588b681cf592fb7f61f99e2'
+app.config['SECRET_KEY'] = '766574a7486ff3209b5b2a347a854f168d0a5d2af588b681cf592fb7f61f99e2'
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -62,7 +63,7 @@ def register():
         db.session.commit()
         login_user(user)
         flash('Logged in successfully.')
-        return jsonify({"status": 200})
+        return jsonify({"status": 200, "username": user.username, "email": user.email})
 
 
 @app.route('/login', methods=['POST'])
@@ -80,13 +81,19 @@ def login():
         if bcrypt.check_password_hash(user.password_hash, password):
             login_user(user)
             flash('Logged in successfully.')
-            return jsonify({"status": 200})
+            return jsonify({"status": 200, "username": user.username, "email": user.email})
         else:
             return jsonify({"status": 401,    
                         "reason": "Password incorrect"})
     else:
         return jsonify({"status": 401,    
                         "reason": "Username or Password Error"})
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    logout_user()
+    return jsonify(**{'result': 200,
+                      'data': {'message': 'logout success'}})
 
 if __name__ == '__main__':
     app.run()

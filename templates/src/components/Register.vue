@@ -4,32 +4,32 @@
     <div id="login-row" class="row justify-content-center align-items-center">
       <div id="login-column" class="col-md-6">
         <div id="login-box" class="col-md-12">
-          <b-form @submit="onSubmit" v-if="show">
+          <b-form :model="registrationForm" ref="registrationForm">
             <h3 class="text-center text-info">Register</h3>
             <b-form-group class="form-group" id="input-group-1" label-for="username">
               <label class="text-info">Username:</label><br>
-              <b-form-input class="form-control" id="username" v-model="form.username" required></b-form-input>
+              <b-form-input class="form-control" id="username" v-model="registrationForm.username" required></b-form-input>
             </b-form-group>
 
             <b-form-group class="form-group" id="input-group-2" label-for="password">
               <label class="text-info">Password:</label><br>
-              <b-form-input class="form-control" id="password" v-model="form.password" type="password"
+              <b-form-input class="form-control" id="password" v-model="registrationForm.password" type="password"
                             required></b-form-input>
             </b-form-group>
 
             <b-form-group class="form-group" id="input-group-3" label-for="confirm_password">
               <label class="text-info">Confirm your password:</label><br>
-              <b-form-input id="confirm_password" v-model="form.confirmedPassword" type="password" required
+              <b-form-input id="confirm_password" v-model="registrationForm.confirmedPassword" type="password" required
               ></b-form-input>
             </b-form-group>
 
             <b-form-group id="input-group-4" label-for="email">
               <label class="text-info">Email:</label><br>
-              <b-form-input id="email" v-model="form.email" type="email" required
+              <b-form-input id="email" v-model="registrationForm.email" type="email" required
               ></b-form-input>
             </b-form-group>
 
-            <b-button class="btn btn-info btn-md" type="submit" variant="primary">Register</b-button>&nbsp;&nbsp;
+            <b-button class="btn btn-info btn-md" type="submit" @click="submitForm('registrationForm')" variant="primary">Register</b-button>&nbsp;&nbsp;
 
           </b-form>
           <br>
@@ -49,20 +49,25 @@ export default {
   },
   data() {
     return {
-      form: {
+      registrationForm: {
         username: "",
         password: "",
         confirmedPassword: "",
         email: ""
       },
-      show: true,
     };
   },
   methods: {
-    onSubmit(evt) {
-      evt.preventDefault();
-      alert(JSON.stringify(this.form));
+    submitForm(formName) {
+      console.log("hhh")
+      console.log("register...")
+      const res = axios.post(this.$hostname + "/register", formName)
+      console.log(res)
+          // const token = res.headers["authorization"];
+          // this.$store.commit("SET_TOKEN", token);
+          // this.$store.commit("SET_USERINFO", res.data.data);
+      this.$router.push("/");
     },
-  },
+  }
 };
 </script>
