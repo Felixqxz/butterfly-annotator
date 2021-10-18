@@ -42,6 +42,7 @@
 
 <script>
 import Header from '../components/Header.vue'
+import axios from 'axios'
 
 export default {
   components: {
@@ -62,13 +63,18 @@ export default {
     submitForm(formName) {
       console.log("hhh")
       console.log("register...")
+      //
+      axios.post(this.$hostname + "/register", this.registrationForm).then((res) => {
+        console.log(res)
+      })
 
-      const res = axios.post(this.$hostname + "/register", formName)
-      console.log(res)
-          // const token = res.headers["authorization"];
-          // this.$store.commit("SET_TOKEN", token);
-          // this.$store.commit("SET_USERINFO", res.data.data);
-      this.$router.push("/");
+      //     // const token = res.headers["authorization"];
+      //     // this.$store.commit("SET_TOKEN", token);
+      //     // this.$store.commit("SET_USERINFO", res.data.data);
+      // this.$router.push("/");
+
+
+      console.log('hi')
     },
   }
 };
