@@ -29,7 +29,7 @@
               ></b-form-input>
             </b-form-group>
 
-            <b-button class="btn btn-info btn-md" type="submit" @click="submitForm('registrationForm')" variant="primary">Register</b-button>&nbsp;&nbsp;
+            <b-button class="btn btn-info btn-md" type="submit" @click="submitForm()" variant="primary">Register</b-button>&nbsp;&nbsp;
 
           </b-form>
           <br>
@@ -56,25 +56,18 @@ export default {
         confirmedPassword: "",
         email: ""
       },
-      submitted: false
     };
   },
   methods: {
-    submitForm(formName) {
-      console.log("hhh")
-      console.log("register...")
-      //
-      axios.post(this.$hostname + "/register", this.registrationForm).then((res) => {
+    async submitForm() {
+      await axios.post(this.$hostname + "/register", this.registrationForm).then((res) => {
         console.log(res)
       })
 
-      //     // const token = res.headers["authorization"];
-      //     // this.$store.commit("SET_TOKEN", token);
-      //     // this.$store.commit("SET_USERINFO", res.data.data);
-      // this.$router.push("/");
-
-
-      console.log('hi')
+        // const token = res.headers["authorization"];
+        // this.$store.commit("SET_TOKEN", token);
+        // this.$store.commit("SET_USERINFO", res.data.data);
+      this.$router.push("/");
     },
   }
 };
