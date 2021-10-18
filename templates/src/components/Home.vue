@@ -5,23 +5,31 @@
         <b-col sm="6">
           <b-form-file
             v-model="textFile"
-            placeholder="Please choose a .txt file!"
+            placeholder="Click here to choose a .txt file, then click import!"
             accept=".txt"
           ></b-form-file>
           <b-button @click="textFile = null">Reset</b-button>
           <b-button @click="readFile">Import</b-button>
         </b-col>
         <b-col sm="6">
-          <form enctype="multipart/form-data">
+          <form
+            action="http://localhost:5000/api/image/upload"
+            method="post"
+            enctype="multipart/form-data"
+          >
+            <input type="file" name="pic" value="choose"/>
+            <input type="submit" value="Upload it!" />
+          </form>
+          <!-- <form enctype="multipart/form-data">
             <b-form-file
               v-model="image_file"
               name="pic"
-              placeholder="Please choose a image or drop it here!"
+              placeholder="Please choose an image or drop it here!"
               accept="image/jpeg, image/png"
             ></b-form-file>
             <b-button @click="image_file = null">Reset</b-button>
             <b-button @click="uploadImage">upload</b-button>
-          </form>
+          </form> -->
         </b-col>
       </b-row>
 
@@ -38,62 +46,38 @@
             max-rows="8"
           ></b-form-textarea>
         </b-col>
-        <figure
-          class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
-          v-for="image in newImages"
-          v-bind:key="image.id"
-        >
+        <b-col sm="6">
           <img
-            :src="imgSrc(image)"
+            :src="imageBox"
             class="figure-img img-fluid rounded"
-            :alt="image.id"
+            :alt="error"
           />
-          <figcaption class="figure-caption text-center">
-            {{ image.imageName }}
-          </figcaption>
-        </figure>
+          <div style='text-align:center'>
+            <button type="button" class="btn btn-primary">Select regions</button>
+          </div>
+        </b-col>
       </b-row>
+      <div style='text-align:center'>
+        <button type="button" class="btn btn-primary">Export as PDF</button>
+      </div>
     </div>
 
-    <form
-      action="http://localhost:5000/api/image/upload"
-      method="post"
-      enctype="multipart/form-data"
+    <h2>All your uploaded images will be displayed here</h2>
+    <figure
+      class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
+      v-for="image in newImages"
+      v-bind:key="image.id"
     >
-      <input type="file" name="pic" />
-      <input type="submit" value="Upload a file" />
-    </form>
-
-    <!-- <div>
-      <b-button v-b-modal.modal-prevent-closing>Upload image</b-button>
-      <b-modal
-        id="modal-prevent-closing"
-        ref="modal"
-        title="Upload Your Image"
-        @show="resetModal"
-        @hidden="resetModal"
-        @ok="handleOk"
-      >
-        <form ref="form" @submit.stop.prevent="handleSubmit">
-          <b-form-group
-            label="Image"
-            label-for="image-input"
-            invalid-feedback="If you want to upload, you must choose an image first!"
-            :state="imageState"
-          >
-            <b-form-file
-              id="image-input"
-              v-model="image_file"
-              class="mt-3"
-              placeholder="Choose a image or drop it here!"
-              accept="image/jpeg, image/png"
-              :state="imageState"
-              required
-            ></b-form-file>
-          </b-form-group>
-        </form>
-      </b-modal>
-    </div> -->
+      <img
+        :src="imgSrc(image)"
+        class="figure-img img-fluid rounded"
+        :alt="image.id"
+        @click="putIntoBox(image)"
+      />
+      <figcaption class="figure-caption text-center">
+        {{ image.imageName }}
+      </figcaption>
+    </figure>
 
     <b-modal id="success-message-modal" hide-footer>
       <div class="d-block text-center">
@@ -150,6 +134,8 @@ export default {
       image_file: null,
       // This may be deleted
       imageState: null,
+      // Box to display the image to be annotated
+      imageBox: null,
     };
   },
   methods: {
@@ -192,43 +178,22 @@ export default {
       axios
         .get(this.$hostname + "/api/image/getImage")
         .then((res) => {
-          console.log(res)
-          let data = res.data
-          this.newImages = data.images
+          console.log(res);
+          let data = res.data;
+          this.newImages = data.images;
         })
         .catch((err) => {
-          console.log(err)
+          console.log(err);
         });
     },
-    imgSrc(image){
-      return require("../../../website/images/source_images/" + image.imageName)
+    imgSrc(image) {
+      return require("../../../website/images/source_images/" +
+        image.imageName);
     },
-    // checkFormValidity() {
-    //   const valid = this.$refs.form.checkValidity();
-    //   this.imageState = valid;
-    //   return valid;
-    // },
-    // resetModal() {
-    //   this.image_file = "";
-    //   this.imageState = null;
-    // },
-    // handleOk(bvModalEvt) {
-    //   // Prevent modal from closing
-    //   bvModalEvt.preventDefault();
-    //   // Trigger submit handler
-    //   this.handleSubmit();
-    // },
-    // handleSubmit() {
-    //   // Exit when the form isn't valid
-    //   if (!this.checkFormValidity()) {
-    //     return;
-    //   }
-    //   console.log(this.image_file)
-    //   // Hide the modal manually
-    //   this.$nextTick(() => {
-    //     this.$bvModal.hide("modal-prevent-closing");
-    //   });
-    // },
+    putIntoBox(image) {
+      this.imageBox = require("../../../website/images/source_images/" +
+        image.imageName);
+    },
   },
   created() {
     this.getAllImages();
