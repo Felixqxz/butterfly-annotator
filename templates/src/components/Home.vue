@@ -17,8 +17,8 @@
             method="post"
             enctype="multipart/form-data"
           >
-            <input type="file" name="pic" value="choose"/>
-            <input type="submit" value="Upload it!" />
+            <input type="file" v-bind="image_file" name="pic" value="choose"/>
+            <input type="submit" value="Upload it!" @click="uploadImage"/>
           </form>
           <!-- <form enctype="multipart/form-data">
             <b-form-file
@@ -152,8 +152,6 @@ export default {
       axios
         .post(this.$hostname + "/api/image/upload", image)
         .then((res) => {
-          console.log(res);
-          console.log(res.data);
           if (res.status == 200) {
             this.$bvModal.show("success-message-modal");
           } else {

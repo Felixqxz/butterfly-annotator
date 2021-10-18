@@ -48,9 +48,6 @@ def upload_image():
     db.session.add(imageToAnnotate)
     db.session.commit()
 
-    # res = make_response(jsonify(image_bank_id=image_bank_id, image_name=pic.filename, method = method))
-    # res.status = 200
-    # return (jsonify{image_bank_id=image_bank_id, image_name=pic.filename, method = method})
     return jsonify({
         'status': 200,
         'image_bank_id': image_bank_id,
