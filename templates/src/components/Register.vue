@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div>
     <Header></Header>
     <div id="login-row" class="row justify-content-center align-items-center">
       <div id="login-column" class="col-md-6">
@@ -55,12 +55,14 @@ export default {
         confirmedPassword: "",
         email: ""
       },
+      submitted: false
     };
   },
   methods: {
     submitForm(formName) {
       console.log("hhh")
       console.log("register...")
+
       const res = axios.post(this.$hostname + "/register", formName)
       console.log(res)
           // const token = res.headers["authorization"];
