@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div>
     <Header></Header>
     <div id="login-row" class="row justify-content-center align-items-center">
       <div id="login-column" class="col-md-6">
@@ -42,6 +42,7 @@
 
 <script>
 import Header from '../components/Header.vue'
+import axios from 'axios'
 
 export default {
   components: {
@@ -55,18 +56,25 @@ export default {
         confirmedPassword: "",
         email: ""
       },
+      submitted: false
     };
   },
   methods: {
     submitForm(formName) {
       console.log("hhh")
       console.log("register...")
-      const res = axios.post(this.$hostname + "/register", formName)
-      console.log(res)
-          // const token = res.headers["authorization"];
-          // this.$store.commit("SET_TOKEN", token);
-          // this.$store.commit("SET_USERINFO", res.data.data);
-      this.$router.push("/");
+      //
+      axios.post(this.$hostname + "/register", this.registrationForm).then((res) => {
+        console.log(res)
+      })
+
+      //     // const token = res.headers["authorization"];
+      //     // this.$store.commit("SET_TOKEN", token);
+      //     // this.$store.commit("SET_USERINFO", res.data.data);
+      // this.$router.push("/");
+
+
+      console.log('hi')
     },
   }
 };
