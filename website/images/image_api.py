@@ -26,36 +26,11 @@ def list_images(bank):
         'images': images,
     }) # TODO
 
-@image_api.route('/api/images', methods=['GET'])
-def get_all_images():
-    images = []
-    images.append({
-        'id': 1,
-        'url': 'https://cdn.mos.cms.futurecdn.net/MutKXr3Z2za46Zdi3XM3BM-1200-80.jpg'
-    })
-    return jsonify({
-        'bankName': 'Butterfly',
-        'images': images
-    })
-
-@image_api.route('/api/image/', methods=['POST'])
-def upload_test():
-    f = request.files['pic']
-    f.save(f.filename)
-    # return 'successfully', 200
-    return Response(filename=f.filename)
-
+# This api is used to upload an image
 @image_api.route('/api/image/upload', methods=['POST'])
 def upload_image():
 
-    # method = request.method
-
-    # image_bank = request.json.get('image_bank') or 'null image_bank'
-    # image_file = request.json.get("image_file") or 'null image_file'
-    # res = make_response(jsonify(image_bank = image_bank, image_file = image_file, method = method))
-    # res.status = 200
-
-    # return res
+    method = request.method
     pic = request.files["pic"]
 
     if not pic:
@@ -68,15 +43,22 @@ def upload_image():
     image_bank_id = 1
     # image_bank = "Butterfly"
     file_url = "../../../website/images/source_images/" + pic.filename
-    # There may be some issues with database
-    img = pic.read()
 
-    imageToAnnotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url, img=img, image_name=pic.filename)
+    imageToAnnotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url, image_name=pic.filename)
     db.session.add(imageToAnnotate)
     db.session.commit()
 
-    return 'Image has been uploaded', 200
+    # res = make_response(jsonify(image_bank_id=image_bank_id, image_name=pic.filename, method = method))
+    # res.status = 200
+    # return (jsonify{image_bank_id=image_bank_id, image_name=pic.filename, method = method})
+    return jsonify({
+        'status': 200,
+        'image_bank_id': image_bank_id,
+        'image_name': pic.filename,
+        'method': method
+    })
 
+# This api is used to get all images info that user uploaded
 @image_api.route('/api/image/getImage', methods=['GET'])
 def get_image():
     images = []
@@ -90,17 +72,7 @@ def get_image():
         })
     
     return jsonify({
+        'status': 200,
         'bankName': 'Butterfly',
         'images': images
     })
-
-@image_api.route('/api/image/get/<int:id>')
-def get_img(id):
-    img = ImageToAnnotate.query.filter_by(id=id).first()
-    if not img:
-        return 'No image with that id', 404
-
-    response = make_response(img.img)
-    response.headers['Content-Type'] = 'image/png'
-
-    return Response(img.img)

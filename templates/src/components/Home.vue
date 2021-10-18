@@ -62,7 +62,6 @@
     >
       <input type="file" name="pic" />
       <input type="submit" value="Upload a file" />
-      <!-- <b-form-file name="file_upload[]" :multiple="true" :file-name-formatter="formatAssetUpload" no-drop placeholder="Click to choose"></b-form-file> -->
     </form>
 
     <!-- <div>
@@ -95,12 +94,6 @@
         </form>
       </b-modal>
     </div> -->
-
-    <img
-      src="../../../website/images/source_images/home page design.jpeg"
-      class="figure-img img-fluid rounded"
-      alt="xd"
-    />
 
     <b-modal id="success-message-modal" hide-footer>
       <div class="d-block text-center">
@@ -151,30 +144,15 @@ export default {
       text: "",
       // The .txt file uploaded
       textFile: null,
-      // This may be deleted
-      images: [],
+      // Save all the images info that user uploaded
       newImages: [],
       // The image uploaded
       image_file: null,
       // This may be deleted
       imageState: null,
-      url: {
-        url:require("../../../website/images/source_images/home page design.jpeg") 
-        }
     };
   },
   methods: {
-    // getImages() {
-    //   axios
-    //     .get(this.$hostname + "/api/images")
-    //     .then((res) => {
-    //       let data = res.data;
-    //       this.images = data.images;
-    //     })
-    //     .catch((err) => {
-    //       console.log(err);
-    //     });
-    // },
     // Handle upload image feature, still have problems
     uploadImage() {
       if (this.image_file == null) {
@@ -185,8 +163,6 @@ export default {
         image_bank: "butterfly",
         image_file: this.image_file,
       };
-      console.log(this.image_file);
-      console.log(image);
       axios
         .post(this.$hostname + "/api/image/upload", image)
         .then((res) => {
@@ -210,17 +186,7 @@ export default {
         this.text = fileReader.result;
       };
     },
-    // getCount() {
-    //   console.log('enter')
-    //   axios
-    //     .get(this.$hostname + "/api/image/getImage")
-    //     .then((res) => {
-    //       console.log(res)
-    //     })
-    //     .catch((err) => {
-    //       console.log(err)
-    //     });
-    // },
+    // display all the images the user uploaded
     getAllImages() {
       console.log("enter getAllImages");
       axios
@@ -235,10 +201,6 @@ export default {
         });
     },
     imgSrc(image){
-      console.log(image.url)
-      console.log("../../../website/images/source_images/" + image.imageName)
-      console.log(typeof(image.url))
-      var a = image.url
       return require("../../../website/images/source_images/" + image.imageName)
     },
     // checkFormValidity() {
