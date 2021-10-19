@@ -3,77 +3,78 @@
     <Header></Header>
     <b-container fluid>
       <div class="container">
+
         <b-row>
-          <b-col sm="6">
+          <b-col class="aline-file-input" sm="5">
             <b-form-file
               v-model="textFile"
               placeholder="Click here to choose a .txt file, then click import!"
               accept=".txt"
             ></b-form-file>
-            <b-button @click="textFile = null">Reset</b-button>
-            <b-button @click="readFile">Import</b-button>
+
           </b-col>
-          <b-col sm="6">
-            <!-- <form
-              action="http://localhost:5000/api/image/upload"
-              method="post"
-              enctype="multipart/form-data"
-            >
-              <input
-                type="file"
-                name="pic"
-                value="choose"
-              />
-              <input type="submit" value="Upload it!" @click="uploadImage" />
-            </form> -->
+
+          <b-col class="aline-button" sm="1">
+            <b-button class="button-submit" @click="readFile">Import</b-button>
+          </b-col>
+
+          <b-col class="aline-file-input" sm="5">
               <b-form-file
                 v-model="image_file"
                 placeholder="Please choose an image or drop it here!"
                 accept="image/jpeg, image/png"
               ></b-form-file>
-              <b-button @click="image_file = null">Reset</b-button>
-              <b-button @click="uploadImage">upload</b-button>
+          </b-col>
+
+          <b-col class="aline-button" sm="1">
+            <b-button class="button-submit" @click="uploadImage">upload</b-button>
           </b-col>
         </b-row>
 
+        <br>
+
         <b-row>
-          <b-col sm="2">
-            <button type="button" class="btn btn-primary">Select words</button>
+          <b-col class="textbox-area" sm="1">
+            <b-button class="button-submit">Select words</b-button>
           </b-col>
-          <b-col sm="4">
+
+          <b-col class="textbox-area" sm="5">
             <b-form-textarea
               id="textarea-auto-height"
               v-model="text"
               placeholder="Auto height textarea"
-              rows="3"
+              rows="10"
               max-rows="8"
             ></b-form-textarea>
           </b-col>
+
           <b-col sm="6">
             <div class="card" style="width: 32rem">
               <img
                 :src="imageBox"
                 class="card-img-top figure-img img-fluid rounded"
                 alt="Currently no image in this area, please choose one from the image you uploaded."
-                style="width: auto; height: 380px"
+                style="width: auto; height: 380px;"
               />
-              <div class="card-body">
-                <div style="text-align: center">
-                  <h5 class="card-text">{{ imageDescription }}</h5>
-                  <button type="button" class="btn btn-primary">
-                    Select regions
-                  </button>
-                </div>
+
+              <div class="card-body" style="text-align: center">
+                <h5 class="card-text">{{ imageDescription }}</h5>
+                <b-button class="button-submit" type="button">
+                  Select regions
+                </b-button>
               </div>
+
             </div>
           </b-col>
+
         </b-row>
+
         <div style="text-align: center">
-          <button type="button" class="btn btn-primary">Export as PDF</button>
+          <b-button id="button-export" class="button-submit" type="button" size="lg">Export as PDF</b-button>
         </div>
+
       </div>
 
-      <h2>All your uploaded images will be displayed here</h2>
       <figure
         class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
         v-for="image in newImages"
@@ -130,7 +131,7 @@
         <div class="d-block text-center">
           <h3>Failed to upload an image!</h3>
         </div>
-        -->
+
         <b-button
           class="mt-3"
           block
@@ -212,7 +213,7 @@ export default {
 
       let formData = new FormData();
       formData.append("imgFile", this.image_file);
-      
+
       axios
         .post(this.$hostname + "/api/image/upload", formData, {
           headers: {
@@ -292,3 +293,25 @@ export default {
   },
 };
 </script>
+
+<style>
+.col-sm-1.aline-button {
+  padding-left: 0px;
+}
+.col-sm-5.aline-file-input {
+  padding-right: 0px;
+}
+.button-submit.btn-secondary {
+  color: black;
+  background-color: #E9ECEF;
+}
+.textbox-area.col-sm-1 {
+  padding: 0px;
+  margin-top: 70px;
+}
+#button-export{
+  margin-top: 40px;
+  color: white;
+  background-color: #17A2B8;
+}
+</style>
