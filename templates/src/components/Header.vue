@@ -24,7 +24,7 @@
             <b-nav-item href="/login">Login</b-nav-item>
           </b-navbar-nav>
 
-          <b-nav-item-dropdown right>
+          <b-nav-item-dropdown right v-show="hasLogin">
 
             <template #button-content>
               <em>{{username}}</em>
