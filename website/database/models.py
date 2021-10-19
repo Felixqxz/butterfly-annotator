@@ -1,7 +1,8 @@
 from sqlalchemy.orm import relationship
 from .access import db
+from flask_login import UserMixin
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     """
     Represents an app's user.
     """

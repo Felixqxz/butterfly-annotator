@@ -3,6 +3,8 @@ import Router from 'vue-router'
 // import components
 import Home from '../components/Home.vue'
 import ImageList from '../components/ImageList.vue'
+import Login from '../components/Login.vue'
+import Register from '../components/Register.vue'
 
 Vue.use(Router)
 
@@ -19,6 +21,16 @@ export default new Router({
       path: '/bank/:bankId',
       name: 'ImageList',
       component: ImageList
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: Login
+    },
+    {
+      path: '/register',
+      name: 'Register',
+      component: Register
     }
   ],
 })
