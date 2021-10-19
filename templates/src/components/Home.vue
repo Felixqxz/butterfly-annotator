@@ -14,31 +14,27 @@
             <b-button @click="readFile">Import</b-button>
           </b-col>
           <b-col sm="6">
-            <form
+            <!-- <form
               action="http://localhost:5000/api/image/upload"
               method="post"
               enctype="multipart/form-data"
             >
               <input
                 type="file"
-                v-bind="image_file"
                 name="pic"
                 value="choose"
               />
               <input type="submit" value="Upload it!" @click="uploadImage" />
-            </form> 
-            <!-- <form enctype="multipart/form-data">
+            </form> -->
               <b-form-file
                 v-model="image_file"
-                name="pic"
                 placeholder="Please choose an image or drop it here!"
                 accept="image/jpeg, image/png"
               ></b-form-file>
               <b-button @click="image_file = null">Reset</b-button>
               <b-button @click="uploadImage">upload</b-button>
-            </form> -->
           </b-col>
-        </b-row> 
+        </b-row>
 
         <b-row>
           <b-col sm="2">
@@ -56,7 +52,6 @@
           <b-col sm="6">
             <div class="card" style="width: 32rem">
               <img
-              
                 :src="imageBox"
                 class="card-img-top figure-img img-fluid rounded"
                 alt="Currently no image in this area, please choose one from the image you uploaded."
@@ -64,7 +59,7 @@
               />
               <div class="card-body">
                 <div style="text-align: center">
-                <h5 class="card-text">{{ imageDescription }}</h5>
+                  <h5 class="card-text">{{ imageDescription }}</h5>
                   <button type="button" class="btn btn-primary">
                     Select regions
                   </button>
@@ -107,14 +102,39 @@
         >
       </b-modal>
 
+      <b-modal id="success-textFile-message-modal" hide-footer>
+        <div class="d-block text-center">
+          <h3>import file successfully!</h3>
+        </div>
+        <b-button
+          class="mt-3"
+          block
+          @click="$bvModal.hide('success-textFile-message-modal')"
+          >Close Me</b-button
+        >
+      </b-modal>
+
       <b-modal id="failed-message-modal" hide-footer>
         <div class="d-block text-center">
           <h3>Failed to upload an image!</h3>
-        </div> -->
+        </div>
         <b-button
           class="mt-3"
           block
           @click="$bvModal.hide('failed-message-modal')"
+          >Close Me</b-button
+        >
+      </b-modal>
+
+      <b-modal id="failed-textFile-message-modal" hide-footer>
+        <div class="d-block text-center">
+          <h3>Failed to upload an image!</h3>
+        </div>
+        -->
+        <b-button
+          class="mt-3"
+          block
+          @click="$bvModal.hide('failed-textFile-message-modal')"
           >Close Me</b-button
         >
       </b-modal>
@@ -127,6 +147,18 @@
           class="mt-3"
           block
           @click="$bvModal.hide('no-image-message-modal')"
+          >Close Me</b-button
+        >
+      </b-modal>
+
+      <b-modal id="no-textFile-message-modal" hide-footer>
+        <div class="d-block text-center">
+          <h3>Please choose a .txt file!</h3>
+        </div>
+        <b-button
+          class="mt-3"
+          block
+          @click="$bvModal.hide('no-textFile-message-modal')"
           >Close Me</b-button
         >
       </b-modal>
@@ -159,9 +191,11 @@ export default {
       // This may be deleted
       imageState: null,
       // Box to display the image to be annotated
-      imageBox: "https://cdn.mos.cms.futurecdn.net/MutKXr3Z2za46Zdi3XM3BM-1200-80.jpg",
+      imageBox:
+        "https://cdn.mos.cms.futurecdn.net/MutKXr3Z2za46Zdi3XM3BM-1200-80.jpg",
       // The description of the image user selected
-      imageDescription: "This is an example image, please click one you uploaded!",
+      imageDescription:
+        "This is an example image, please click one you uploaded!",
     };
   },
   methods: {
@@ -175,61 +209,17 @@ export default {
         image_bank: "butterfly",
         image_file: this.image_file,
       };
-      // console.log(this.image_file)
-      // console.log(image)
 
-      let formData = new FormData()
-      formData.append('imgFile', this.image_file)
-
-      axios({
-              method: 'post',
-              url: this.$hostname + "/api/image/upload",
-              data: {
-                formData
-              },
-              headers: {
-                'Content-Type': 'multipart/form-data'
-              }
-            }).then((res) => {
-
-                if (res.status == 200) {
-                  this.$bvModal.show("success-message-modal")
-                } else {
-                  this.$bvModal.show("failed-message-modal")
-                }
-              })
-              .catch((err) => {
-                console.log(err)
-              });
-
-    },
-
-    // Handle text import feature
-    //text is defined in data() {}
-    readFile() {
-      var fileReader = new FileReader()
-      fileReader.readAsText(this.textFile)
-      fileReader.onload = () => {
-        this.text = fileReader.result
-      };
-
-      let formData = new FormData()
-      formData.append('txtFile', this.textFile)
-
-      for (var key of formData.keys()) {
-        console.log(key);
-        console.log(formData.get(key));
-      }
-
+      let formData = new FormData();
+      formData.append("imgFile", this.image_file);
+      
       axios
-        .post(this.$hostname + "/api/description/upload", formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            }
-        ).then((res) => {
-
+        .post(this.$hostname + "/api/image/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((res) => {
           if (res.status == 200) {
             this.$bvModal.show("success-message-modal");
           } else {
@@ -240,7 +230,39 @@ export default {
           console.log(err);
         });
     },
+    // Handle text import feature
+    // text is defined in data() {}
+    readFile() {
+      if (this.textFile == null) {
+        this.$bvModal.show("no-textFile-message-modal");
+        return;
+      }
+      var fileReader = new FileReader();
+      fileReader.readAsText(this.textFile);
+      fileReader.onload = () => {
+        this.text = fileReader.result;
+      };
 
+      let formData = new FormData();
+      formData.append("txtFile", this.textFile);
+
+      axios
+        .post(this.$hostname + "/api/description/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((res) => {
+          if (res.status == 200) {
+            this.$bvModal.show("success-textFile-message-modal");
+          } else {
+            this.$bvModal.show("failed-textFile-message-modal");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
     //display all the images the user uploaded
     getAllImages() {
       console.log("enter getAllImages");
@@ -255,20 +277,18 @@ export default {
           console.log(err);
         });
     },
-    
-    // imgSrc(image) {
-    //   return require("../../../website/static/source_images/" +
-    //     image.imageName);
-    // },
-    // putIntoBox(image) {
-
-    //   this.imageBox = require("../../../website/static/source_images/" +
-    //     image.imageName);
-    //   this.imageDescription = image.imageName.split(".")[0];
-    // },
+    imgSrc(image) {
+      return require("../../../website/static/source_images/" +
+        image.imageName);
+    },
+    putIntoBox(image) {
+      this.imageBox = require("../../../website/static/source_images/" +
+        image.imageName);
+      this.imageDescription = image.imageName.split(".")[0];
+    },
   },
-  // created() {
-  //   this.getAllImages();
-  // },
+  created() {
+    this.getAllImages();
+  },
 };
 </script>

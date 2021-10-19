@@ -31,14 +31,14 @@ def list_images(bank):
 def upload_image():
 
     method = request.method
-    pic = request.files["pic"]
+    pic = request.files['imgFile']
 
     if not pic:
         return 'No pic uploaded', 400
 
-    # path = basedir + "/website/static/source_images/"
-    # file_path = path + pic.filename
-    # pic.save(file_path)
+    path = basedir + "/website/static/source_images/"
+    file_path = path + pic.filename
+    pic.save(file_path)
 
     image_bank_id = 1
     # image_bank = "Butterfly"
