@@ -19,8 +19,13 @@
               method="post"
               enctype="multipart/form-data"
             >
-              <input type="file" v-bind="image_file" name="pic" value="choose"/>
-              <input type="submit" value="Upload it!" @click="uploadImage"/>
+              <input
+                type="file"
+                v-bind="image_file"
+                name="pic"
+                value="choose"
+              />
+              <input type="submit" value="Upload it!" @click="uploadImage" />
             </form>
             <!-- <form enctype="multipart/form-data">
               <b-form-file
@@ -49,17 +54,26 @@
             ></b-form-textarea>
           </b-col>
           <b-col sm="6">
-            <img
-              :src="imageBox"
-              class="figure-img img-fluid rounded"
-              alt="error"
-            />
-            <div style='text-align:center'>
-              <button type="button" class="btn btn-primary">Select regions</button>
+            <div class="card" style="width: 32rem">
+              <img
+              
+                :src="imageBox"
+                class="card-img-top figure-img img-fluid rounded"
+                alt="Currently no image in this area, please choose one from the image you uploaded."
+                style="width: auto; height: 380px"
+              />
+              <div class="card-body">
+                <div style="text-align: center">
+                <h5 class="card-text">{{ imageDescription }}</h5>
+                  <button type="button" class="btn btn-primary">
+                    Select regions
+                  </button>
+                </div>
+              </div>
             </div>
           </b-col>
         </b-row>
-        <div style='text-align:center'>
+        <div style="text-align: center">
           <button type="button" class="btn btn-primary">Export as PDF</button>
         </div>
       </div>
@@ -123,14 +137,14 @@
 
 <script>
 import axios from "axios";
-import Header from '../components/Header.vue'
-import Footer from '../components/Footer.vue'
+import Header from "../components/Header.vue";
+import Footer from "../components/Footer.vue";
 
 export default {
   name: "Home",
   components: {
     Header,
-    Footer
+    Footer,
   },
   data() {
     return {
@@ -145,7 +159,9 @@ export default {
       // This may be deleted
       imageState: null,
       // Box to display the image to be annotated
-      imageBox: null,
+      imageBox: "https://cdn.mos.cms.futurecdn.net/MutKXr3Z2za46Zdi3XM3BM-1200-80.jpg",
+      // The description of the image user selected
+      imageDescription: "This is an example image, please click one you uploaded!",
     };
   },
   methods: {
@@ -199,8 +215,10 @@ export default {
         image.imageName);
     },
     putIntoBox(image) {
+
       this.imageBox = require("../../../website/images/source_images/" +
         image.imageName);
+      this.imageDescription = image.imageName.split(".")[0];
     },
   },
   created() {
