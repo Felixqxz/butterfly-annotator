@@ -37,16 +37,19 @@
         </div>
       </div>
     </div>
+    <Footer></Footer>
   </div>
 </template>
 
 <script>
 import Header from '../components/Header.vue'
+import Footer from '../components/Footer.vue'
 import axios from 'axios'
 
 export default {
   components: {
-    Header
+    Header,
+    Footer
   },
   data() {
     return {
@@ -59,8 +62,8 @@ export default {
     };
   },
   methods: {
-    async submitForm() {
-      await axios.post(this.$hostname + "/register", this.registrationForm).then((res) => {
+    submitForm() {
+      axios.post(this.$hostname + "/register", this.registrationForm).then((res) => {
         console.log(res)
       })
 

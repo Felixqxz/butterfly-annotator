@@ -1,127 +1,137 @@
 <template>
-  <b-container fluid>
-    <div class="container">
-      <b-row>
-        <b-col sm="6">
-          <b-form-file
-            v-model="textFile"
-            placeholder="Click here to choose a .txt file, then click import!"
-            accept=".txt"
-          ></b-form-file>
-          <b-button @click="textFile = null">Reset</b-button>
-          <b-button @click="readFile">Import</b-button>
-        </b-col>
-        <b-col sm="6">
-          <form
-            action="http://localhost:5000/api/image/upload"
-            method="post"
-            enctype="multipart/form-data"
-          >
-            <input type="file" v-bind="image_file" name="pic" value="choose"/>
-            <input type="submit" value="Upload it!" @click="uploadImage"/>
-          </form>
-          <!-- <form enctype="multipart/form-data">
+  <div>
+    <Header></Header>
+    <b-container fluid>
+      <div class="container">
+        <b-row>
+          <b-col sm="6">
             <b-form-file
-              v-model="image_file"
-              name="pic"
-              placeholder="Please choose an image or drop it here!"
-              accept="image/jpeg, image/png"
+              v-model="textFile"
+              placeholder="Click here to choose a .txt file, then click import!"
+              accept=".txt"
             ></b-form-file>
-            <b-button @click="image_file = null">Reset</b-button>
-            <b-button @click="uploadImage">upload</b-button>
-          </form> -->
-        </b-col>
-      </b-row>
+            <b-button @click="textFile = null">Reset</b-button>
+            <b-button @click="readFile">Import</b-button>
+          </b-col>
+          <b-col sm="6">
+            <form
+              action="http://localhost:5000/api/image/upload"
+              method="post"
+              enctype="multipart/form-data"
+            >
+              <input type="file" v-bind="image_file" name="pic" value="choose"/>
+              <input type="submit" value="Upload it!" @click="uploadImage"/>
+            </form>
+            <!-- <form enctype="multipart/form-data">
+              <b-form-file
+                v-model="image_file"
+                name="pic"
+                placeholder="Please choose an image or drop it here!"
+                accept="image/jpeg, image/png"
+              ></b-form-file>
+              <b-button @click="image_file = null">Reset</b-button>
+              <b-button @click="uploadImage">upload</b-button>
+            </form> -->
+          </b-col>
+        </b-row>
 
-      <b-row>
-        <b-col sm="2">
-          <button type="button" class="btn btn-primary">Select words</button>
-        </b-col>
-        <b-col sm="4">
-          <b-form-textarea
-            id="textarea-auto-height"
-            v-model="text"
-            placeholder="Auto height textarea"
-            rows="3"
-            max-rows="8"
-          ></b-form-textarea>
-        </b-col>
-        <b-col sm="6">
-          <img
-            :src="imageBox"
-            class="figure-img img-fluid rounded"
-            :alt="error"
-          />
-          <div style='text-align:center'>
-            <button type="button" class="btn btn-primary">Select regions</button>
-          </div>
-        </b-col>
-      </b-row>
-      <div style='text-align:center'>
-        <button type="button" class="btn btn-primary">Export as PDF</button>
+        <b-row>
+          <b-col sm="2">
+            <button type="button" class="btn btn-primary">Select words</button>
+          </b-col>
+          <b-col sm="4">
+            <b-form-textarea
+              id="textarea-auto-height"
+              v-model="text"
+              placeholder="Auto height textarea"
+              rows="3"
+              max-rows="8"
+            ></b-form-textarea>
+          </b-col>
+          <b-col sm="6">
+            <img
+              :src="imageBox"
+              class="figure-img img-fluid rounded"
+              alt="error"
+            />
+            <div style='text-align:center'>
+              <button type="button" class="btn btn-primary">Select regions</button>
+            </div>
+          </b-col>
+        </b-row>
+        <div style='text-align:center'>
+          <button type="button" class="btn btn-primary">Export as PDF</button>
+        </div>
       </div>
-    </div>
 
-    <h2>All your uploaded images will be displayed here</h2>
-    <figure
-      class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
-      v-for="image in newImages"
-      v-bind:key="image.id"
-    >
-      <img
-        :src="imgSrc(image)"
-        class="figure-img img-fluid rounded"
-        :alt="image.id"
-        @click="putIntoBox(image)"
-      />
-      <figcaption class="figure-caption text-center">
-        {{ image.imageName }}
-      </figcaption>
-    </figure>
-
-    <b-modal id="success-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Upload an image successfully!</h3>
-      </div>
-      <b-button
-        class="mt-3"
-        block
-        @click="$bvModal.hide('success-message-modal')"
-        >Close Me</b-button
+      <h2>All your uploaded images will be displayed here</h2>
+      <figure
+        class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
+        v-for="image in newImages"
+        v-bind:key="image.id"
       >
-    </b-modal>
+        <img
+          :src="imgSrc(image)"
+          class="figure-img img-fluid rounded"
+          :alt="image.id"
+          @click="putIntoBox(image)"
+        />
+        <figcaption class="figure-caption text-center">
+          {{ image.imageName }}
+        </figcaption>
+      </figure>
 
-    <b-modal id="failed-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Failed to upload an image!</h3>
-      </div>
-      <b-button
-        class="mt-3"
-        block
-        @click="$bvModal.hide('failed-message-modal')"
-        >Close Me</b-button
-      >
-    </b-modal>
+      <b-modal id="success-message-modal" hide-footer>
+        <div class="d-block text-center">
+          <h3>Upload an image successfully!</h3>
+        </div>
+        <b-button
+          class="mt-3"
+          block
+          @click="$bvModal.hide('success-message-modal')"
+          >Close Me</b-button
+        >
+      </b-modal>
 
-    <b-modal id="no-image-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Please upload an image!</h3>
-      </div>
-      <b-button
-        class="mt-3"
-        block
-        @click="$bvModal.hide('no-image-message-modal')"
-        >Close Me</b-button
-      >
-    </b-modal>
-  </b-container>
+      <b-modal id="failed-message-modal" hide-footer>
+        <div class="d-block text-center">
+          <h3>Failed to upload an image!</h3>
+        </div>
+        <b-button
+          class="mt-3"
+          block
+          @click="$bvModal.hide('failed-message-modal')"
+          >Close Me</b-button
+        >
+      </b-modal>
+
+      <b-modal id="no-image-message-modal" hide-footer>
+        <div class="d-block text-center">
+          <h3>Please upload an image!</h3>
+        </div>
+        <b-button
+          class="mt-3"
+          block
+          @click="$bvModal.hide('no-image-message-modal')"
+          >Close Me</b-button
+        >
+      </b-modal>
+    </b-container>
+    <Footer></Footer>
+  </div>
 </template>
 
 <script>
 import axios from "axios";
+import Header from '../components/Header.vue'
+import Footer from '../components/Footer.vue'
 
 export default {
   name: "Home",
+  components: {
+    Header,
+    Footer
+  },
   data() {
     return {
       // Text area
