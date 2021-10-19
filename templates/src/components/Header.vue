@@ -16,21 +16,21 @@
 
         <b-navbar-nav class="ml-auto">
 
-          <b-navbar-nav>
+          <b-navbar-nav v-show="!hasLogin">
             <b-nav-item href="/register">Register</b-nav-item>
           </b-navbar-nav>
 
-          <b-navbar-nav>
+          <b-navbar-nav v-show="!hasLogin">
             <b-nav-item href="/login">Login</b-nav-item>
           </b-navbar-nav>
 
           <b-nav-item-dropdown right>
 
             <template #button-content>
-              <em>User</em>
+              <em>{{username}}</em>
             </template>
             <b-dropdown-item href="#">Profile</b-dropdown-item>
-            <b-dropdown-item href="#">Sign Out</b-dropdown-item>
+            <b-dropdown-item @click="logout()">Sign Out</b-dropdown-item>
           </b-nav-item-dropdown>
         </b-navbar-nav>
       </b-collapse>
@@ -39,7 +39,30 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
-  name: "Header"
+  name: "Header",
+  data() {
+    return {
+      username: "user",
+      hasLogin: false
+    }
+  },
+  methods: {
+    logout() {
+      const _this = this
+      axios.post(this.$hostname + "/logout").then(res => {
+        _this.$store.commit("REMOVE_INFO")
+        _this.$router.push("/login")
+      })
+    }
+  },
+  created() {
+    if (this.$store.getters.getUser.username) {
+      this.username = this.$store.getters.getUser.username
+      this.hasLogin = true
+    }
+  }
 }
 </script>

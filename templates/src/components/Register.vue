@@ -63,13 +63,16 @@ export default {
   },
   methods: {
     submitForm() {
+      const _this = this
       axios.post(this.$hostname + "/register", this.registrationForm).then((res) => {
-        console.log(res)
-      })
+        console.log(res.data.data)
 
-        // const token = res.headers["authorization"];
-        // this.$store.commit("SET_TOKEN", token);
-        // this.$store.commit("SET_USERINFO", res.data.data);
+        const token = res.data.data.username
+        // console.log(token)
+        _this.$store.commit("SET_TOKEN", token);
+        _this.$store.commit("SET_USERINFO", res.data.data);
+        
+      })
       this.$router.push("/");
     },
   }
