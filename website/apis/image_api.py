@@ -56,22 +56,23 @@ def upload_image():
     # res.status = 200
 
     # return res
-    pic = request.files["pic"]
+    #pic = request.files["pic"]
+    pic = request.get_data()
 
     if not pic:
         return 'No pic uploaded', 400
 
-    path = basedir + "/website/images/source_images/"
-    file_path = path + pic.filename
-    pic.save(file_path)
+    # path = basedir + "/website/static/source_images/"
+    # file_path = path + pic.filename
+    # pic.save(file_path)
 
     image_bank_id = 1
     # image_bank = "butterfly"
     file_url = "file_url"
     # There may be some issues with database
-    img = pic.read()
+    #img = pic.read()
 
-    imageToAnnotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url, img=img)
+    imageToAnnotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url, img=pic)
     db.session.add(imageToAnnotate)
     db.session.commit()
 

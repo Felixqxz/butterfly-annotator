@@ -5,12 +5,16 @@
         <b-col sm="6">
           <b-form-file
             v-model="textFile"
+            ref="txt-file"
+            name="txt"
             placeholder="Please choose a .txt file!"
             accept=".txt"
+            enctype="multipart/form-data"
           ></b-form-file>
           <b-button @click="textFile = null">Reset</b-button>
           <b-button @click="readFile">Import</b-button>
         </b-col>
+
         <b-col sm="6">
           <form enctype="multipart/form-data">
             <b-form-file
@@ -59,40 +63,9 @@
       <!-- <b-form-file name="file_upload[]" :multiple="true" :file-name-formatter="formatAssetUpload" no-drop placeholder="Click to choose"></b-form-file> -->
     </form>
 
-    <!-- <div>
-      <b-button v-b-modal.modal-prevent-closing>Upload image</b-button>
-      <b-modal
-        id="modal-prevent-closing"
-        ref="modal"
-        title="Upload Your Image"
-        @show="resetModal"
-        @hidden="resetModal"
-        @ok="handleOk"
-      >
-        <form ref="form" @submit.stop.prevent="handleSubmit">
-          <b-form-group
-            label="Image"
-            label-for="image-input"
-            invalid-feedback="If you want to upload, you must choose an image first!"
-            :state="imageState"
-          >
-            <b-form-file
-              id="image-input"
-              v-model="image_file"
-              class="mt-3"
-              placeholder="Choose a image or drop it here!"
-              accept="image/jpeg, image/png"
-              :state="imageState"
-              required
-            ></b-form-file>
-          </b-form-group>
-        </form>
-      </b-modal>
-    </div> -->
-
     <b-modal id="success-message-modal" hide-footer>
       <div class="d-block text-center">
-        <h3>Upload an image successfully!</h3>
+        <h3>Upload an image/text successfully!</h3>
       </div>
       <b-button
         class="mt-3"
@@ -104,7 +77,7 @@
 
     <b-modal id="failed-message-modal" hide-footer>
       <div class="d-block text-center">
-        <h3>Failed to upload an image!</h3>
+        <h3>Failed to upload an image/text!</h3>
       </div>
       <b-button
         class="mt-3"
@@ -116,7 +89,7 @@
 
     <b-modal id="no-image-message-modal" hide-footer>
       <div class="d-block text-center">
-        <h3>Please upload an image!</h3>
+        <h3>Please upload an image/text!</h3>
       </div>
       <b-button
         class="mt-3"
@@ -169,13 +142,61 @@ export default {
         image_bank: "butterfly",
         image_file: this.image_file,
       };
-      console.log(this.image_file)
-      console.log(image)
+      // console.log(this.image_file)
+      // console.log(image)
+
+      let formData = new FormData()
+      formData.append('imgFile', this.image_file)
+
+      axios({
+              method: 'post',
+              url: this.$hostname + "/api/image/upload",
+              data: {
+                formData
+              },
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            }).then((res) => {
+
+                if (res.status == 200) {
+                  this.$bvModal.show("success-message-modal")
+                } else {
+                  this.$bvModal.show("failed-message-modal")
+                }
+              })
+              .catch((err) => {
+                console.log(err)
+              });
+
+    },
+
+    // Handle text import feature
+    //text is defined in data() {}
+    readFile() {
+      var fileReader = new FileReader()
+      fileReader.readAsText(this.textFile)
+      fileReader.onload = () => {
+        this.text = fileReader.result
+      };
+
+      let formData = new FormData()
+      formData.append('txtFile', this.textFile)
+
+      for (var key of formData.keys()) {
+        console.log(key);
+        console.log(formData.get(key));
+      }
+
       axios
-        .post(this.$hostname + "/api/image/upload", image)
-        .then((res) => {
-          console.log(res)
-          console.log(res.data)
+        .post(this.$hostname + "/api/description/upload", formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+        ).then((res) => {
+
           if (res.status == 200) {
             this.$bvModal.show("success-message-modal")
           } else {
@@ -186,14 +207,7 @@ export default {
           console.log(err)
         });
     },
-    // Handle text import feature
-    readFile() {
-      var fileReader = new FileReader()
-      fileReader.readAsText(this.textFile)
-      fileReader.onload = () => {
-        this.text = fileReader.result
-      };
-    },
+
     getCount() {
       console.log('enter')
       axios
@@ -205,32 +219,7 @@ export default {
           console.log(err)
         });
     }
-    // checkFormValidity() {
-    //   const valid = this.$refs.form.checkValidity();
-    //   this.imageState = valid;
-    //   return valid;
-    // },
-    // resetModal() {
-    //   this.image_file = "";
-    //   this.imageState = null;
-    // },
-    // handleOk(bvModalEvt) {
-    //   // Prevent modal from closing
-    //   bvModalEvt.preventDefault();
-    //   // Trigger submit handler
-    //   this.handleSubmit();
-    // },
-    // handleSubmit() {
-    //   // Exit when the form isn't valid
-    //   if (!this.checkFormValidity()) {
-    //     return;
-    //   }
-    //   console.log(this.image_file)
-    //   // Hide the modal manually
-    //   this.$nextTick(() => {
-    //     this.$bvModal.hide("modal-prevent-closing");
-    //   });
-    // },
+
   },
   created() {
     this.getImages()
