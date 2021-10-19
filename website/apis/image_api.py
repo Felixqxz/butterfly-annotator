@@ -42,7 +42,7 @@ def upload_image():
 
     image_bank_id = 1
     # image_bank = "Butterfly"
-    file_url = "../../../website/images/source_images/" + pic.filename
+    file_url = "../../../website/static/source_images/" + pic.filename
 
     imageToAnnotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url, image_name=pic.filename)
     db.session.add(imageToAnnotate)

@@ -26,7 +26,7 @@
                 value="choose"
               />
               <input type="submit" value="Upload it!" @click="uploadImage" />
-            </form>
+            </form> 
             <!-- <form enctype="multipart/form-data">
               <b-form-file
                 v-model="image_file"
@@ -38,7 +38,7 @@
               <b-button @click="uploadImage">upload</b-button>
             </form> -->
           </b-col>
-        </b-row>
+        </b-row> 
 
         <b-row>
           <b-col sm="2">
@@ -110,7 +110,7 @@
       <b-modal id="failed-message-modal" hide-footer>
         <div class="d-block text-center">
           <h3>Failed to upload an image!</h3>
-        </div>
+        </div> -->
         <b-button
           class="mt-3"
           block
@@ -241,8 +241,9 @@ export default {
         });
     },
 
-    getCount() {
-      console.log('enter')
+    //display all the images the user uploaded
+    getAllImages() {
+      console.log("enter getAllImages");
       axios
         .get(this.$hostname + "/api/image/getImage")
         .then((res) => {
@@ -254,19 +255,20 @@ export default {
           console.log(err);
         });
     },
-    imgSrc(image) {
-      return require("../../../website/images/source_images/" +
-        image.imageName);
-    },
-    putIntoBox(image) {
+    
+    // imgSrc(image) {
+    //   return require("../../../website/static/source_images/" +
+    //     image.imageName);
+    // },
+    // putIntoBox(image) {
 
-      this.imageBox = require("../../../website/images/source_images/" +
-        image.imageName);
-      this.imageDescription = image.imageName.split(".")[0];
-    },
+    //   this.imageBox = require("../../../website/static/source_images/" +
+    //     image.imageName);
+    //   this.imageDescription = image.imageName.split(".")[0];
+    // },
   },
-  created() {
-    this.getAllImages();
-  },
+  // created() {
+  //   this.getAllImages();
+  // },
 };
 </script>

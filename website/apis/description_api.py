@@ -27,7 +27,7 @@ def upload_description():
     #print(list(request.files.keys())[0])
 
     text = request.files['txtFile']
-    #print(text.read())
+    print(text.read())
 
     if not text:
         return 'No description uploaded', 400
