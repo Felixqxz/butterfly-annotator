@@ -23,9 +23,13 @@ def create_app(config_name=None):
     # enable CORS
     # CORS(app, resources={r'/*': {'origins': '*'}})
     CORS(app, resources=r'/*')
+
     # Add routes
-    from .images.image_api import image_api
+    from .apis.image_api import image_api
+    from .apis.description_api import description_api
     app.register_blueprint(image_api)
+    app.register_blueprint(description_api)
+
     # Create & setup LoginManager
     login_manager = LoginManager()
     login_manager.init_app(app)
@@ -33,11 +37,12 @@ def create_app(config_name=None):
     login_manager.login_message_category = "info"
     setup_user_loader(login_manager)
 
-    
     # Add CLI custom commands
     from .cli import create_all, drop_all
     app.cli.add_command(create_all)
     app.cli.add_command(drop_all)
+    
+
     # done
     return app
 

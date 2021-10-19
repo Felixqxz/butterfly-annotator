@@ -36,9 +36,9 @@ def upload_image():
     if not pic:
         return 'No pic uploaded', 400
 
-    path = basedir + "/website/images/source_images/"
-    file_path = path + pic.filename
-    pic.save(file_path)
+    # path = basedir + "/website/static/source_images/"
+    # file_path = path + pic.filename
+    # pic.save(file_path)
 
     image_bank_id = 1
     # image_bank = "Butterfly"

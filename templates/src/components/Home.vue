@@ -175,9 +175,61 @@ export default {
         image_bank: "butterfly",
         image_file: this.image_file,
       };
+      // console.log(this.image_file)
+      // console.log(image)
+
+      let formData = new FormData()
+      formData.append('imgFile', this.image_file)
+
+      axios({
+              method: 'post',
+              url: this.$hostname + "/api/image/upload",
+              data: {
+                formData
+              },
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            }).then((res) => {
+
+                if (res.status == 200) {
+                  this.$bvModal.show("success-message-modal")
+                } else {
+                  this.$bvModal.show("failed-message-modal")
+                }
+              })
+              .catch((err) => {
+                console.log(err)
+              });
+
+    },
+
+    // Handle text import feature
+    //text is defined in data() {}
+    readFile() {
+      var fileReader = new FileReader()
+      fileReader.readAsText(this.textFile)
+      fileReader.onload = () => {
+        this.text = fileReader.result
+      };
+
+      let formData = new FormData()
+      formData.append('txtFile', this.textFile)
+
+      for (var key of formData.keys()) {
+        console.log(key);
+        console.log(formData.get(key));
+      }
+
       axios
-        .post(this.$hostname + "/api/image/upload", image)
-        .then((res) => {
+        .post(this.$hostname + "/api/description/upload", formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+        ).then((res) => {
+
           if (res.status == 200) {
             this.$bvModal.show("success-message-modal");
           } else {
@@ -188,17 +240,9 @@ export default {
           console.log(err);
         });
     },
-    // Handle text import feature
-    readFile() {
-      var fileReader = new FileReader();
-      fileReader.readAsText(this.textFile);
-      fileReader.onload = () => {
-        this.text = fileReader.result;
-      };
-    },
-    // display all the images the user uploaded
-    getAllImages() {
-      console.log("enter getAllImages");
+
+    getCount() {
+      console.log('enter')
       axios
         .get(this.$hostname + "/api/image/getImage")
         .then((res) => {
