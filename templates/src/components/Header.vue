@@ -16,19 +16,19 @@
 
         <b-navbar-nav class="ml-auto">
 
-          <b-navbar-nav v-show="!hasLogin">
+          <b-navbar-nav v-show="!loggedIn">
             <b-nav-item>
               <router-link to="/register">Register</router-link>
             </b-nav-item>
           </b-navbar-nav>
 
-          <b-navbar-nav v-show="!hasLogin">
+          <b-navbar-nav v-show="!loggedIn">
             <b-nav-item>
               <router-link :to="'/login'">Login</router-link>
             </b-nav-item>
           </b-navbar-nav>
 
-          <b-nav-item-dropdown right v-show="hasLogin">
+          <b-nav-item-dropdown right v-show="loggedIn">
 
             <template #button-content>
               <em>{{ username }}</em>
@@ -63,13 +63,18 @@ nav li a:hover, .navbar-brand a:hover {
 
 <script>
 import axios from 'axios'
+import userData from '../store'
 
 export default {
   name: 'Header',
   data() {
     return {
-      username: 'user',
-      hasLogin: false,
+      username: '',
+    }
+  },
+  computed: {
+    loggedIn() {
+      return userData.state.loggedIn
     }
   },
   methods: {
@@ -80,15 +85,14 @@ export default {
         t.$router.push('/login')
       })
     },
-    checkLogin() {
-      if (this.$store.getters.getUser.username) {
-        this.username = this.$store.getters.getUser.username
-        this.hasLogin = true
+  },
+  watch: {
+    loggedIn(n, _) {
+      this.loggedIn = n
+      if (n) {
+        this.username = userData.state.userInfo.username
       }
     }
-  },
-  created() {
-    this.checkLogin()
-  },
+  }
 }
 </script>
