@@ -1,23 +1,24 @@
 <template>
-  <div>
-    <footer id="footer" class="small mdb-color pt-4">
-      <p class="text-center">© 2021 Copyright: butterfly-annotator</p>
-    </footer>
-  </div>
+  <footer id="footer" class="small mdb-color pt-4">
+    <p class="text-center">&copy; 2021 Copyright: butterfly-annotator</p>
+  </footer>
 </template>
 
 <script>
 export default {
-  name: "Footer.vue"
+  name: 'Footer',
 }
 </script>
 
 <style>
 #footer {
-  position: fixed;
-  margin-bottom: 10px;
+  position: absolute;
   bottom: 0;
   width: 100%;
-  height: 40px;
+  height: 2.5rem;
+}
+
+.container {
+  padding-bottom: 2.5rem;
 }
 </style>
