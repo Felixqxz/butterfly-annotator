@@ -266,11 +266,9 @@ export default {
     },
     //display all the images the user uploaded
     getAllImages() {
-      console.log("enter getAllImages");
       axios
         .get(this.$hostname + "/api/image/getImage")
         .then((res) => {
-          console.log(res);
           let data = res.data;
           this.newImages = data.images;
         })

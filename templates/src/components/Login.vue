@@ -47,7 +47,6 @@
 
             <b-button
               class="btn btn-info btn-md"
-              type="submit"
               @click="submitForm()"
               variant="primary"
               >Sign in</b-button
@@ -97,21 +96,21 @@ export default {
       this.$validator.validateAll().then((valid) => {
         if (valid) {
           axios.post(this.$hostname + "/login", this.form).then((res) => {
-            if (res.data.status == '200') {
-              console.log(res.data)
+            if (res.data.status == "200") {
               const token = res.data.data.username;
-            // console.log(token)
               _this.$store.commit("SET_TOKEN", token);
               _this.$store.commit("SET_USERINFO", res.data.data);
-              // this.$router.push("/");
+              // console.log(this.$store.getters.getUser.username)
             } else {
-              console.log(res.data.data.message)
+              console.log(res.data.data.message);
               return;
             }
           });
-          this.$router.push("/");
+          setTimeout(() => {
+            this.$router.push("/");
+          }, 300);
         } else {
-          console.log("error submit")
+          console.log("error submit");
           return;
         }
       });
