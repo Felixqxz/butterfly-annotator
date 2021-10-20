@@ -79,20 +79,23 @@ export default {
       const t = this
       this.$validator.validateAll().then(valid => {
         if (valid) {
-          axios.post(this.$hostname + '/login', this.form).then((res) => {
-            if (res.data.status === '200') {
-              const token = res.data.data.username
-              // console.log(token)
-              t.$store.commit('SET_TOKEN', token)
-              t.$store.commit('SET_USERINFO', res.data.data)
-              // this.$router.push("/");
+          axios.post(this.$hostname + "/login", this.form).then((res) => {
+            if (res.data.status == "200") {
+              const token = res.data.data.username;
+              _this.$store.commit("SET_TOKEN", token);
+              _this.$store.commit("SET_USERINFO", res.data.data);
+              // console.log(this.$store.getters.getUser.username)
             } else {
-              console.log(res.data.data.message) // TODO: handle errors correctly
+              console.log(res.data.data.message);
+              return;
             }
-          })
-          this.$router.push('/')
+          });
+          setTimeout(() => {
+            this.$router.push("/");
+          }, 300);
         } else {
-          console.log('error submit') // TODO: handle errors correctly
+          console.log("error submit");
+          return;
         }
       })
     },

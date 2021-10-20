@@ -80,12 +80,15 @@ export default {
         t.$router.push('/login')
       })
     },
+    checkLogin() {
+      if (this.$store.getters.getUser.username) {
+        this.username = this.$store.getters.getUser.username
+        this.hasLogin = true
+      }
+    }
   },
   created() {
-    if (this.$store.getters.getUser.username) {
-      this.username = this.$store.getters.getUser.username
-      this.hasLogin = true
-    }
+    this.checkLogin()
   },
 }
 </script>
