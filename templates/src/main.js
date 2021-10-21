@@ -6,6 +6,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import {BootstrapVue} from 'bootstrap-vue'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import * as VeeValidate from 'vee-validate'
+import * as _ from './permission'
 
 Vue.use(BootstrapVue)
 Vue.use(VeeValidate, {
