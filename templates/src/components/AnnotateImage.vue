@@ -171,7 +171,7 @@
 import axios from 'axios'
 
 export default {
-  name: 'Home',
+  name: 'AnnotateImage',
   data() {
     return {
       // Text area
@@ -206,17 +206,15 @@ export default {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+      }).then(res => {
+        if (res.status === 200) {
+          this.$bvModal.show('success-message-modal')
+        } else {
+          this.$bvModal.show('failed-message-modal')
+        }
+      }).catch(err => {
+        console.log(err)
       })
-          .then(res => {
-            if (res.status === 200) {
-              this.$bvModal.show('success-message-modal')
-            } else {
-              this.$bvModal.show('failed-message-modal')
-            }
-          })
-          .catch(err => {
-            console.log(err)
-          })
     },
     // Handle text import feature
     // text is defined in data() {}
@@ -238,17 +236,15 @@ export default {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+      }).then(res => {
+        if (res.status === 200) {
+          this.$bvModal.show('success-textFile-message-modal')
+        } else {
+          this.$bvModal.show('failed-textFile-message-modal')
+        }
+      }).catch(err => {
+        console.log(err)
       })
-          .then(res => {
-            if (res.status === 200) {
-              this.$bvModal.show('success-textFile-message-modal')
-            } else {
-              this.$bvModal.show('failed-textFile-message-modal')
-            }
-          })
-          .catch(err => {
-            console.log(err)
-          })
     },
     //display all the images the user uploaded
     getAllImages() {

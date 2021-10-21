@@ -8,12 +8,6 @@
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
       <b-collapse id="nav-collapse" is-nav>
-        <b-navbar-nav>
-          <b-nav-item>
-            <router-link to="/bank-list">Image Bank</router-link>
-          </b-nav-item>
-        </b-navbar-nav>
-
         <b-navbar-nav class="ml-auto">
 
           <b-navbar-nav v-show="!loggedIn">
@@ -24,7 +18,7 @@
 
           <b-navbar-nav v-show="!loggedIn">
             <b-nav-item>
-              <router-link :to="'/login'">Login</router-link>
+              <router-link to="/login">Login</router-link>
             </b-nav-item>
           </b-navbar-nav>
 

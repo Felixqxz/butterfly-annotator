@@ -18,17 +18,19 @@
     </form>
     <div class="row">
       <div class="col-md-4 col-sm-6 col-xs-12" v-for="(image, index) in images" v-bind:key="image.id">
-        <div class="card card-hover no-drag image-to-annotate">
-          <div class="image-hover-container">
-            <img :src=image.url class="card-img-top image-hover"
-                 :style="'animation-delay:' + Math.floor(index / 3) * 100 + 'ms'"
-                 :alt=image.id />
+        <router-link :to="'/annotate/' + image.id">
+          <div class="card card-hover no-drag image-to-annotate">
+            <div class="image-hover-container">
+              <img :src=image.url class="card-img-top image-hover"
+                   :style="'animation-delay:' + Math.floor(index / 3) * 100 + 'ms'"
+                   :alt=image.id />
+            </div>
+            <div class="card-body row justify-content-between align-items-center">
+              <div class="col-lg-9 col-sm-12 col-xs-9"><span class="card-text">{{ image.fullDescription }}</span></div>
+              <div class="col-lg-3 col-sm-12 col-xs-3">TODO<!-- TODO --></div>
+            </div>
           </div>
-          <div class="card-body row justify-content-between align-items-center">
-            <div class="col-lg-9 col-sm-12 col-xs-9"><span class="card-text">{{ image.fullDescription }}</span></div>
-            <div class="col-lg-3 col-sm-12 col-xs-3">TODO<!-- TODO --></div>
-          </div>
-        </div>
+        </router-link>
       </div>
     </div>
   </div>

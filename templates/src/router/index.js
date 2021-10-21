@@ -1,11 +1,11 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 // import components
-import Home from '../components/Home.vue'
+import AnnotateImage from '../components/AnnotateImage.vue'
 import ImageList from '../components/ImageList.vue'
 import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
-import BankList from "../components/BankList"
+import BankList from "../components/BankList.vue"
 
 Vue.use(Router)
 
@@ -15,8 +15,13 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Home',
-      component: Home,
+      name: 'BankList',
+      component: BankList,
+    },
+    {
+      path: '/annotate/:imageId',
+      name: 'AnnotateImage',
+      component: AnnotateImage,
     },
     {
       path: '/bank/:bankId',
@@ -32,10 +37,6 @@ export default new Router({
       path: '/register',
       name: 'Register',
       component: Register
-    }, {
-      path: '/bank-list',
-      name: 'BankList',
-      component: BankList
-    }
+    },
   ],
 })
