@@ -1,0 +1,96 @@
+            +----------------------+
+            |        OS 211        |
+            |  TASK 0: ALARMCLOCK  |
+            |    DESIGN DOCUMENT   |
+            +----------------------+
+
+
+---- PRELIMINARIES ----
+
+>> If you have any preliminary comments on your submission, or notes for the
+>> markers, please give them here.
+
+>> Please cite any offline or online sources you consulted while preparing your
+>> submission, other than the Pintos documentation, course text, lecture notes
+>> and course staff.
+
+                 ALARM CLOCK
+                 ===========
+
+---- DATA STRUCTURES ----
+
+>> A1: (2 marks)
+>> Copy here the declaration of each new or changed `struct' or `struct' member,
+>> global or static variable, `typedef', or enumeration.
+>> Identify the purpose of each in roughly 25 words.
+
+in "thread.h":
+struct thread{
+    ...
+    /*the sleep time in ticks*/
+    int64_t blocked_ticks;
+
+    /*the list_elem in sleep_list in which the threads are in sleep*/
+    struct list_elem sleepelem;
+    ...
+}
+
+in "timer.c":
+/*the list that contains all the threads in sleep*/
+static struct list sleep_list;
+
+---- ALGORITHMS ----
+
+>> A2: (2 marks)
+>> Briefly describe what happens in a call to timer_sleep(), including the
+>> actions performed by the timer interrupt handler on each timer tick.
+
+When calling timer_sleep() with an argument ticks, the current thread is made to sleep, ie. it will be blocked for ticks time. To implement this function, intrrupt is disabled first, then if ticks is a valid argument, we put current thread in the sleep_list and block it. Finally, the intrrupt is set back to its old status. The timer interrupt hanlder is called every timer tick elapses, to update the current time. We add thread_for_each_awake in timer_interrupt, so every timer tick(ie. every time
+the timer interrupt handler is called), we check every thread in sleep_list, if the thread's due the sleep time, then we unblock it, awake it back to ready status.
+
+>> A3: (2 marks)
+>> What steps are taken to minimize the amount of time spent in the timer
+>> interrupt handler?
+
+In order to minimize the amount of time, A sleep_list is created and used to keep sleep threads, so the timer interrupt handler, instead of implementing every exist thread, we only need to implement threads in the sleep_list and to check if they need to be waken up, which reduces the amount of time spent in timer intrrupt handler.
+
+---- SYNCHRONIZATION ----
+
+>> A4: (1 mark)
+>> How are race conditions avoided when multiple threads call timer_sleep()
+>> simultaneously?
+
+In pintos, only one thread can be run at a time. When multiple threads call timer_sleep(), only one thread can get access to execute this function. During the execution of timer_sleep(), intrrupt is disabled, so other threads have to wait the current thread to complete time_sleep() before they can get the access of this function.
+
+>> A5: (1 mark)
+>> How are race conditions avoided when a timer interrupt occurs during a call
+>> to timer_sleep()?
+
+As above, during the execution of timer_sleep(), intrrupt is disabled, so the CPU will not respond to any timer interrupt at that time, so other threads cannot preempt the current thread.
+
+---- RATIONALE ----
+
+>> A6: (2 marks)
+>> Why did you choose this design?
+>> In what ways is it superior to another design you considered?
+
+I try to keep my design as simple as possible. Since we need to block sleep for some time, I consider add a variable in thread struct which records the blocked time and it will decrease as time passes by(implement it in time_intrrupt()). When the blocked time decreases to zero, we awake the sleeping thread. At first, to check if one thread needs to be awake, I went through all the exist threads, checking if they are blocked and if the blocked time is zero(by using thread_for_each function),
+but then I realized since all exist threads need to be checked, this design would spend too much in timer intrrupt handler and is also super inefficient. So my final design contains a sleep_list that keeps all sleep list, instead of checking all exist threads, we only need to go through threads in sleep_list in time intrrupt handler which improve the efficiency of my program.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

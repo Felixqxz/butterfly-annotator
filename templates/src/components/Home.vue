@@ -86,10 +86,25 @@
           :alt="image.id"
           @click="putIntoBox(image)"
         />
+        <b-button @click="deleteImage(image.id)">delete</b-button>
         <figcaption class="figure-caption text-center">
           {{ image.imageName }}
         </figcaption>
       </figure>
+
+      <ul
+        id="description-list"
+        class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
+      >
+        <li
+          v-for="description in newDescriptions"
+          v-bind:key="description.id"
+          @click="loadFile(description)"
+        >
+          {{ description.descriptionName }}
+          
+        </li>
+      </ul>
 
       <b-modal id="success-message-modal" hide-footer>
         <div class="d-block text-center">
@@ -185,6 +200,9 @@ export default {
       text: "",
       // The .txt file uploaded
       textFile: null,
+      // Save all the descriptions info that user uploaded
+      newDescriptions: [],
+
       // Save all the images info that user uploaded
       newImages: [],
       // The image uploaded
@@ -200,6 +218,26 @@ export default {
     };
   },
   methods: {
+
+    deleteImage(imageId) {
+      const path = this.$hostname + '/api/image/delete/' + imageId
+      axios.delete(path, {
+        headers: {
+          //"Access-Control-Allow-Origin": any,
+          //"Access-Control-Allow-Methods": DELETE,
+        }
+      }) 
+        .then(() => {
+          this.getAllImages();
+          this.message = 'Image deleted!';
+          this.showMessage = true;
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        });
+    },
+
     // Handle upload image feature, still have problems
     uploadImage() {
       if (this.image_file == null) {
@@ -231,6 +269,25 @@ export default {
           console.log(err);
         });
     },
+
+    loadFile(description) {
+      //var Blob = require('blob');
+      var bolb = new Blob(require("../../../website/static/source_descriptions/" +
+        description.descriptionName));
+      var fileReader = new FileReader();
+      fileReader.readAsText(bolb);
+      fileReader.onload = () => {
+        this.text = fileReader.result;
+      };
+
+      // let xhr = new XMLHttpRequest(),
+      //   okStatus = document.location.protocol == "file:" ? 0 : 200;
+      // xhr.open("GET", "../../../website/static/source_descriptions/" 
+      //   + description.descriptionName, false);
+      // xhr.overrideMimeType("text/html;charset=utf-8");
+      // this.text = xhr.responseText; 
+    },
+
     // Handle text import feature
     // text is defined in data() {}
     readFile() {
@@ -264,6 +321,22 @@ export default {
           console.log(err);
         });
     },
+    
+    //display all the descriptions the user uploaded
+    getAllDescriptions() {
+      console.log("enter getAllDescriptions");
+      axios
+        .get(this.$hostname + "/api/description/getDescription")
+        .then((res) => {
+          console.log(res);
+          let data = res.data;
+          this.newDescriptions = data.descriptions;
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+
     //display all the images the user uploaded
     getAllImages() {
       console.log("enter getAllImages");
@@ -278,18 +351,22 @@ export default {
           console.log(err);
         });
     },
+
     imgSrc(image) {
       return require("../../../website/static/source_images/" +
         image.imageName);
     },
+    
     putIntoBox(image) {
       this.imageBox = require("../../../website/static/source_images/" +
         image.imageName);
       this.imageDescription = image.imageName.split(".")[0];
     },
   },
+    
   created() {
     this.getAllImages();
+    this.getAllDescriptions();
   },
 };
 </script>

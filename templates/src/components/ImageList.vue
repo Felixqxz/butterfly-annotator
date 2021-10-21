@@ -40,9 +40,23 @@ export default {
           console.log(err) // TODO: handle errors properly
         })
     },
+
+    //display all the images the user uploaded
+    getAllImages() {
+      axios
+        .get(this.$hostname + "/api/image/getImage")
+        .then((res) => {
+          let data = res.data;
+          this.Images = data.images;
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
   },
   created() {
     this.fetchImageList()
+    //this.getAllImages()
   },
 }
 </script>

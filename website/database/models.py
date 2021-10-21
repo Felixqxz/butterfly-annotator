@@ -63,4 +63,6 @@ class Description(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String)
-    #img_id = db.Column(db.Integer, db.ForeignKey('image.id'))
+    file_url = db.Column(db.String())
+    description_name = db.Column(db.String())
+    count = db.Column(db.Integer)

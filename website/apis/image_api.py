@@ -73,3 +73,18 @@ def get_image():
         'bankName': 'Butterfly',
         'images': images
     })
+
+# This api is used to get all images info that user uploaded
+@image_api.route('/api/image/delete/<int:image_id>/', methods=['DELETE'])
+def delete_image(image_id):
+    image = ImageToAnnotate.query.get_or_404(image_id, "Post not found.")
+    if image:
+        db.session.delete(image)
+        db.session.commit()
+    return jsonify({
+        'status': 200,
+        'message': 'image deleted!',
+        'image': image
+    })
+
+
