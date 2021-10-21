@@ -259,6 +259,7 @@ export default {
           } else {
             this.$bvModal.show("failed-message-modal");
           }
+          this.getAllImages();
         })
         .catch((err) => {
           console.log(err);
@@ -267,10 +268,10 @@ export default {
 
     loadFile(description) {
       //var Blob = require('blob');
-      var bolb = new Blob(require("../../../website/static/source_descriptions/" +
-        description.descriptionName));
+      var blob = new Blob("../../../website/static/source_descriptions/" +
+        description.descriptionName);
       var fileReader = new FileReader();
-      fileReader.readAsText(bolb);
+      fileReader.readAsText(blob);
       fileReader.onload = () => {
         this.text = fileReader.result;
       };
@@ -311,6 +312,7 @@ export default {
           } else {
             this.$bvModal.show("failed-textFile-message-modal");
           }
+          this.getAllDescriptions();
         })
         .catch((err) => {
           console.log(err);
