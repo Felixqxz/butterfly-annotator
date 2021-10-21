@@ -220,8 +220,9 @@ export default {
   methods: {
 
     deleteImage(imageId) {
-      const path = this.$hostname + '/api/image/delete/' + imageId
-      axios.get(path) 
+      axios.post(this.$hostname + '/api/image/delete/', {
+        image_id: imageId
+      }) 
         .then(() => {
           console.log("image deleted")
           this.getAllImages();

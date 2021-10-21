@@ -75,8 +75,9 @@ def get_image():
     })
 
 # This api is used to get all images info that user uploaded
-@image_api.route('/api/image/delete/<int:image_id>/', methods=['GET'])
-def delete_image(image_id):
+@image_api.route('/api/image/delete/', methods=['POST'])
+def delete_image():
+    image_id = request.json.get('image_id')
     image = ImageToAnnotate.query.filter_by(id=image_id+1).first()
 
     if image:
