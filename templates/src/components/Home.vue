@@ -221,16 +221,10 @@ export default {
 
     deleteImage(imageId) {
       const path = this.$hostname + '/api/image/delete/' + imageId
-      axios.delete(path, {
-        headers: {
-          //"Access-Control-Allow-Origin": any,
-          //"Access-Control-Allow-Methods": DELETE,
-        }
-      }) 
+      axios.get(path) 
         .then(() => {
+          console.log("image deleted")
           this.getAllImages();
-          this.message = 'Image deleted!';
-          this.showMessage = true;
         })
         .catch((error) => {
           // eslint-disable-next-line

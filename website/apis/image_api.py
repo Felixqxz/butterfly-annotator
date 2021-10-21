@@ -75,16 +75,22 @@ def get_image():
     })
 
 # This api is used to get all images info that user uploaded
-@image_api.route('/api/image/delete/<int:image_id>/', methods=['DELETE'])
+@image_api.route('/api/image/delete/<int:image_id>/', methods=['GET'])
 def delete_image(image_id):
-    image = ImageToAnnotate.query.get_or_404(image_id, "Post not found.")
+    image = ImageToAnnotate.query.filter_by(id=image_id+1).first()
+
     if image:
         db.session.delete(image)
         db.session.commit()
-    return jsonify({
-        'status': 200,
-        'message': 'image deleted!',
-        'image': image
-    })
+        return jsonify({
+            'status': 200,
+            'message': 'image deleted!',
+            'image': image.image_name
+        })
+    else:
+        return jsonify({
+            'status': 401,
+            'message': 'image not found'
+        })
 
 
