@@ -11,6 +11,19 @@ from ..database.models import ImageToAnnotate
 basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
 
+# This route allows to fetch the list of banks a user can see.
+@image_api.route('/api/bank-list', methods=['GET'])
+def list_banks():
+    banks = []
+    for i in range(7):
+        banks.append({
+            'id': i,
+            'name': 'Coucou ' + str(i),
+            'description': 'This is the bank number ' + str(i),
+        })
+    return jsonify(banks)
+
+# This route allows to fetch the list of images of a given bank.
 @image_api.route('/api/bank/<bank>', methods=['GET'])
 def list_images(bank):
     images = []
@@ -26,7 +39,7 @@ def list_images(bank):
         'images': images,
     }) # TODO
 
-# This api is used to upload an image
+# This route is used to upload an image.
 @image_api.route('/api/image/upload', methods=['POST'])
 def upload_image():
 
@@ -55,7 +68,7 @@ def upload_image():
         'method': method
     })
 
-# This api is used to get all images info that user uploaded
+# This route is used to get all images info that user uploaded.
 @image_api.route('/api/image/getImage', methods=['GET'])
 def get_image():
     images = []
