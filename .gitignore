@@ -1,3 +1,5 @@
 venv/
 .vscode/
 butterfly.db
+.DS_Store
+.idea/

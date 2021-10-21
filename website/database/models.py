@@ -1,7 +1,8 @@
 from sqlalchemy.orm import relationship
 from .access import db
+from flask_login import UserMixin
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     """
     Represents an app's user.
     """
@@ -52,3 +53,14 @@ class ImageToAnnotate(db.Model):
     image_bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
     image_bank = relationship('ImageBank', back_populates='images')
     file_url = db.Column(db.String())
+    image_name = db.Column(db.String())
+
+class Description(db.Model):
+    """
+    Represents an image to annotate.
+    """
+    __tablename__ = 'description'
+
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String)
+    #img_id = db.Column(db.Integer, db.ForeignKey('image.id'))
