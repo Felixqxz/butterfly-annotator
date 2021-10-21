@@ -1,29 +1,27 @@
 <template>
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-12">
+  <b-container>
+    <b-row class="justify-content-center">
+      <b-col cols="12">
         <h2 class="page-title">Your banks</h2>
-      </div>
-    </div>
+      </b-col>
+    </b-row>
     <div class="bank-list">
-      <div class="row justify-content-center" v-for="bank in availableBanks" v-bind:key="bank.id">
-        <div class="col-12">
+      <b-row class="justify-content-center" v-for="bank in availableBanks" v-bind:key="bank.id">
+        <b-col cols="12">
           <router-link :to="'/bank/' + bank.id">
-            <div class="card card-hover bank-list-card">
-              <div class="card-body">
-                <h5 class="card-title">
+            <b-card class="card-hover bank-list-card">
+                <b-card-title>
                   {{ bank.name }}
-                </h5>
-                <p class="card-text text-muted">
+                </b-card-title>
+                <b-card-text class="text-muted">
                   {{ bank.description }}
-                </p>
-              </div>
-            </div>
+                </b-card-text>
+            </b-card>
           </router-link>
-        </div>
-      </div>
+        </b-col>
+      </b-row>
     </div>
-  </div>
+  </b-container>
 </template>
 
 <script>

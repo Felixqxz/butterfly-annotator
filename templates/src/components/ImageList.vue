@@ -1,39 +1,40 @@
 <template>
-  <div class="container">
+  <b-container>
     <h2 class="page-title">Bank: {{ bankName }}</h2>
     <form>
-      <div class="row">
-        <div class="col-10">
-          <div class="input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text"><ion-icon name="search-outline"></ion-icon></span>
-            </div>
+      <b-row>
+        <b-col cols="10">
+          <b-input-group>
+            <b-input-group-prepend>
+              <b-input-group-text><ion-icon name="search-outline"></ion-icon></b-input-group-text>
+            </b-input-group-prepend>
             <input type="text" class="form-control" placeholder="Search..."/>
-          </div>
-        </div>
-        <div class="col-2">
+          </b-input-group>
+        </b-col>
+        <b-col cols="10">
           <!-- sort by: + options (dropdown menu?) TODO -->
-        </div>
-      </div>
+        </b-col>
+      </b-row>
     </form>
-    <div class="row">
-      <div class="col-md-4 col-sm-6 col-xs-12" v-for="(image, index) in images" v-bind:key="image.id">
+    <b-row>
+      <b-col md="4" sm="6" xs="12" v-for="(image, index) in images" v-bind:key="image.id">
         <router-link :to="'/annotate/' + image.id">
+          <!-- Do not use b-card: it creates automatically a b-card-body tag -->
           <div class="card card-hover no-drag image-to-annotate">
             <div class="image-hover-container">
               <img :src=image.url class="card-img-top image-hover"
                    :style="'animation-delay:' + Math.floor(index / 3) * 100 + 'ms'"
                    :alt=image.id />
             </div>
-            <div class="card-body row justify-content-between align-items-center">
-              <div class="col-lg-9 col-sm-12 col-xs-9"><span class="card-text">{{ image.fullDescription }}</span></div>
-              <div class="col-lg-3 col-sm-12 col-xs-3">TODO<!-- TODO --></div>
-            </div>
+            <b-card-body class="row justify-content-between align-items-center">
+              <b-col lg="9" sm="12" xs="9"><b-card-text>{{ image.fullDescription }}</b-card-text></b-col>
+              <b-col lg="3" sm="12" xs="3">TODO<!-- TODO --></b-col>
+            </b-card-body>
           </div>
         </router-link>
-      </div>
-    </div>
-  </div>
+      </b-col>
+    </b-row>
+  </b-container>
 </template>
 
 <script>
