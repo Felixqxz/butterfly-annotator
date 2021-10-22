@@ -5,7 +5,7 @@ Vue.use(Vuex)
 
 const userData = new Vuex.Store({
     state: {
-        token: '',
+        token: localStorage.getItem('token'),
         loggedIn: false,
         userInfo: JSON.parse(sessionStorage.getItem('userInfo')),
     },
@@ -20,8 +20,8 @@ const userData = new Vuex.Store({
             state.loggedIn = true
         },
         REMOVE_INFO: (state) => {
-            localStorage.setItem('token', '')
-            sessionStorage.setItem('userInfo', JSON.stringify(''))
+            localStorage.removeItem('token')
+            sessionStorage.removeItem('userInfo')
             state.userInfo = {}
             state.token = ''
             state.loggedIn = false
@@ -37,4 +37,3 @@ const userData = new Vuex.Store({
 })
 
 export default userData
-  

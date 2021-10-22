@@ -3,9 +3,9 @@ The part of the API that allows access to the images of a database.
 """
 from flask.json import jsonify
 from flask import Blueprint, request, make_response, Response
+from flask_login import login_required, current_user
 import os
 from ..database.access import db
-from flask_cors import cross_origin
 from ..database.models import ImageToAnnotate
 
 basedir = os.path.abspath(os.path.dirname(__name__))
@@ -74,7 +74,7 @@ def get_image():
     images = []
     count = ImageToAnnotate.query.filter_by(image_bank_id=1).count()
     for i in range(count):
-        image = ImageToAnnotate.query.filter_by(id=i+1).first()
+        image = ImageToAnnotate.query.filter_by(id=i+1).first()  # TODO: what is this?
         images.append({
             'id': i,
             'url': image.file_url,

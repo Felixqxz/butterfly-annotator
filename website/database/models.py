@@ -13,6 +13,8 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String())
 
+    accesses = relationship('BankAccess', back_populates='user')
+
     def __init__(self, username, email, password_hash):
         self.username = username
         self.email = email
@@ -20,12 +22,6 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return '<User %r>' % self.username
-
-    @staticmethod
-    def get_user(user_id):
-        if user_id is None:
-            return None
-        # TODO
 
 class ImageBank(db.Model):
     """
@@ -35,13 +31,34 @@ class ImageBank(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     bankname = db.Column(db.String(25), unique=True)
-    images = relationship('ImageToAnnotate', back_populates='image_bank')
+    description = db.Column(db.String(150))
 
-    def __init__(self, bankname):
+    images = relationship('ImageToAnnotate', back_populates='image_bank')
+    accesses = relationship('BankAccess', back_populates='bank')
+
+    def __init__(self, bankname, description):
         self.bankname = bankname
+        self.description = description
 
     def __repr__(self):
         return '<ImageBank %r>' % self.bankname
+
+class BankAccess(db.Model):
+    """
+    Represents an access of a user to a bank. If an entry
+    for a certain user and bank does not exist, then user cannot access.
+    Note: We might want to allow different bank visibility levels.
+    """
+    __tablename__ = 'bank_access'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
+    # TODO define what int defines what level of privilege
+    permission_level = db.Column(db.SmallInteger)
+
+    user = relationship('User', back_populates='accesses')
+    bank = relationship('ImageBank', back_populates='accesses')
 
 class ImageToAnnotate(db.Model):
     """
@@ -63,4 +80,4 @@ class Description(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String)
-    #img_id = db.Column(db.Integer, db.ForeignKey('image.id'))
+    # TODO: change this, it should not be done this way (probably)
