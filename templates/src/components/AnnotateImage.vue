@@ -215,6 +215,7 @@ export default {
       }).catch(err => {
         console.log(err)
       })
+      this.getAllImages();
     },
     // Handle text import feature
     // text is defined in data() {}
