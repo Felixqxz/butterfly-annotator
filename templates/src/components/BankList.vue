@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import {mapActions} from 'vuex'
 
 export default {
   name: 'BankList',
@@ -34,9 +34,11 @@ export default {
       availableBanks: [],
     }
   },
+  methods: {
+    ...mapActions({ listBanks: 'listBanks' })
+  },
   created() {
-    axios.get(this.$hostname + '/api/bank-list')
-        .then(req => this.availableBanks = req.data)
+    this.listBanks().then(req => this.availableBanks = req.data)
         .catch(err => console.log(err)) // TODO: handle errors correctly
   },
 }

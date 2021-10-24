@@ -6,7 +6,9 @@
         <b-col cols="10">
           <b-input-group>
             <b-input-group-prepend>
-              <b-input-group-text><ion-icon name="search-outline"></ion-icon></b-input-group-text>
+              <b-input-group-text>
+                <ion-icon name="search-outline"></ion-icon>
+              </b-input-group-text>
             </b-input-group-prepend>
             <input type="text" class="form-control" placeholder="Search..."/>
           </b-input-group>
@@ -27,7 +29,9 @@
                    :alt=image.id />
             </div>
             <b-card-body class="row justify-content-between align-items-center">
-              <b-col lg="9" sm="12" xs="9"><b-card-text>{{ image.fullDescription }}</b-card-text></b-col>
+              <b-col lg="9" sm="12" xs="9">
+                <b-card-text>{{ image.fullDescription }}</b-card-text>
+              </b-col>
               <b-col lg="3" sm="12" xs="3">TODO<!-- TODO --></b-col>
             </b-card-body>
           </div>
@@ -38,7 +42,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import {mapActions} from 'vuex'
 
 export default {
   name: 'ImageList',
@@ -49,8 +53,9 @@ export default {
     }
   },
   methods: {
+    ...mapActions({listImages: 'listImages'}),
     fetchImageList() {
-      axios.get(this.$hostname + '/api/bank/' + this.$route.params.bankId)
+      this.listImages(this.$route.params.bankId)
           .then(res => {
             if (res.status !== 200) {
               console.log('Could not load DB => ERROR, HTTP status=' + res.status) // TODO: handle correctly
