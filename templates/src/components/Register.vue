@@ -77,9 +77,7 @@
             <b-button
                 class="btn-md"
                 variant="dark"
-                @click="submitForm()"
-                type="primary">Register
-            </b-button>&nbsp;&nbsp;
+                @click="submitForm()">Register</b-button>
           </b-form>
           <br/>
           <div class="text-left">
@@ -92,7 +90,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import {mapActions} from 'vuex'
 
 export default {
   data() {
@@ -106,6 +104,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions({register: 'registerAccount'}),
     validateState(ref) {
       if (
           this.veeFields[ref] &&
@@ -119,13 +118,8 @@ export default {
       const t = this
       this.$validator.validateAll().then((valid) => {
         if (valid) {
-          axios.post(this.$hostname + '/register', this.registrationForm).then(res => {
-            const token = res.data.data.username
-            t.$store.commit('SET_TOKEN', token)
-            t.$store.commit('SET_USERINFO', res.data.data)
-            // _this.$router.push("/");
-          })
-          t.$router.push('/')
+          const registrationForm = this.registrationForm
+          this.register({registrationForm}).then(_ => t.$router.push('/').catch(e => console.log(e)))
         } else {
           // TODO: handle errors correctly
         }

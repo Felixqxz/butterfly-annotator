@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import {mapActions} from 'vuex'
 
 export default {
   data() {
@@ -65,6 +65,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions({ logIn: 'logIn' }),
     validateState(ref) {
       if (
           this.veeFields[ref] &&
@@ -76,19 +77,10 @@ export default {
     },
     submitForm() {
       const t = this
+      const formData = this.form
       this.$validator.validateAll().then(valid => {
         if (valid) {
-          axios.post(this.$hostname + '/login', this.form).then(res => {
-            if (res.data.status === 200) {
-              const token = res.data.data.username
-              t.$store.commit('SET_TOKEN', token)
-              t.$store.commit('SET_USERINFO', res.data.data)
-              this.$router.push({path: '/'})
-              // console.log(this.$store.getters.getUser.username)
-            } else {
-              console.log(res.data.data.message)
-            }
-          }).catch(err => console.log(err))
+          this.logIn({formData}).then(_ => t.$router.push({ path: '/' })).catch(e => console.log(e))
         } else {
           console.log('error submit') // TODO: handle errors correctly
         }

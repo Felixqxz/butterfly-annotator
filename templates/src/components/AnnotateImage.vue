@@ -169,6 +169,7 @@
 
 <script>
 import axios from 'axios'
+import {mapActions} from 'vuex'
 
 export default {
   name: 'AnnotateImage',
@@ -193,6 +194,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions({ doUploadImage: 'uploadImage', doReadFile: 'readFile' }),
     // Handle upload image feature, still have problems
     uploadImage() {
       if (this.imageFile == null) {
@@ -202,19 +204,16 @@ export default {
 
       let formData = new FormData()
       formData.append('imgFile', this.imageFile)
-      axios.post(this.$hostname + '/api/image/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }).then(res => {
+      this.doUploadImage(formData).then(res => {
         if (res.status === 200) {
           this.$bvModal.show('success-message-modal')
         } else {
           this.$bvModal.show('failed-message-modal')
         }
       }).catch(err => {
-        console.log(err)
+        console.log(err) // TODO: handle
       })
+      this.getAllImages()
     },
     // Handle text import feature
     // text is defined in data() {}
@@ -232,11 +231,7 @@ export default {
       let formData = new FormData()
       formData.append('txtFile', this.textFile)
 
-      axios.post(this.$hostname + '/api/description/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }).then(res => {
+      this.doReadFile({formData}).then(res => {
         if (res.status === 200) {
           this.$bvModal.show('success-textFile-message-modal')
         } else {
@@ -249,14 +244,14 @@ export default {
     //display all the images the user uploaded
     getAllImages() {
       axios
-        .get(this.$hostname + "/api/image/getImage")
+        .get("/api/image/getImage")
         .then((res) => {
-          let data = res.data;
-          this.newImages = data.images;
+          let data = res.data
+          this.newImages = data.images
         })
         .catch((err) => {
-          console.log(err);
-        });
+          console.log(err)
+        })
     },
     imgSrc(image) {
       return require('../../../website/static/source_images/' +

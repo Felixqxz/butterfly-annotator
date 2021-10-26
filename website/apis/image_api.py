@@ -15,11 +15,11 @@ image_api = Blueprint('image_api', __name__)
 @image_api.route('/api/bank-list', methods=['GET'])
 def list_banks():
     banks = []
-    for i in range(7):
+    for access in current_user.accesses:
         banks.append({
-            'id': i,
-            'name': 'Coucou ' + str(i),
-            'description': 'This is the bank number ' + str(i),
+            'id': access.bank.id, 
+            'name': access.bank.bankname, 
+            'description': access.bank.description 
         })
     return jsonify(banks)
 
