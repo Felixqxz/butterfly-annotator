@@ -40,8 +40,12 @@ const actions = {
         })
     },
     registerAccount({commit}, {registrationForm}) {
-        return axios.post('/register', registrationForm)
-            .then(res => commit('setUserInfo', {userInfo: res.data.data}))
+        return axios.post('/register', registrationForm).then(res => {
+            const token = res.data.data.username
+            const userInfo = res.data.data
+            commit('setToken', {token})
+            commit('setUserInfo', {userInfo})
+        })
     },
     readFile({dispatch}, {formData}) {
         return axios.post('/api/description/upload', formData, {
