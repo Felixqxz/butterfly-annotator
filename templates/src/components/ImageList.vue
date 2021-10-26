@@ -1,6 +1,13 @@
 <template>
   <b-container>
     <h2 class="page-title">Bank: {{ bankName }}</h2>
+    <b-row>
+      <b-col>
+        <p>
+          <router-link to="/">Return to the list of banks</router-link>
+        </p>
+      </b-col>
+    </b-row>
     <form>
       <b-row>
         <b-col cols="10">
