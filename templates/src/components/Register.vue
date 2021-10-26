@@ -77,9 +77,7 @@
             <b-button
                 class="btn-md"
                 variant="dark"
-                @click="submitForm()"
-                type="primary">Register
-            </b-button>&nbsp;&nbsp;
+                @click="submitForm()">Register</b-button>
           </b-form>
           <br/>
           <div class="text-left">
@@ -92,6 +90,8 @@
 </template>
 
 <script>
+import {mapActions} from 'vuex'
+
 export default {
   data() {
     return {
@@ -104,6 +104,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions({register: 'registerAccount'}),
     validateState(ref) {
       if (
           this.veeFields[ref] &&
@@ -117,11 +118,8 @@ export default {
       const t = this
       this.$validator.validateAll().then((valid) => {
         if (valid) {
-          this.$http.post('/register', this.registrationForm).then(res => {
-            t.$store.commit('setUserInfo', res.data.data)
-            // _this.$router.push("/");
-          })
-          t.$router.push('/')
+          const registrationForm = this.registrationForm
+          this.register({registrationForm}).then(_ => t.$router.push('/').catch(e => console.log(e)))
         } else {
           // TODO: handle errors correctly
         }

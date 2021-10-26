@@ -10,22 +10,22 @@
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav class="ml-auto">
 
-          <b-navbar-nav v-show="!loggedIn">
+          <b-navbar-nav v-show="!isLoggedIn">
             <b-nav-item>
               <router-link to="/register">Register</router-link>
             </b-nav-item>
           </b-navbar-nav>
 
-          <b-navbar-nav v-show="!loggedIn">
+          <b-navbar-nav v-show="!isLoggedIn">
             <b-nav-item>
               <router-link to="/login">Login</router-link>
             </b-nav-item>
           </b-navbar-nav>
 
-          <b-nav-item-dropdown right v-show="loggedIn">
+          <b-nav-item-dropdown right v-show="isLoggedIn">
 
             <template #button-content>
-              <em>{{ username }}</em>
+              <em>{{ username() }}</em>
             </template>
             <b-dropdown-item href="#">Profile</b-dropdown-item>
             <b-dropdown-item @click="logout()">Sign Out</b-dropdown-item>
@@ -56,37 +56,22 @@ nav li a:hover, .navbar-brand a:hover {
 </style>
 
 <script>
-import axios from 'axios'
-import userData from '../store'
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'Header',
-  data() {
-    return {
-      username: '',
-    }
-  },
   computed: {
-    loggedIn() {
-      return userData.state.loggedIn
-    }
+    ...mapGetters({ user: 'currentUser', isLoggedIn: 'isLoggedIn' }),
   },
   methods: {
+    ...mapActions({ doLogOut: 'logOut' }),
     logout() {
       const t = this
-      axios.post(this.$hostname + '/logout').then(_ => {
-        t.$store.commit('REMOVE_INFO')
-        t.$router.push('/login')
-      })
+      this.doLogOut().then(_ => t.$router.push('/login'))
     },
-  },
-  watch: {
-    loggedIn(n, _) {
-      this.loggedIn = n
-      if (n) {
-        this.username = userData.state.userInfo.username
-      }
+    username() {
+      return this.isLoggedIn ? this.user.username : ''
     }
-  }
+  },
 }
 </script>
