@@ -60,6 +60,11 @@ class BankAccess(db.Model):
     user = relationship('User', back_populates='accesses')
     bank = relationship('ImageBank', back_populates='accesses')
 
+    def __init__(self, user_id, bank_id, permission_level):
+        self.user_id = user_id
+        self.bank_id = bank_id
+        self.permission_level = permission_level
+
 class ImageToAnnotate(db.Model):
     """
     Represents an image to annotate.
@@ -68,9 +73,22 @@ class ImageToAnnotate(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     image_bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
-    image_bank = relationship('ImageBank', back_populates='images')
+    # path relative to the folder containing the banks
     file_url = db.Column(db.String())
     description = db.Column(db.String())
+    # to avoid to have to fetch it each time from the file system
+    width = db.Column(db.SmallInteger)
+    height = db.Column(db.SmallInteger)
+
+    image_bank = relationship('ImageBank', back_populates='images')
+    annotations = relationship('ImageAnnotation', back_populates='image')
+
+    def __init__(self, image_bank_id, file_url, description, width, height):
+        self.image_bank_id = image_bank_id
+        self.file_url = file_url
+        self.description = description
+        self.width = width
+        self.height = height
 
 class Description(db.Model):
     """
@@ -81,3 +99,21 @@ class Description(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String)
     # TODO: change this, it should not be done this way (probably) => handle in ImageToAnnotate
+
+
+class ImageAnnotation(db.Model):
+    """
+    Represents an annotation on an `ImageToAnnotate`.
+    """
+    __tablename__ = 'annotation'
+
+    id = db.Column(db.Integer, primary_key=True)
+    image_id = db.Column(db.Integer, db.ForeignKey('image.id'))
+    tag = db.Column(db.String())
+    region_info = db.Column(db.String())
+    image = relationship('ImageToAnnotate', back_populates='annotations')
+
+    def __init__(self, image_id, tag, region_info):
+        self.image_id = image_id
+        self.tag = tag
+        self.region_info = region_info

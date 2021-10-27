@@ -62,7 +62,7 @@ export default {
   methods: {
     ...mapActions({listImages: 'listImages'}),
     fetchImageList() {
-      this.listImages(this.$route.params.bankId)
+      this.listImages({bankId: this.$route.params.bankId})
           .then(res => {
             if (res.status !== 200) {
               console.log('Could not load DB => ERROR, HTTP status=' + res.status) // TODO: handle correctly

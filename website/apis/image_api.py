@@ -7,7 +7,8 @@ from flask_login import login_required, current_user
 from http import HTTPStatus
 import os
 from ..database.access import db
-from ..database.models import ImageToAnnotate
+from ..database.models import ImageToAnnotate, ImageAnnotation
+from ..images.geometry import PolygonalRegion
 
 basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
@@ -28,13 +29,13 @@ def list_banks():
 
 
 # This route allows to fetch the list of images of a given bank.
-@image_api.route('/api/bank/<bank>', methods=['GET'])
+@image_api.route('/api/bank/<bank_id>', methods=['GET'])
 @login_required
-def list_images(bank):
-    if not bank.isnumeric():
+def list_images(bank_id):
+    if not bank_id.isnumeric():
         return jsonify({'error': 'ill-formed request'}), HTTPStatus.BAD_REQUEST
-    banks_dict = {b.bank_id: b for b in current_user.accesses}
-    bank_id = int(bank)
+    banks_dict = {access.bank_id: access.bank for access in current_user.accesses}
+    bank_id = int(bank_id)
     if bank_id not in banks_dict:
         return jsonify({'error': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
     return {
@@ -59,20 +60,19 @@ def upload_image():
     if not pic:
         return 'No pic uploaded', HTTPStatus.BAD_REQUEST
 
-    path = basedir + "/website/static/source_images/"
+    path = basedir + '/website/static/source_images/'
     file_path = path + pic.filename
     pic.save(file_path)
 
     image_bank_id = 1
-    # image_bank = "Butterfly"
-    file_url = "../../../website/static/source_images/" + pic.filename
+    # TODO convert to path relative to the folder containing the banks
+    file_url = '../../../website/static/source_images/' + pic.filename
 
-    image_to_annotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url, image_name=pic.filename)
+    image_to_annotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url)
     db.session.add(image_to_annotate)
     db.session.commit()
 
     return jsonify({
-        'status': 200,  # TODO: remove this
         'image_bank_id': image_bank_id,
         'image_name': pic.filename,
         'method': method
@@ -94,7 +94,56 @@ def get_image():
         })
 
     return jsonify({
-        'status': 200,  # TODO: remove this
         'bankName': 'Butterfly',
         'images': images
     })
+
+
+@image_api.route('/api/image/annotate', methods=['PUT'])
+@login_required
+def insert_annotation():
+    """
+    Allows to push all the annotations of the image to the database.
+    """
+    req = request.get_json()
+    image_id = int(req['image_id'])
+    image_query = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.id == image_id)
+    image = image_query.first()
+    if image is None:
+        return jsonify({'error': 'no such image'}), HTTPStatus.NOT_FOUND
+    if 'annotations' not in req:
+        return jsonify({'result': 'success'})
+    if image.image_bank.id not in [access.bank_id for access in current_user.accesses]:
+        return jsonify({'error': 'not authorized to annotate this bank'}), HTTPStatus.UNAUTHORIZED
+    # first pass: verify all data
+    for annotation in req['annotations']:
+        try:
+            region = PolygonalRegion(annotation['points'])
+        except Exception:
+            return jsonify({'error': 'ill-formed polygonal region'}), HTTPStatus.BAD_REQUEST
+        if max(map(lambda p: p.x, region.points)) > image.width or \
+                min(map(lambda p: p.x, region.points)) < 0 or \
+                max(map(lambda p: p.y, region.points)) > image.height or \
+                min(map(lambda p: p.y, region.points)) < 0:
+            return jsonify({'error': 'there exists a point out of bounds'}), HTTPStatus.BAD_REQUEST
+        if annotation['id'] != '-1':
+            # trying to update existing annotation
+            if int(annotation['id']) not in [annot.id for annot in image.annotations]:
+                return jsonify({'error': 'trying to update an annotation that does not exist'}), HTTPStatus.BAD_REQUEST
+
+    # second pass: update database
+    for annotation in req['annotations']:
+        region = PolygonalRegion(annotation['points'])
+        stripped_tag = annotation['tag'].strip().tolower()
+        if annotation['id'] == '-1':
+            # new region
+            a = ImageAnnotation(image.id, stripped_tag, region.sql_serialize_region())
+            db.session.add(a)
+        else:
+            db.session.query(ImageAnnotation)\
+                .filter(ImageAnnotation.id == int(annotation['id']))\
+                .update({
+                    ImageAnnotation.region_info: region.sql_serialize_region(),
+                    ImageAnnotation.tag: stripped_tag
+                })
+    return jsonify({'result': 'success'})
