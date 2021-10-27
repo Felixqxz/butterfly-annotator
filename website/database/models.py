@@ -70,7 +70,7 @@ class ImageToAnnotate(db.Model):
     image_bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
     image_bank = relationship('ImageBank', back_populates='images')
     file_url = db.Column(db.String())
-    image_name = db.Column(db.String())
+    description = db.Column(db.String())
 
 class Description(db.Model):
     """
@@ -80,4 +80,4 @@ class Description(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String)
-    # TODO: change this, it should not be done this way (probably)
+    # TODO: change this, it should not be done this way (probably) => handle in ImageToAnnotate
