@@ -106,7 +106,7 @@ class ImageAnnotation(db.Model):
 
     image = relationship('ImageToAnnotate', back_populates='annotations')
     # The user responsible for this annotation
-    author = relationship('ImageAnnotation', back_populates='annotations')
+    author = relationship('User', back_populates='annotations')
 
     def __init__(self, image_id, tag, region_info, author_id):
         self.image_id = image_id
