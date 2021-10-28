@@ -13,6 +13,7 @@ from ..images.geometry import PolygonalRegion
 basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
 
+
 bank_access_levels = {
     'admin': 90,
     'editor': 50,
@@ -163,7 +164,7 @@ def insert_annotation():
         stripped_tag = annotation['tag'].strip().tolower()
         if annotation['id'] == '-1':
             # new region
-            a = ImageAnnotation(image.id, stripped_tag, region.sql_serialize_region())
+            a = ImageAnnotation(image.id, stripped_tag, region.sql_serialize_region(), current_user.get_id())
             db.session.add(a)
             db.session.commit()
         else:
@@ -171,7 +172,8 @@ def insert_annotation():
                 .filter(ImageAnnotation.id == int(annotation['id']))\
                 .update({
                     ImageAnnotation.region_info: region.sql_serialize_region(),
-                    ImageAnnotation.tag: stripped_tag
+                    ImageAnnotation.tag: stripped_tag,
+                    ImageAnnotation.author_id: current_user.get_id()
                 })
             db.session.commit()
     return jsonify({'result': 'success'})
