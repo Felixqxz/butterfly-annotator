@@ -35,11 +35,14 @@ export default {
     }
   },
   methods: {
-    ...mapActions({ listBanks: 'listBanks' })
+    ...mapActions({ listBanks: 'listBanks' }),
+    updateBanks() {
+      this.listBanks().then(req => this.availableBanks = req.data)
+          .catch(err => console.log(err)) // TODO: handle errors correctly
+    },
   },
   created() {
-    this.listBanks().then(req => this.availableBanks = req.data)
-        .catch(err => console.log(err)) // TODO: handle errors correctly
+    this.updateBanks()
   },
 }
 </script>
