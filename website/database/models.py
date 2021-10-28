@@ -90,16 +90,6 @@ class ImageToAnnotate(db.Model):
         self.width = width
         self.height = height
 
-class Description(db.Model):
-    """
-    Represents an image to annotate.
-    """
-    __tablename__ = 'description'
-
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.String)
-    # TODO: change this, it should not be done this way (probably) => handle in ImageToAnnotate
-
 
 class ImageAnnotation(db.Model):
     """

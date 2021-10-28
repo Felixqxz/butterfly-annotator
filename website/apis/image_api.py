@@ -13,11 +13,39 @@ from ..images.geometry import PolygonalRegion
 basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
 
+bank_access_levels = {
+    'admin': 90,
+    'editor': 50,
+    'viewer': 0,
+}
 
-# This route allows to fetch the list of banks a user can see.
+
+def can_access_image(image, user, access_level='viewer'):
+    """
+    Returns `True` iff the given user can access the provided image.
+    """
+    level = bank_access_levels[access_level]
+    return image.image_bank.id in [access.bank_id for access in user.accesses 
+        if access.permission_level >= level]
+
+
+def ensure_image_exists(raw_id):
+    """
+    Ensures the provided id is a valid image id and that an image with
+    that id exists in the database.
+    """
+    if not raw_id.isnumeric():
+        return None
+    image_id = int(raw_id)
+    return db.session.query(ImageToAnnotate).filter(ImageToAnnotate.id == image_id).first()
+
+
 @image_api.route('/api/bank-list', methods=['GET'])
 @login_required
 def list_banks():
+    """
+    Returns the list of banks available to the current user.
+    """
     banks = []
     for access in current_user.accesses:
         banks.append({
@@ -82,7 +110,7 @@ def upload_image():
 # This route is used to get all images info that user uploaded.
 @image_api.route('/api/image/getImage', methods=['GET'])
 @login_required
-def get_image():
+def get_image():  # TODO: remove this endpoint
     images = []
     count = ImageToAnnotate.query.filter_by(image_bank_id=1).count()
     for i in range(count):
@@ -106,14 +134,12 @@ def insert_annotation():
     Allows to push all the annotations of the image to the database.
     """
     req = request.get_json()
-    image_id = int(req['image_id'])
-    image_query = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.id == image_id)
-    image = image_query.first()
+    image = ensure_image_exists(req['image_id'])
     if image is None:
-        return jsonify({'error': 'no such image'}), HTTPStatus.NOT_FOUND
+        return jsonify({'error': 'there exists no image with such an id'}), HTTPStatus.NOT_FOUND
     if 'annotations' not in req:
         return jsonify({'result': 'success'})
-    if image.image_bank.id not in [access.bank_id for access in current_user.accesses]:
+    if not can_access_image(image, current_user, access_level='editor'):
         return jsonify({'error': 'not authorized to annotate this bank'}), HTTPStatus.UNAUTHORIZED
     # first pass: verify all data
     for annotation in req['annotations']:
@@ -139,6 +165,7 @@ def insert_annotation():
             # new region
             a = ImageAnnotation(image.id, stripped_tag, region.sql_serialize_region())
             db.session.add(a)
+            db.session.commit()
         else:
             db.session.query(ImageAnnotation)\
                 .filter(ImageAnnotation.id == int(annotation['id']))\
@@ -146,4 +173,28 @@ def insert_annotation():
                     ImageAnnotation.region_info: region.sql_serialize_region(),
                     ImageAnnotation.tag: stripped_tag
                 })
+            db.session.commit()
     return jsonify({'result': 'success'})
+
+
+@image_api.route('/api/image/annotations/<image_id>')
+@login_required
+def get_annotations(raw_id):
+    """
+    Returns the annotations of the image with id `image_id`.
+    """
+    image = ensure_image_exists(raw_id)
+    if image is None:
+        return jsonify({'message': 'there is no image with such an id'}), HTTPStatus.NOT_FOUND
+    if not can_access_image(image, current_user):
+        return jsonify({'message': 'not authorized to view this bank'})
+    return jsonify({
+        'id': image.id,
+        'annotations': [
+            {
+                'id': annotation.id,
+                'tag': annotation.tag,
+                'regionInfo': annotation.region_info,
+            } for annotation in image.annotations
+        ]
+    })
