@@ -1,29 +1,22 @@
 import axios from 'axios'
 
 const state = {
-    token: '',
     userInfo: null,
 }
 
 const mutations = {
-    setToken(state, {token}) {
-        state.token = token
-    },
     setUserInfo(state, {userInfo}) {
         state.userInfo = userInfo
     },
     deleteInfo(state) {
         state.userInfo = null
-        state.token = ''
     },
 }
 
 const actions = {
     logIn({commit}, {formData}) {
         return axios.post('/login', formData).then(res => {
-            const token = res.data.data.username
-            const userInfo = res.data.data
-            commit('setToken', {token})
+            const userInfo = res.data
             commit('setUserInfo', {userInfo})
         })
     },
@@ -41,9 +34,7 @@ const actions = {
     },
     registerAccount({commit}, {registrationForm}) {
         return axios.post('/register', registrationForm).then(res => {
-            const token = res.data.data.username
-            const userInfo = res.data.data
-            commit('setToken', {token})
+            const userInfo = res.data
             commit('setUserInfo', {userInfo})
         })
     },

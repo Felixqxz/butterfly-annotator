@@ -14,6 +14,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String())
 
     accesses = relationship('BankAccess', back_populates='user')
+    annotations = relationship('ImageAnnotation', back_populates='author')
 
     def __init__(self, username, email, password_hash):
         self.username = username
@@ -90,16 +91,6 @@ class ImageToAnnotate(db.Model):
         self.width = width
         self.height = height
 
-class Description(db.Model):
-    """
-    Represents an image to annotate.
-    """
-    __tablename__ = 'description'
-
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.String)
-    # TODO: change this, it should not be done this way (probably) => handle in ImageToAnnotate
-
 
 class ImageAnnotation(db.Model):
     """
@@ -111,9 +102,14 @@ class ImageAnnotation(db.Model):
     image_id = db.Column(db.Integer, db.ForeignKey('image.id'))
     tag = db.Column(db.String())
     region_info = db.Column(db.String())
-    image = relationship('ImageToAnnotate', back_populates='annotations')
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, image_id, tag, region_info):
+    image = relationship('ImageToAnnotate', back_populates='annotations')
+    # The user responsible for this annotation
+    author = relationship('User', back_populates='annotations')
+
+    def __init__(self, image_id, tag, region_info, author_id):
         self.image_id = image_id
         self.tag = tag
         self.region_info = region_info
+        self.author_id = author_id
