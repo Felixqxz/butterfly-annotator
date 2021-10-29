@@ -79,15 +79,6 @@
         </b-col>
       </b-row>
 
-      <div style="text-align: center">
-        <b-button
-          id="button-export"
-          class="button-submit"
-          type="button"
-          size="lg"
-          >Export as PDF</b-button
-        >
-      </div>
     </div>
 
     <figure
@@ -203,8 +194,7 @@ export default {
       imageBox:
         "https://cdn.mos.cms.futurecdn.net/MutKXr3Z2za46Zdi3XM3BM-1200-80.jpg",
       // The description of the image user selected
-      imageDescription:
-        "This is an example image, please click one you uploaded!",
+      imageDescription: "",
     };
   },
   methods: {
@@ -308,12 +298,10 @@ export default {
   background-color: #e9ecef;
 }
 
+/* layout of the "select words" button */
 .textbox-area.col-sm-1 {
   padding: 0;
-  margin-top: 70px;
+  margin-top: 4rem;
 }
 
-#button-export {
-  margin-top: 40px;
-}
 </style>
