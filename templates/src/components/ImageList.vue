@@ -27,7 +27,7 @@
     </form>
     <b-row>
       <b-col md="4" sm="6" xs="12" v-for="(image, index) in images" v-bind:key="image.id">
-        <router-link :to="'/annotate/' + image.id">
+        <router-link :to="{name: 'AnnotateImage', params: {imageId: image.id}}">
           <!-- Do not use b-card: it creates automatically a b-card-body tag -->
           <div class="card card-hover no-drag image-to-annotate">
             <div class="image-hover-container">
@@ -67,6 +67,7 @@ export default {
             if (res.status !== 200) {
               console.log('Could not load DB => ERROR, HTTP status=' + res.status) // TODO: handle correctly
             } else {
+              console.log(data)
               let data = res.data
               this.images = data.images
               this.bankName = data.bankName

@@ -1,35 +1,10 @@
 <template>
   <div>
     <div>
-      <!-- <b-row>
-        <b-col class="align-file-input" sm="5">
-          <b-form-file
-              v-model="textFile"
-              placeholder="Click here to choose a .txt file, then click import!"
-              accept=".txt"
-          ></b-form-file>
-        </b-col>
-
-        <b-col class="align-button" sm="1">
-          <b-button class="button-submit" @click="readFile">Import</b-button>
-        </b-col>
-
-        <b-col class="align-file-input" sm="5">
-          <b-form-file
-              v-model="imageFile"
-              placeholder="Please choose an image or drop it here!"
-              accept="image/jpeg, image/png"
-          ></b-form-file>
-        </b-col>
-
-        <b-col class="align-button" sm="1">
-          <b-button class="button-submit" @click="uploadImage">Upload</b-button>
-        </b-col>
-      </b-row> -->
       <b-button-toolbar :justify="true">
         <b-button
           router-link
-          :to="'/annotate/' + (parseInt(this.$route.params.imageId) - 1)"
+          :to="{name: 'AnnotateImage', params: {imageId: parseInt(this.$route.params.imageId) - 1}}"
           variant="outline-primary"
           :disabled="noPrevious()"
           >Previous</b-button
@@ -37,7 +12,7 @@
 
         <b-button
           router-link
-          :to="'/annotate/' + (parseInt(this.$route.params.imageId) + 1)"
+          :to="{name: 'AnnotateImage', params: {imageId: parseInt(this.$route.params.imageId) + 1}}"
           variant="outline-primary"
           :v-show="noNext()"
           >next</b-button
@@ -78,16 +53,6 @@
           </div>
         </b-col>
       </b-row>
-
-      <div style="text-align: center">
-        <b-button
-          id="button-export"
-          class="button-submit"
-          type="button"
-          size="lg"
-          >Export as PDF</b-button
-        >
-      </div>
     </div>
 
     <figure
