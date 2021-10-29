@@ -70,6 +70,7 @@ export default {
               let data = res.data
               this.images = data.images
               this.bankName = data.bankName
+              this.imageCount = data.imageCount
             }
           })
           .catch(err => {
