@@ -80,8 +80,11 @@ export default {
       const formData = this.form
       this.$validator.validateAll().then(valid => {
         if (valid) {
+          this.$root.$refs.Alert.showSuccessAlert('Login successful!')
           this.logIn({formData}).then(_ => t.$router.push({ path: '/' })).catch(e => console.log(e))
         } else {
+          this.$root.$refs.Alert.showWarningAlert('Please fill in both required fields.')
+
           console.log('error submit') // TODO: handle errors correctly
         }
       })

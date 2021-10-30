@@ -3,7 +3,7 @@
     <b-alert
       :show="dismissCountDown"
       dismissible
-      :variant=alertState
+      :variant=state
       @dismissed="dismissCountDown=0"
       @dismiss-count-down="countDownChanged"
     >{{ message }}</b-alert>
@@ -13,9 +13,10 @@
 <script>
 export default {
   name: "Alert",
-  props: ['message', 'alertState'],
   data() {
     return {
+      message: '',
+      state: '',
       dismissSecs: 3,
       dismissCountDown: 0,
     }
@@ -24,9 +25,19 @@ export default {
     countDownChanged(dismissCountDown) {
         this.dismissCountDown = dismissCountDown
       },
-      showAlert() {
-        this.dismissCountDown = this.dismissSecs
-      }
+    showSuccessAlert(message) {
+      this.message = message
+      this.state = 'success'
+      this.dismissCountDown = this.dismissSecs
+    },
+    showWarningAlert(message) {
+      this.message = message
+      this.state = 'danger'
+      this.dismissCountDown = this.dismissSecs
+    }
+  },
+  created() {
+    this.$root.$refs.Alert = this
   }
 }
 </script>
