@@ -28,14 +28,22 @@ const actions = {
         })
     },
     uploadImage({dispatch}, {formData}) {
-        return axios.post('/api/image/upload', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+        return axios
+        .post('/api/image/upload', formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         })
     },
     registerAccount({commit}, {registrationForm}) {
         return axios.post('/register', registrationForm)
+    },
+    uploadImages({dispatch}, {formData}) {
+        return axios.post('api/upload/multiple/images', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        })
     },
     readFile({dispatch}, {formData}) {
         return axios.post('/api/description/upload', formData, {

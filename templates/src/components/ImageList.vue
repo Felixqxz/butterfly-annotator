@@ -2,11 +2,27 @@
   <b-container>
     <h2 class="page-title">Bank: {{ bankName }}</h2>
     <b-row>
-      <b-col>
+      <b-col sm="3">
         <p>
           <router-link to="/">Return to the list of banks</router-link>
         </p>
       </b-col>
+      <!-- <b-col class="align-button" sm="2">
+        <b-button class="button-submit" @click="uploadImage">Upload a folder</b-button>
+      </b-col> -->
+
+      <b-col class="align-file-input" sm="3">
+        <b-form-file
+          v-model="multipleImages"
+          placeholder="Please choose an image or drop it here!"
+          accept="image/jpeg, image/png"
+          multiple
+        ></b-form-file>
+      </b-col>
+      <b-col class="align-button" sm="2">
+        <b-button class="button-submit" @click="uploadMultipleImages">Upload images</b-button>
+      </b-col>
+
     </b-row>
     <form>
       <b-row>
@@ -45,11 +61,53 @@
         </router-link>
       </b-col>
     </b-row>
+
+    <b-modal id="success-message-modal" hide-footer>
+      <div class="d-block text-center">
+        <h3>Upload an image successfully!</h3>
+      </div>
+      <b-button
+          class="mt-3"
+          block
+          @click="$bvModal.hide('success-message-modal')"
+      >Close Me
+      </b-button
+      >
+    </b-modal>
+
+    <b-modal id="no-image-message-modal" hide-footer>
+      <div class="d-block text-center">
+        <h3>Please upload an image!</h3>
+      </div>
+      <b-button
+          class="mt-3"
+          block
+          @click="$bvModal.hide('no-image-message-modal')"
+      >Close Me
+      </b-button
+      >
+    </b-modal>
+
+    <b-modal id="failed-message-modal" hide-footer>
+      <div class="d-block text-center">
+        <h3>Failed to upload an image!</h3>
+      </div>
+      <b-button
+          class="mt-3"
+          block
+          @click="$bvModal.hide('failed-message-modal')"
+      >Close Me
+      </b-button
+      >
+    </b-modal>
+
+
   </b-container>
 </template>
 
 <script>
 import {mapActions} from 'vuex'
+import axios from "axios"
 
 export default {
   name: 'ImageList',
@@ -57,10 +115,12 @@ export default {
     return {
       images: [],
       bankName: '(loading)',
+      multipleImages: [],
+      imageFile: null,
     }
   },
   methods: {
-    ...mapActions({listImages: 'listImages'}),
+    ...mapActions({listImages: 'listImages', uploadImages: 'uploadImages', uploadImage: 'uploadImage'}),
     fetchImageList() {
       this.listImages({bankId: this.$route.params.bankId})
           .then(res => {
@@ -76,6 +136,34 @@ export default {
             console.log(err) // TODO: handle errors properly
           })
     },
+    uploadMultipleImages() {
+      if (this.multipleImages == null) {
+        this.$bvModal.show('no-image-message-modal')
+        return
+      }
+
+      let formData = new FormData()
+      console.log(this.multipleImages)
+      this.multipleImages.forEach((image) => {
+        formData.append('images', image)
+      })
+      axios
+        .post('http://localhost:5000' + "/api/upload/multiple/images", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((res) => {
+          if (res.status == 200) {
+            this.$bvModal.show("success-message-modal");
+          } else {
+            this.$bvModal.show("failed-message-modal");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   },
   created() {
     this.fetchImageList()

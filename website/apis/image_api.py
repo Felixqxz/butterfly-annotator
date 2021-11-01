@@ -52,6 +52,79 @@ def list_images(bank_id):
         ]}
 
 
+
+
+
+
+# This route is used to upload an folder.
+# @image_api.route('/api/upload/folder', methods=['POST'])
+# @login_required
+# def upload_folder():
+#     # TODO: fix this here; might remove this whole endpoint
+#     method = request.method
+#     pic = request.files['imgFile']
+
+#     if not pic:
+#         return 'No pic uploaded', HTTPStatus.BAD_REQUEST
+
+#     path = basedir + '/website/static/source_images/'
+#     file_path = path + pic.filename
+#     pic.save(file_path)
+
+#     image_bank_id = 1
+#     # TODO convert to path relative to the folder containing the banks
+#     file_url = '../../../website/static/source_images/' + pic.filename
+
+#     image_to_annotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url)
+#     db.session.add(image_to_annotate)
+#     db.session.commit()
+
+#     return jsonify({
+#         'image_bank_id': image_bank_id,
+#         'image_name': pic.filename,
+#         'method': method
+#     })
+
+# This route is used to upload multiple images.
+@image_api.route('/api/upload/multiple/images', methods=['POST'])
+def upload_multiple_images():
+    # TODO: fix this here; might remove this whole endpoint
+    method = request.method
+    pics = request.files.getlist('images')
+    # print(request.files.count)
+    print(pics)
+    if not pics:
+        return 'No pic uploaded', HTTPStatus.BAD_REQUEST
+
+    # print(pics)
+    return jsonify({
+            'status': 200})
+    # path = basedir + '/website/static/source_images/'
+    # file_path = path + pic.filename
+    # pic.save(file_path)
+
+    # image_bank_id = 1
+    # # TODO convert to path relative to the folder containing the banks
+    # file_url = '../../../website/static/source_images/' + pic.filename
+
+    # image_to_annotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url)
+    # db.session.add(image_to_annotate)
+    # db.session.commit()
+
+    # return jsonify({
+    #     'image_bank_id': image_bank_id,
+    #     'image_name': pic.filename,
+    #     'method': method
+    # })
+
+
+
+
+
+
+
+
+
 # This route allows to get the image information
 @image_api.route('/api/image/<image_id>', methods=['GET'])
 @login_required
@@ -72,8 +145,6 @@ def get_image(image_id):
     }
 
 # This route allows to get the next image in the same image bank
-
-
 @image_api.route('/api/image/next/<image_id>', methods=['GET'])
 @login_required
 def get_next_image(image_id):
@@ -131,7 +202,6 @@ def get_previous_image(image_id):
 
 # This route is used to upload an image.
 @image_api.route('/api/image/upload', methods=['POST'])
-@login_required
 def upload_image():
     # TODO: fix this here
     method = request.method
