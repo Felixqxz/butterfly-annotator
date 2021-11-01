@@ -20,12 +20,7 @@ const mutations = {
 
 const actions = {
     logIn({commit}, {formData}) {
-        return axios.post('/login', formData).then(res => {
-            const token = res.data.data.username
-            const userInfo = res.data.data
-            commit('setToken', {token})
-            commit('setUserInfo', {userInfo})
-        })
+        return axios.post('/login', formData)
     },
     logOut({commit}) {
         return axios.post('/logout').then(_ => {
@@ -40,12 +35,7 @@ const actions = {
         })
     },
     registerAccount({commit}, {registrationForm}) {
-        return axios.post('/register', registrationForm).then(res => {
-            const token = res.data.data.username
-            const userInfo = res.data.data
-            commit('setToken', {token})
-            commit('setUserInfo', {userInfo})
-        })
+        return axios.post('/register', registrationForm)
     },
     readFile({dispatch}, {formData}) {
         return axios.post('/api/description/upload', formData, {

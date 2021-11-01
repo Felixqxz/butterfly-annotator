@@ -80,8 +80,23 @@ export default {
       const formData = this.form
       this.$validator.validateAll().then(valid => {
         if (valid) {
-          this.$root.$refs.Alert.showSuccessAlert('Login successful!')
-          this.logIn({formData}).then(_ => t.$router.push({ path: '/' })).catch(e => console.log(e))
+          this.logIn({formData}).then(res => {
+            this.alertMessage = res.data.message
+            console.log(res)
+            if (res.data.status === 200) {
+              const token = res.data.data.username
+              const userInfo = res.data.data
+
+              this.$store.commit('setToken', {token})
+              this.$store.commit('setUserInfo', {userInfo})
+
+              this.$root.$refs.Alert.showSuccessAlert(this.alertMessage)
+
+              t.$router.push('/').catch(e => console.log(e))
+            } else {
+              this.$root.$refs.Alert.showWarningAlert(this.alertMessage)
+            }
+          })
         } else {
           this.$root.$refs.Alert.showWarningAlert('Please fill in both required fields.')
 

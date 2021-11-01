@@ -101,6 +101,7 @@ export default {
         confirmedPassword: '',
         email: '',
       },
+      alertMessage: ''
     }
   },
   methods: {
@@ -119,9 +120,23 @@ export default {
       this.$validator.validateAll().then((valid) => {
         if (valid) {
           const registrationForm = this.registrationForm
-          this.register({registrationForm}).then(_ => t.$router.push('/').catch(e => console.log(e)))
-        } else {
-          // TODO: handle errors correctly
+          this.register({registrationForm}).then(res => {
+            this.alertMessage = res.data.message
+            console.log(res)
+            if (res.data.status === 200) {
+              const token = res.data.data.username
+              const userInfo = res.data.data
+
+              this.$store.commit('setToken', {token})
+              this.$store.commit('setUserInfo', {userInfo})
+
+              this.$root.$refs.Alert.showSuccessAlert(this.alertMessage)
+
+              t.$router.push('/').catch(e => console.log(e))
+            } else {
+              this.$root.$refs.Alert.showWarningAlert(this.alertMessage)
+            }
+          })
         }
       })
     },
