@@ -40,7 +40,7 @@ def list_images(bank_id):
             'url': 'https://cdn.mos.cms.futurecdn.net/MutKXr3Z2za46Zdi3XM3BM-1200-80.jpg',
             'fullDescription': 'A very pretty butterfly!',
         })
-    
+
     return {
         'bankName': 'test',
         'images': images,
@@ -63,50 +63,70 @@ def list_images(bank_id):
     #     ]}
 
 
+# This route allows to get the image information
+@image_api.route('/api/image/<image_id>', methods=['GET'])
+@login_required
+def get_image(image_id):
+    image = db.session.query(ImageToAnnotate).filter(
+        ImageToAnnotate.id == image_id).first()
+    if image is None:
+        return jsonify({'message': 'image not found'}), HTTPStatus.NOT_FOUND
+    
+    return {
+        'image': {
+            'id': image.id,
+            'url': image.file_url,
+            'description': image.description,
+            'width': image.width,
+            'height': image.height
+        }
+    }
+    
+# This route allows to get the next image in the same image bank
 @image_api.route('/api/image/next/<image_id>', methods=['GET'])
 @login_required
 def get_next_image(image_id):
-    image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.id == image_id).first()
+    image = db.session.query(ImageToAnnotate).filter(
+        ImageToAnnotate.id == image_id).first()
     bank_id = image.image_bank_id
 
-    banks_dict = {access.bank_id: access.bank for access in current_user.accesses}
+    banks_dict = {
+        access.bank_id: access.bank for access in current_user.accesses}
 
-    next_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_id == bank_id, 
-                                                        ImageToAnnotate.id > image_id).first()
+    next_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_id == bank_id,
+                                                          ImageToAnnotate.id > image_id).first()
     if next_image is None:
         return jsonify({'message': 'no next image'}), HTTPStatus.NOT_FOUND
 
     next_image_id = next_image.id
     return {
-        'image': [
-            {
-                'id': next_image.id,
-                'url': next_image.file_url,
-                'description': next_image.description
-            }
-        ]
+        'image': {
+            'id': next_image.id,
+            'url': next_image.file_url,
+            'description': next_image.description
+        }
     }
 
-
+# This route allows to get the previous image in the same image bank
 @image_api.route('/api/image/previous/<image_id>', methods=['GET'])
 @login_required
 def get_previous_image(image_id):
-    image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.id == image_id).first()
+    image = db.session.query(ImageToAnnotate).filter(
+        ImageToAnnotate.id == image_id).first()
     bank_id = image.image_bank_id
 
     previous_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_id == bank_id,
-                                                        ImageToAnnotate.id < image_id).order_by(ImageToAnnotate.id.desc()).first()
+                                                              ImageToAnnotate.id < image_id).order_by(ImageToAnnotate.id.desc()).first()
     if previous_image is None:
         return jsonify({'message': 'no previous image'}), HTTPStatus.NOT_FOUND
 
     return {
-        'image': [
-            {
-                'id': previous_image.id,
-                'url': previous_image.file_url,
-                'description': previous_image.description
-            }
-        ]
+        'image': {
+            'id': previous_image.id,
+            'url': previous_image.file_url,
+            'description': previous_image.description
+        }
+
     }
 
 
@@ -129,7 +149,8 @@ def upload_image():
     # TODO convert to path relative to the folder containing the banks
     file_url = '../../../website/static/source_images/' + pic.filename
 
-    image_to_annotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url)
+    image_to_annotate = ImageToAnnotate(
+        image_bank_id=image_bank_id, file_url=file_url)
     db.session.add(image_to_annotate)
     db.session.commit()
 
@@ -143,11 +164,12 @@ def upload_image():
 # This route is used to get all images info that user uploaded.
 @image_api.route('/api/image/getImage', methods=['GET'])
 @login_required
-def get_image():
+def get_images():
     images = []
     count = ImageToAnnotate.query.filter_by(image_bank_id=1).count()
     for i in range(count):
-        image = ImageToAnnotate.query.filter_by(id=i + 1).first()  # TODO: what is this?
+        image = ImageToAnnotate.query.filter_by(
+            id=i + 1).first()  # TODO: what is this?
         images.append({
             'id': i,
             'url': image.file_url,
@@ -168,7 +190,8 @@ def insert_annotation():
     """
     req = request.get_json()
     image_id = int(req['image_id'])
-    image_query = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.id == image_id)
+    image_query = db.session.query(ImageToAnnotate).filter(
+        ImageToAnnotate.id == image_id)
     image = image_query.first()
     if image is None:
         return jsonify({'error': 'no such image'}), HTTPStatus.NOT_FOUND
@@ -198,7 +221,8 @@ def insert_annotation():
         stripped_tag = annotation['tag'].strip().tolower()
         if annotation['id'] == '-1':
             # new region
-            a = ImageAnnotation(image.id, stripped_tag, region.sql_serialize_region())
+            a = ImageAnnotation(image.id, stripped_tag,
+                                region.sql_serialize_region())
             db.session.add(a)
         else:
             db.session.query(ImageAnnotation)\

@@ -3,24 +3,16 @@
     <div>
       <b-button-toolbar :justify="true">
         <b-button
-          router-link
-          :to="{
-            name: 'AnnotateImage',
-            params: { imageId: parseInt(this.$route.params.imageId) - 1 },
-          }"
+          @click="getPrevious()"
           variant="outline-primary"
-          :disabled="noPrevious()"
+          :disabled="noPrevious"
           >Previous</b-button
         >
 
         <b-button
-          router-link
-          :to="{
-            name: 'AnnotateImage',
-            params: { imageId: parseInt(this.$route.params.imageId) + 1 },
-          }"
+          @click="getNext()"
           variant="outline-primary"
-          :v-show="noNext()"
+          :v-show="noNext"
           >next</b-button
         >
       </b-button-toolbar>
@@ -73,31 +65,69 @@ export default {
     return {
       // Text area
       text: "",
-      // The .txt file uploaded
-      textFile: null,
-      // Save all the images info that user uploaded
-      newImages: [],
-      // The image uploaded
-      imageFile: null,
-      // This may be deleted
-      imageState: null,
       // Box to display the image to be annotated
       imageBox:
-        "https://cdn.mos.cms.futurecdn.net/MutKXr3Z2za46Zdi3XM3BM-1200-80.jpg",
+        "",
       // The description of the image user selected
       imageDescription: "",
+      noPrevious: false,
+      noNext: false,
     };
   },
   methods: {
-    ...mapActions({ doUploadImage: "uploadImage", doReadFile: "readFile" }),
+    ...mapActions({ nextImage: 'nextImage', previousImage: 'previousImage' , getImage: 'getImage'}),
+    hasPrevious() {
+      this.previousImage({ imageId: this.$route.params.imageId }).then(_ => {
+        return true
+      }).catch(error => {
+        return false
+      });
+    },
+    hasNext() {
+      this.nextImage({ imageId: this.$route.params.imageId }).then(_ => {
+        return true
+      }).catch(error => {
+        return false
+      });
+    },
+    getImageInfo() {
+      this.getImage({ imageId: this.$route.params.imageId }).then(res => {
+        const image = res.data.image
+        this.text = image.description
+        this.imageBox = image.url
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    getPrevious() {
+      this.previousImage({ imageId: this.$route.params.imageId }).then(res => {
+        const previousImage = res.data.image
+        console.log(previousImage)
+        this.$router.push({ name: 'AnnotateImage', params: {imageId: previousImage.id} })
+      }).catch(error => {
+        console.log(error)
+      });
+    },
 
-    noPrevious() {
-      return parseInt(this.$route.params.imageId) <= 0;
+    getNext() {
+      this.nextImage({ imageId: this.$route.params.imageId }).then(res => {
+        const nextImage = res.data.image
+        console.log(nextImage)
+        this.$router.push({ name: 'AnnotateImage', params: {imageId: nextImage.id} })
+        
+      }).catch(error => {
+        console.log(error)
+      });
     },
-    noNext() {
-      return true;
-    },
-  }, 
+  },
+  watch: {
+    $route(to, from) {
+      this.getImageInfo()
+    }
+  },
+  created() {
+    this.getImageInfo()
+  }
 };
 </script>
 

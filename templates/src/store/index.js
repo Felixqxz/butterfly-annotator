@@ -13,7 +13,16 @@ const userData = new Vuex.Store({
         },
         listImages({ dispatch }, { bankId }) {
             return axios.get('/api/bank/' + bankId)
-        }
+        },
+        getImage({ dispatch }, { imageId }) {
+            return axios.get('api/image/' + imageId)
+        },
+        nextImage({ dispatch }, { imageId }) {
+            return axios.get('api/image/next/' + imageId)
+        },
+        previousImage({ dispatch }, { imageId }) {
+            return axios.get('api/image/previous/' + imageId)
+        },
     },
     modules: {auth},
     plugins: [createPersistedState()],
