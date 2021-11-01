@@ -24,6 +24,7 @@
         </b-col>
 
         <b-col class="textbox-area" sm="3">
+          Description 
           <b-form-textarea
             id="textarea-auto-height"
             v-model="text"
@@ -39,7 +40,7 @@
               :src="imageBox"
               class="card-img-top figure-img img-fluid rounded"
               alt="Currently no image in this area, please choose one from the image you uploaded."
-              style="width: auto; height: 380px"
+              style="width: auto; height: auto"
             />
 
             <div class="card-body" style="text-align: center">

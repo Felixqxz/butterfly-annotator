@@ -33,35 +33,23 @@ def list_banks():
 @image_api.route('/api/bank/<bank_id>', methods=['GET'])
 @login_required
 def list_images(bank_id):
-    images = []
-    for i in range(10):
-        images.append({
-            'id': i,
-            'url': 'https://cdn.mos.cms.futurecdn.net/MutKXr3Z2za46Zdi3XM3BM-1200-80.jpg',
-            'fullDescription': 'A very pretty butterfly!',
-        })
-
-    return {
-        'bankName': 'test',
-        'images': images,
-    }
     if not bank_id.isnumeric():
         return jsonify({'error': 'ill-formed request'}), HTTPStatus.BAD_REQUEST
     banks_dict = {
         access.bank_id: access.bank for access in current_user.accesses}
     bank_id = int(bank_id)
-    # if bank_id not in banks_dict:
-    #     return jsonify({'error': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
+    if bank_id not in banks_dict:
+        return jsonify({'error': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
 
-    # return {
-    #     'bankName': banks_dict[bank_id].bankname,
-    #     'images': [
-    #         {
-    #             'id': image.id,
-    #             'url': image.file_url,
-    #             'fullDescription': image.description,
-    #         } for image in banks_dict[bank_id].images
-    #     ]}
+    return {
+        'bankName': banks_dict[bank_id].bankname,
+        'images': [
+            {
+                'id': image.id,
+                'url': image.file_url,
+                'fullDescription': image.description,
+            } for image in banks_dict[bank_id].images
+        ]}
 
 
 # This route allows to get the image information
