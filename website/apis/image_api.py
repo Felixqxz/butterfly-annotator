@@ -45,10 +45,11 @@ def list_images(bank_id):
         'bankName': 'test',
         'images': images,
     }
-    # if not bank_id.isnumeric():
-    #     return jsonify({'error': 'ill-formed request'}), HTTPStatus.BAD_REQUEST
-    # banks_dict = {access.bank_id: access.bank for access in current_user.accesses}
-    # bank_id = int(bank_id)
+    if not bank_id.isnumeric():
+        return jsonify({'error': 'ill-formed request'}), HTTPStatus.BAD_REQUEST
+    banks_dict = {
+        access.bank_id: access.bank for access in current_user.accesses}
+    bank_id = int(bank_id)
     # if bank_id not in banks_dict:
     #     return jsonify({'error': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
 
@@ -71,7 +72,7 @@ def get_image(image_id):
         ImageToAnnotate.id == image_id).first()
     if image is None:
         return jsonify({'message': 'image not found'}), HTTPStatus.NOT_FOUND
-    
+
     return {
         'image': {
             'id': image.id,
@@ -81,8 +82,10 @@ def get_image(image_id):
             'height': image.height
         }
     }
-    
+
 # This route allows to get the next image in the same image bank
+
+
 @image_api.route('/api/image/next/<image_id>', methods=['GET'])
 @login_required
 def get_next_image(image_id):
@@ -96,10 +99,13 @@ def get_next_image(image_id):
     next_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_id == bank_id,
                                                           ImageToAnnotate.id > image_id).first()
     if next_image is None:
-        return jsonify({'message': 'no next image'}), HTTPStatus.NOT_FOUND
+        return jsonify({
+            'status': 404,
+            'message': 'no next image'})
 
     next_image_id = next_image.id
     return {
+        'status': 200,
         'image': {
             'id': next_image.id,
             'url': next_image.file_url,
@@ -108,6 +114,8 @@ def get_next_image(image_id):
     }
 
 # This route allows to get the previous image in the same image bank
+
+
 @image_api.route('/api/image/previous/<image_id>', methods=['GET'])
 @login_required
 def get_previous_image(image_id):
@@ -118,9 +126,12 @@ def get_previous_image(image_id):
     previous_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_id == bank_id,
                                                               ImageToAnnotate.id < image_id).order_by(ImageToAnnotate.id.desc()).first()
     if previous_image is None:
-        return jsonify({'message': 'no previous image'}), HTTPStatus.NOT_FOUND
+        return jsonify({
+            'status': 404,
+            'message': 'no previous image'})
 
     return {
+        'status': 200,
         'image': {
             'id': previous_image.id,
             'url': previous_image.file_url,

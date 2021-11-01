@@ -12,7 +12,7 @@
         <b-button
           @click="getNext()"
           variant="outline-primary"
-          :v-show="noNext"
+          :disabled="noNext"
           >next</b-button
         >
       </b-button-toolbar>
@@ -56,8 +56,8 @@
 </template>
 
 <script>
-import axios from "axios";
-import { mapActions } from "vuex";
+import axios from "axios"
+import { mapActions } from "vuex"
 
 export default {
   name: "AnnotateImage",
@@ -66,88 +66,111 @@ export default {
       // Text area
       text: "",
       // Box to display the image to be annotated
-      imageBox:
-        "",
+      imageBox: "",
       // The description of the image user selected
       imageDescription: "",
       noPrevious: false,
       noNext: false,
-    };
+    }
   },
   methods: {
-    ...mapActions({ nextImage: 'nextImage', previousImage: 'previousImage' , getImage: 'getImage'}),
-    hasPrevious() {
-      this.previousImage({ imageId: this.$route.params.imageId }).then(_ => {
-        return true
-      }).catch(error => {
-        return false
-      });
-    },
-    hasNext() {
-      this.nextImage({ imageId: this.$route.params.imageId }).then(_ => {
-        return true
-      }).catch(error => {
-        return false
-      });
-    },
+    ...mapActions({
+      nextImage: "nextImage",
+      previousImage: "previousImage",
+      getImage: "getImage",
+    }),
     getImageInfo() {
-      this.getImage({ imageId: this.$route.params.imageId }).then(res => {
-        const image = res.data.image
-        this.text = image.description
-        this.imageBox = image.url
-      }).catch(error => {
-        console.log(error)
-      })
+      this.getImage({ imageId: this.$route.params.imageId })
+        .then(res => {
+          const image = res.data.image
+          this.text = image.description
+          this.imageBox = image.url
+        })
+        .catch((error) => {
+          console.log(error)
+        })
     },
     getPrevious() {
-      this.previousImage({ imageId: this.$route.params.imageId }).then(res => {
-        const previousImage = res.data.image
-        console.log(previousImage)
-        this.$router.push({ name: 'AnnotateImage', params: {imageId: previousImage.id} })
-      }).catch(error => {
-        console.log(error)
-      });
+      const t = this
+      this.previousImage({ imageId: this.$route.params.imageId })
+        .then(res => {
+          if (res.data.status === 200) {
+            const previousImage = res.data.image
+            t.$router.push({
+              name: "AnnotateImage",
+              params: { imageId: previousImage.id },
+            })
+          }
+        })
     },
 
     getNext() {
+      const t = this;
       this.nextImage({ imageId: this.$route.params.imageId }).then(res => {
-        const nextImage = res.data.image
-        console.log(nextImage)
-        this.$router.push({ name: 'AnnotateImage', params: {imageId: nextImage.id} })
-        
-      }).catch(error => {
-        console.log(error)
-      });
+        if (res.data.status === 200) {
+          const nextImage = res.data.image;
+          t.$router.push({
+            name: "AnnotateImage",
+            params: { imageId: nextImage.id },
+          })
+        }
+      })
     },
   },
   watch: {
     $route(to, from) {
+      const t = this
+      this.noNext = false
+      this.noPrevious = false
       this.getImageInfo()
-    }
+      this.nextImage({ imageId: this.$route.params.imageId }).then((res) => {
+        if (res.data.status === 404) {
+          this.noNext = true
+        }
+      })
+      this.previousImage({ imageId: this.$route.params.imageId }).then(
+        (res) => {
+          if (res.data.status === 404) {
+            t.noPrevious = true
+          }
+        }
+      )
+    },
   },
   created() {
+    const t = this
     this.getImageInfo()
-  }
-};
+    this.nextImage({ imageId: this.$route.params.imageId }).then((res) => {
+      if (res.data.status === 404) {
+        this.noNext = true
+      }
+    });
+    this.previousImage({ imageId: this.$route.params.imageId }).then((res) => {
+      if (res.data.status === 404) {
+        t.noPrevious = true
+      }
+    })
+  },
+}
 </script>
 
 <style>
 .col-sm-1.align-button {
-  padding-left: 0;
+  padding-left: 0
 }
 
 .col-sm-5.align-file-input {
-  padding-right: 0;
+  padding-right: 0
 }
 
 .button-submit.btn-secondary {
   color: black;
-  background-color: #e9ecef;
+  background-color: #e9ecef
 }
 
 /* layout of the "select words" button */
 .textbox-area.col-sm-1 {
   padding: 0;
-  margin-top: 4rem;
+  margin-top: 4rem
 }
 </style>
