@@ -4,7 +4,10 @@
       <b-button-toolbar :justify="true">
         <b-button
           router-link
-          :to="{name: 'AnnotateImage', params: {imageId: parseInt(this.$route.params.imageId) - 1}}"
+          :to="{
+            name: 'AnnotateImage',
+            params: { imageId: parseInt(this.$route.params.imageId) - 1 },
+          }"
           variant="outline-primary"
           :disabled="noPrevious()"
           >Previous</b-button
@@ -12,7 +15,10 @@
 
         <b-button
           router-link
-          :to="{name: 'AnnotateImage', params: {imageId: parseInt(this.$route.params.imageId) + 1}}"
+          :to="{
+            name: 'AnnotateImage',
+            params: { imageId: parseInt(this.$route.params.imageId) + 1 },
+          }"
           variant="outline-primary"
           :v-show="noNext()"
           >next</b-button
@@ -54,95 +60,6 @@
         </b-col>
       </b-row>
     </div>
-
-    <figure
-      class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
-      v-for="image in newImages"
-      v-bind:key="image.id"
-    >
-      <img
-        :src="imgSrc(image)"
-        class="figure-img img-fluid rounded"
-        :alt="image.id"
-        @click="putIntoBox(image)"
-      />
-      <figcaption class="figure-caption text-center">
-        {{ image.imageName }}
-      </figcaption>
-    </figure>
-
-    <b-modal id="success-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Upload an image successfully!</h3>
-      </div>
-      <b-button
-        class="mt-3"
-        block
-        @click="$bvModal.hide('success-message-modal')"
-        >Close Me
-      </b-button>
-    </b-modal>
-
-    <b-modal id="success-textFile-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>import file successfully!</h3>
-      </div>
-      <b-button
-        class="mt-3"
-        block
-        @click="$bvModal.hide('success-textFile-message-modal')"
-        >Close Me
-      </b-button>
-    </b-modal>
-
-    <b-modal id="failed-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Failed to upload an image!</h3>
-      </div>
-      <b-button
-        class="mt-3"
-        block
-        @click="$bvModal.hide('failed-message-modal')"
-        >Close Me
-      </b-button>
-    </b-modal>
-
-    <b-modal id="failed-textFile-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Failed to upload an image!</h3>
-      </div>
-
-      <b-button
-        class="mt-3"
-        block
-        @click="$bvModal.hide('failed-textFile-message-modal')"
-        >Close Me
-      </b-button>
-    </b-modal>
-
-    <b-modal id="no-image-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Please upload an image!</h3>
-      </div>
-      <b-button
-        class="mt-3"
-        block
-        @click="$bvModal.hide('no-image-message-modal')"
-        >Close Me
-      </b-button>
-    </b-modal>
-
-    <b-modal id="no-textFile-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Please choose a .txt file!</h3>
-      </div>
-      <b-button
-        class="mt-3"
-        block
-        @click="$bvModal.hide('no-textFile-message-modal')"
-        >Close Me
-      </b-button>
-    </b-modal>
   </div>
 </template>
 
@@ -180,81 +97,7 @@ export default {
     noNext() {
       return true;
     },
-    // Handle upload image feature, still have problems
-    uploadImage() {
-      if (this.imageFile == null) {
-        this.$bvModal.show("no-image-message-modal");
-        return;
-      }
-
-      let formData = new FormData();
-      formData.append("imgFile", this.imageFile);
-      this.doUploadImage(formData)
-        .then((res) => {
-          if (res.status === 200) {
-            this.$bvModal.show("success-message-modal");
-          } else {
-            this.$bvModal.show("failed-message-modal");
-          }
-        })
-        .catch((err) => {
-          console.log(err); // TODO: handle
-        });
-      this.getAllImages();
-    },
-    // Handle text import feature
-    // text is defined in data() {}
-    readFile() {
-      if (this.textFile == null) {
-        this.$bvModal.show("no-textFile-message-modal");
-        return;
-      }
-      let fileReader = new FileReader();
-      fileReader.readAsText(this.textFile);
-      fileReader.onload = () => {
-        this.text = fileReader.result;
-      };
-
-      let formData = new FormData();
-      formData.append("txtFile", this.textFile);
-
-      this.doReadFile({ formData })
-        .then((res) => {
-          if (res.status === 200) {
-            this.$bvModal.show("success-textFile-message-modal");
-          } else {
-            this.$bvModal.show("failed-textFile-message-modal");
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    },
-    //display all the images the user uploaded
-    getAllImages() {
-      axios
-        .get("/api/image/getImage")
-        .then((res) => {
-          let data = res.data;
-          this.newImages = data.images;
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    },
-    imgSrc(image) {
-      return require("../../../website/static/source_images/" +
-        image.imageName);
-    },
-    putIntoBox(image) {
-      this.imageBox = require("../../../website/static/source_images/" +
-        image.imageName);
-      this.imageDescription = image.imageName.split(".")[0];
-    },
-  },
-  created() {
-    this.getAllImages();
-  },
+  }, 
 };
 </script>
 
@@ -277,5 +120,4 @@ export default {
   padding: 0;
   margin-top: 4rem;
 }
-
 </style>

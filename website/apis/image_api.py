@@ -1,6 +1,7 @@
 """
 The part of the API that allows access to the images of a database.
 """
+from operator import methodcaller
 from flask.json import jsonify
 from flask import Blueprint, request
 from flask_login import login_required, current_user
@@ -61,6 +62,52 @@ def list_images(bank_id):
     #         } for image in banks_dict[bank_id].images
     #     ]}
 
+
+@image_api.route('/api/image/next/<image_id>', methods=['GET'])
+@login_required
+def get_next_image(image_id):
+    image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.id == image_id).first()
+    bank_id = image.image_bank_id
+
+    banks_dict = {access.bank_id: access.bank for access in current_user.accesses}
+
+    next_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_id == bank_id, 
+                                                        ImageToAnnotate.id > image_id).first()
+    if next_image is None:
+        return jsonify({'message': 'no next image'}), HTTPStatus.NOT_FOUND
+
+    next_image_id = next_image.id
+    return {
+        'image': [
+            {
+                'id': next_image.id,
+                'url': next_image.file_url,
+                'description': next_image.description
+            }
+        ]
+    }
+
+
+@image_api.route('/api/image/previous/<image_id>', methods=['GET'])
+@login_required
+def get_previous_image(image_id):
+    image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.id == image_id).first()
+    bank_id = image.image_bank_id
+
+    previous_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_id == bank_id,
+                                                        ImageToAnnotate.id < image_id).order_by(ImageToAnnotate.id.desc()).first()
+    if previous_image is None:
+        return jsonify({'message': 'no previous image'}), HTTPStatus.NOT_FOUND
+
+    return {
+        'image': [
+            {
+                'id': previous_image.id,
+                'url': previous_image.file_url,
+                'description': previous_image.description
+            }
+        ]
+    }
 
 
 # This route is used to upload an image.

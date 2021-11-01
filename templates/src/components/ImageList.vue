@@ -14,7 +14,7 @@
           <b-input-group>
             <b-input-group-prepend>
               <b-input-group-text>
-                <ion-icon name="search-outline"></ion-icon>
+                <b-icon icon="search"></b-icon>
               </b-input-group-text>
             </b-input-group-prepend>
             <input type="text" class="form-control" placeholder="Search..."/>
@@ -67,11 +67,9 @@ export default {
             if (res.status !== 200) {
               console.log('Could not load DB => ERROR, HTTP status=' + res.status) // TODO: handle correctly
             } else {
-              console.log(data)
               let data = res.data
               this.images = data.images
               this.bankName = data.bankName
-              this.imageCount = data.imageCount
             }
           })
           .catch(err => {
