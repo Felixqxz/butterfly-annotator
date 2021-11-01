@@ -1,12 +1,15 @@
 <template>
   <div>
-    <b-alert
-      :show="dismissCountDown"
-      dismissible
-      :variant=state
-      @dismissed="dismissCountDown=0"
-      @dismiss-count-down="countDownChanged"
-    >{{ message }}</b-alert>
+    <div class="container">
+      <b-alert
+        :show="dismissCountDown"
+        dismissible
+        :variant=state
+        @dismissed="dismissCountDown=0"
+        @dismiss-count-down="countDownChanged"
+      >{{ message }}
+      </b-alert>
+    </div>
   </div>
 </template>
 
@@ -23,8 +26,8 @@ export default {
   },
   methods: {
     countDownChanged(dismissCountDown) {
-        this.dismissCountDown = dismissCountDown
-      },
+      this.dismissCountDown = dismissCountDown
+    },
     showSuccessAlert(message) {
       this.message = message
       this.state = 'success'

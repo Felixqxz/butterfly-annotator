@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-navbar toggleable="lg" type="dark" variant="dark" class="mb-5">
+    <b-navbar toggleable="lg" type="dark" variant="dark">
       <b-navbar-brand>
         <router-link to="/">Butterfly annotator</router-link>
       </b-navbar-brand>
