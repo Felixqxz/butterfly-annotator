@@ -97,10 +97,6 @@ export default {
               this.$root.$refs.Alert.showWarningAlert(this.alertMessage)
             }
           })
-        } else {
-          this.$root.$refs.Alert.showWarningAlert('Please fill in both required fields.')
-
-          console.log('error submit') // TODO: handle errors correctly
         }
       })
     },
