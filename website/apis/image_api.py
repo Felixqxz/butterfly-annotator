@@ -14,21 +14,6 @@ from ..images.geometry import PolygonalRegion
 basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
 
-
-# This route allows to fetch the list of banks a user can see.
-@image_api.route('/api/bank-list', methods=['GET'])
-@login_required
-def list_banks():
-    banks = []
-    for access in current_user.accesses:
-        banks.append({
-            'id': access.bank.id,
-            'name': access.bank.bankname,
-            'description': access.bank.description
-        })
-    return jsonify(banks)
-
-
 # This route allows to fetch the list of images of a given bank.
 @image_api.route('/api/bank/<bank_id>', methods=['GET'])
 @login_required
@@ -159,6 +144,27 @@ def upload_image():
         'method': method
     })
 
+# This api is used to get all images info that user uploaded
+@image_api.route('/api/image/delete/', methods=['POST'])
+def delete_image():
+    image_id = request.json.get('image_id')
+    image = ImageToAnnotate.query.filter_by(id=image_id+1).first()
+
+    if image:
+        db.session.delete(image)
+        db.session.commit()
+        return jsonify({
+            'status': 200,
+            'message': 'image deleted!',
+            'image': image.image_name
+        })
+    else:
+        return jsonify({
+            'status': 401,
+            'message': 'image not found'
+        })
+
+
 
 # This route is used to get all images info that user uploaded.
 @image_api.route('/api/image/getImage', methods=['GET'])
@@ -172,7 +178,6 @@ def get_images():
         images.append({
             'id': i,
             'url': image.file_url,
-            'imageName': '',  # Removed image's name!
         })
 
     return jsonify({

@@ -4,6 +4,11 @@
       <b-col cols="12">
         <h2 class="page-title">Your banks</h2>
       </b-col>
+      <b-col cols="12">
+        <b-button type="button">
+          Add
+        </b-button>
+      </b-col>
     </b-row>
     <div class="bank-list">
       <b-row class="justify-content-center" v-for="bank in availableBanks" v-bind:key="bank.id">
@@ -25,10 +30,13 @@
 </template>
 
 <script>
-import {mapActions} from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'BankList',
+  computed: {
+    ...mapGetters({ user: 'currentUser', isLoggedIn: 'isLoggedIn' }),
+  },
   data() {
     return {
       availableBanks: [],
@@ -40,6 +48,9 @@ export default {
   created() {
     this.listBanks().then(req => this.availableBanks = req.data)
         .catch(err => console.log(err)) // TODO: handle errors correctly
+  },
+  username() {
+      return this.isLoggedIn ? this.user.username : ''
   },
 }
 </script>

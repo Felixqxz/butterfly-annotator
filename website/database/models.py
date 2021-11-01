@@ -52,17 +52,18 @@ class BankAccess(db.Model):
     __tablename__ = 'bank_access'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
+    # user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_name = db.Column(db.String(25), db.ForeignKey('user.username'))
+    bank_name = db.Column(db.String(25), db.ForeignKey('image_bank.bankname'))
     # TODO define what int defines what level of privilege
     permission_level = db.Column(db.SmallInteger)
 
     user = relationship('User', back_populates='accesses')
     bank = relationship('ImageBank', back_populates='accesses')
 
-    def __init__(self, user_id, bank_id, permission_level):
-        self.user_id = user_id
-        self.bank_id = bank_id
+    def __init__(self, user_name, bank_name, permission_level):
+        self.user_name = user_name
+        self.bank_name = bank_name
         self.permission_level = permission_level
 
 class ImageToAnnotate(db.Model):
