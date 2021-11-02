@@ -51,8 +51,9 @@
       <!-- Accesses tab -->
       <b-tab title="Accesses">
         <b-card v-for="access in userAccesses">
-          <div class="float-left">{{ access.username }}</div>
-          <div class="float-right">{{ levelToTitle(access.level) }}</div>
+          {{ access.username }}
+          <permission-badge :color-variant="levelToVariant(access.level)"
+                            :permission-title="levelToTitle(access.level)"></permission-badge>
         </b-card>
       </b-tab>
     </b-tabs>
@@ -61,9 +62,13 @@
 
 <script>
 import {mapActions} from 'vuex'
+import PermissionBadge from './PermissionBadge'
 
 export default {
   name: 'ImageList',
+  components: {
+    PermissionBadge
+  },
   data() {
     return {
       images: [],
@@ -86,6 +91,21 @@ export default {
         return 'Super Admin'
       } else {
         return 'Invalid level'
+      }
+    },
+    levelToVariant(level) {
+      if (level === 0) {
+        return 'light'
+      } else if (level === 50) {
+        return 'primary'
+      } else if (level === 70) {
+        return 'success'
+      } else if (level === 90) {
+        return 'danger'
+      } else if (level === 100) {
+        return 'danger'
+      } else {
+        return 'secondary'
       }
     },
     fetchImageList() {
