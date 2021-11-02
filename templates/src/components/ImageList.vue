@@ -56,8 +56,7 @@
       </b-row>
     </form>
 
-
-      <figure
+      <!-- <figure
         class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
         v-for="image in images"
         v-bind:key="image.id"
@@ -67,8 +66,7 @@
           class="figure-img img-fluid rounded"
         />
         <b-button @click="deleteImage(image.id)">delete</b-button>
-      </figure>
-
+      </figure> -->
 
     <b-row>
       <b-col md="4" sm="6" xs="12" v-for="(image, index) in images" v-bind:key="image.id">
@@ -76,7 +74,7 @@
           <!-- Do not use b-card: it creates automatically a b-card-body tag -->
           <div class="card card-hover no-drag image-to-annotate">
             <div class="image-hover-container">
-              <img :src=image.url class="card-img-top image-hover"
+              <img :src="imgSrc(image)" class="card-img-top image-hover"
                    :style="'animation-delay:' + Math.floor(index / 3) * 100 + 'ms'"
                    :alt=image.id />
             </div>
@@ -179,6 +177,7 @@ export default {
             if (res.status !== 200) {
               console.log('Could not load DB => ERROR, HTTP status=' + res.status) // TODO: handle correctly
             } else {
+              console.log(res)
               let data = res.data
               this.images = data.images
             }
@@ -189,7 +188,9 @@ export default {
     },
 
     imgSrc(image) {
-      return require(image.file_url);
+      let arr = image.url.split("/")
+      let image_name = arr[arr.length - 1]
+      return require("../../../website/static/source_images/" + image_name);
     },
 
     uploadMultipleImages() {
@@ -202,8 +203,8 @@ export default {
       // console.log(this.multipleImages)
       this.multipleImages.forEach((image) => {
         formData.append('images', image)
-        formData.append('bank_name', this.bankName)
       })
+      formData.append('bank_name', this.bankName)
       axios
         .post('http://localhost:5000' + "/api/upload/multiple/images", formData, {
           headers: {
@@ -252,7 +253,6 @@ export default {
     }
   },
   created() {
-    this.fetchImageList()
     this.getAllImages()
   },
 }

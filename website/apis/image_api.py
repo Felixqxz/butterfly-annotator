@@ -76,14 +76,12 @@ def upload_multiple_images():
     # TODO: fix this here; might remove this whole endpoint
     method = request.method
     pics = request.files.getlist('images')
-    bank_name = request.files.get('bank_name')
+    bank_name = request.form.get('bank_name')
 
-    print(bank_name)
     print(pics)
+    print(bank_name)
     if not pics:
         return 'No pic uploaded', HTTPStatus.BAD_REQUEST
-
-    # print(pics)
 
     for pic in pics:
         path = basedir + '/website/static/source_images/'
@@ -91,11 +89,10 @@ def upload_multiple_images():
         pic.save(file_path)
 
         file_url = '../../../website/static/source_images/' + pic.filename
-
+        print(bank_name)
         image_to_annotate = ImageToAnnotate(image_bank_name=bank_name, file_url=file_url)
         db.session.add(image_to_annotate)
         db.session.commit()
-
 
     return jsonify({
             'status': 200})
