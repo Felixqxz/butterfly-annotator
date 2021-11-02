@@ -268,11 +268,11 @@ def insert_annotation():
 
 @image_api.route('/api/image/annotations/<image_id>', methods=['GET'])
 @login_required
-def get_annotations(raw_id):
+def get_annotations(image_id):
     """
     Returns the annotations of the image with id `image_id`.
     """
-    image = ensure_image_exists(raw_id)
+    image = ensure_image_exists(image_id)
     if image is None:
         return jsonify({'message': 'there is no image with such an id'}), HTTPStatus.NOT_FOUND
     if not can_access_bank(image.image_bank, current_user):
