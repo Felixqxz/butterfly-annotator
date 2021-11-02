@@ -142,6 +142,26 @@ def manage_access_bank():
     return jsonify({'error': 'insufficient permissions'}), HTTPStatus.UNAUTHORIZED
 
 
+@image_api.route('/api/bank-list-accesses/<bank_id>', methods=['GET'])
+@login_required
+def list_bank_accesses(bank_id):
+    if not bank_id.isnumeric():
+        return jsonify({'error': 'invalid bank id'}), HTTPStatus.BAD_REQUEST
+    bank = db.session.query(ImageBank).filter(ImageBank.id == int(bank_id)).first()
+    if bank is None:
+        return jsonify({'error': 'no such bank'}), HTTPStatus.NOT_FOUND
+    if not can_access_bank(bank, current_user):
+        return jsonify({'error': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
+    return jsonify({
+        'users': [
+            {
+                'username': access.user.username,
+                'level': access.permission_level,
+            } for access in db.session.query(BankAccess).filter(BankAccess.bank_id == bank.id).all()
+        ]
+    })
+
+
 @image_api.route('/api/bank/<bank_id>', methods=['GET'])
 @login_required
 def list_images(bank_id):

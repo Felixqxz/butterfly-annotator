@@ -7,6 +7,9 @@ const actions = {
     listImages({dispatch}, {bankId}) {
         return axios.get('/api/bank/' + bankId)
     },
+    listAccesses({dispatch}, {bankId}) {
+        return axios.get('/api/bank-list-accesses/' + bankId)
+    }
 }
 
 export default {
