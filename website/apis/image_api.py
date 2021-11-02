@@ -88,10 +88,10 @@ def upload_multiple_images():
         file_path = path + pic.filename
         pic.save(file_path)
 
-        image_bank_id = 1
+        image_bank_name = pic.bank_name
         file_url = '../../../website/static/source_images/' + pic.filename
 
-        image_to_annotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url)
+        image_to_annotate = ImageToAnnotate(image_bank_name=image_bank_name, file_url=file_url)
         db.session.add(image_to_annotate)
         db.session.commit()
 
@@ -105,13 +105,6 @@ def upload_multiple_images():
     #     'image_name': pic.filename,
     #     'method': method
     # })
-
-
-
-
-
-
-
 
 
 # This route allows to get the image information

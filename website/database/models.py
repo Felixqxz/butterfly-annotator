@@ -73,7 +73,7 @@ class ImageToAnnotate(db.Model):
     __tablename__ = 'image'
 
     id = db.Column(db.Integer, primary_key=True)
-    image_bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
+    image_bank_name = db.Column(db.String(25), db.ForeignKey('image_bank.bankname'))
     # path relative to the folder containing the banks
     file_url = db.Column(db.String())
     description = db.Column(db.String())
@@ -84,15 +84,15 @@ class ImageToAnnotate(db.Model):
     image_bank = relationship('ImageBank', back_populates='images')
     annotations = relationship('ImageAnnotation', back_populates='image')
 
-    def __init__(self, image_bank_id, file_url, description, width, height):
-        self.image_bank_id = image_bank_id
+    def __init__(self, image_bank_name, file_url, description, width, height):
+        self.image_bank_id = image_bank_name
         self.file_url = file_url
         self.description = description
         self.width = width
         self.height = height
 
-    def __init__(self, image_bank_id, file_url):
-        self.image_bank_id = image_bank_id
+    def __init__(self, image_bank_name, file_url):
+        self.image_bank_id = image_bank_name
         self.file_url = file_url
 
 
