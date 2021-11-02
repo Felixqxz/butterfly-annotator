@@ -52,9 +52,10 @@ class BankAccess(db.Model):
     __tablename__ = 'bank_access'
 
     id = db.Column(db.Integer, primary_key=True)
-    # user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user_name = db.Column(db.String(25), db.ForeignKey('user.username'))
-    bank_name = db.Column(db.String(25), db.ForeignKey('image_bank.bankname'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_name = db.Column(db.String(25))
+    bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
+    bank_name = db.Column(db.String(25))
     # TODO define what int defines what level of privilege
     # permission_level = db.Column(db.SmallInteger)
 
@@ -73,7 +74,8 @@ class ImageToAnnotate(db.Model):
     __tablename__ = 'image'
 
     id = db.Column(db.Integer, primary_key=True)
-    image_bank_name = db.Column(db.String(250), db.ForeignKey('image_bank.bankname'))
+    image_bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
+    image_bank_name = db.Column(db.String(25))
     # path relative to the folder containing the banks
     file_url = db.Column(db.String())
     description = db.Column(db.String())
