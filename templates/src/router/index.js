@@ -19,7 +19,7 @@ export default new Router({
       component: BankList,
     },
     {
-      path: '/annotate/:imageId',
+      path: '/annotate/:bankName/:imageId',
       name: 'AnnotateImage',
       component: AnnotateImage,
     },

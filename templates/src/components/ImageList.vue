@@ -70,7 +70,7 @@
 
     <b-row>
       <b-col md="4" sm="6" xs="12" v-for="(image, index) in images" v-bind:key="image.id">
-        <router-link :to="{name: 'AnnotateImage', params: {imageId: image.id}}">
+        <router-link :to="{name: 'AnnotateImage', params: {bankName: $route.params.bankName, imageId: image.id}}">
           <!-- Do not use b-card: it creates automatically a b-card-body tag -->
           <div class="card card-hover no-drag image-to-annotate">
             <div class="image-hover-container">

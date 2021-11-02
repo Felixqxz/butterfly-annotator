@@ -1,6 +1,15 @@
 <template>
   <div>
     <div>
+      <p>
+        <router-link
+          :to="{
+            name: 'ImageList',
+            params: { bankName: $route.params.bankName },
+          }"
+          >Return to the list of banks</router-link
+        >
+      </p>
       <b-button-toolbar :justify="true">
         <b-button
           @click="getPrevious()"
@@ -56,8 +65,8 @@
 </template>
 
 <script>
-import axios from "axios"
-import { mapActions } from "vuex"
+import axios from "axios";
+import { mapActions } from "vuex";
 
 export default {
   name: "AnnotateImage",
@@ -71,7 +80,7 @@ export default {
       imageDescription: "",
       noPrevious: false,
       noNext: false,
-    }
+    };
   },
   methods: {
     ...mapActions({
@@ -80,99 +89,106 @@ export default {
       getImage: "getImage",
     }),
     imgSrc(image) {
-      let arr = image.split("/")
-      let image_name = arr[arr.length - 1]
-      // console.log("../../../website/static/source_images/" + image_name)
-      this.imageBox =  require(`../../../website/static/source_images/${image_name}`);
+      let arr = image.split("/");
+      let image_name = arr[arr.length - 1];
+      this.imageBox = require(`../../../website/static/source_images/${image_name}`);
     },
     getImageInfo() {
       this.getImage({ imageId: this.$route.params.imageId })
-        .then(res => {
-          const image = res.data.image
-          this.text = image.description
+        .then((res) => {
+          const image = res.data.image;
+          this.text = image.description;
 
-          let arr = image.url.split("/")
-          let image_name = arr[arr.length - 1]
-          this.imageBox =  require("../../../website/static/source_images/" + image_name);
+          let arr = image.url.split("/");
+          let image_name = arr[arr.length - 1];
+          this.imageBox = require("../../../website/static/source_images/" +
+            image_name);
         })
         .catch((error) => {
-          console.log(error)
-        })
+          console.log(error);
+        });
     },
     getPrevious() {
-      const t = this
-      this.previousImage({ imageId: this.$route.params.imageId })
-        .then(res => {
+      const t = this;
+      this.previousImage({ imageId: this.$route.params.imageId }).then(
+        (res) => {
           if (res.data.status === 200) {
-            const previousImage = res.data.image
+            const previousImage = res.data.image;
             t.$router.push({
               name: "AnnotateImage",
-              params: { imageId: previousImage.id },
-            })
+              params: {
+                bankName: this.$route.params.bankName,
+                imageId: previousImage.id,
+              },
+            });
           }
-        })
+        }
+      );
     },
 
     getNext() {
       const t = this;
-      this.nextImage({ imageId: this.$route.params.imageId }).then(res => {
+      this.nextImage({ imageId: this.$route.params.imageId }).then((res) => {
         if (res.data.status === 200) {
           const nextImage = res.data.image;
           t.$router.push({
             name: "AnnotateImage",
-            params: { imageId: nextImage.id },
-          })
+            params: {
+              bankName: this.$route.params.bankName,
+              imageId: nextImage.id,
+            },
+          });
         }
-      })
+      });
     },
 
     updatePage() {
-      const t = this
-      this.getImageInfo()
-      this.nextImage({ imageId: this.$route.params.imageId }).then(res => {
+      const t = this;
+      this.getImageInfo();
+      this.nextImage({ imageId: this.$route.params.imageId }).then((res) => {
         if (res.data.status === 404) {
-          t.noNext = true
+          t.noNext = true;
         }
-      })
+      });
       this.previousImage({ imageId: this.$route.params.imageId }).then(
-        res => {
+        (res) => {
           if (res.data.status === 404) {
-            t.noPrevious = true
+            t.noPrevious = true;
           }
         }
-      )
-    }
+      );
+    },
   },
   watch: {
     $route(to, from) {
-      this.noNext = false
-      this.noPrevious = false
-      this.updatePage()
+      this.noNext = false;
+      this.noPrevious = false;
+      this.updatePage();
     },
   },
   created() {
-    this.updatePage()
+    this.updatePage();
   },
-}
+};
 </script>
 
 <style>
 .col-sm-1.align-button {
-  padding-left: 0
+  padding-left: 0;
 }
 
 .col-sm-5.align-file-input {
-  padding-right: 0
+  padding-right: 0;
 }
 
 .button-submit.btn-secondary {
   color: black;
-  background-color: #e9ecef
+  background-color: #e9ecef;
 }
 
 /* layout of the "select words" button */
 .textbox-area.col-sm-1 {
   padding: 0;
-  margin-top: 4rem
+  margin-top: 4rem;
 }
 </style>
