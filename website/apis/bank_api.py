@@ -27,6 +27,29 @@ def list_banks():
         })
     return jsonify(banks)
 
+@bank_api.route('/api/bank/list', methods=['POST'])
+@login_required
+def get_bank_list():
+
+    user_name = request.json.get('userName')
+    # print(db.session.query(BankAccess).count)
+    all_banks = BankAccess.query.filter_by(user_name=user_name).all()
+    # all_banks = bank_access_query.first()
+
+    if not all_banks:
+        return "", 200
+
+    banks = []
+    for bank in all_banks:
+        image_bank = db.session.query(ImageBank).filter(
+            ImageBank.bankname == bank.bank_name).first()
+        banks.append({
+            'id': bank.id,
+            'name': bank.bank_name,
+            'description': image_bank.description,
+        })
+    return jsonify(banks)
+
 # This route is used to add a bank.
 @bank_api.route('/api/bank/add', methods=['POST'])
 @login_required
@@ -39,7 +62,7 @@ def add_bank():
     if not bankName or not bankDiscription or not userName:
         return 'No bank added', HTTPStatus.BAD_REQUEST
 
-    new_bank_access = BankAccess(user_name=bankName, bank_name=userName)
+    new_bank_access = BankAccess(user_name=userName, bank_name=bankName)
     new_image_bank = ImageBank(bankname=bankName, description=bankDiscription)
 
     db.session.add(new_bank_access)
