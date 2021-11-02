@@ -8,7 +8,7 @@ from flask_login import login_required, current_user
 from http import HTTPStatus
 import os
 from ..database.access import db
-from ..database.models import BankAccess
+from ..database.models import BankAccess, ImageBank
 
 basedir = os.path.abspath(os.path.dirname(__name__))
 bank_api = Blueprint('bank_api', __name__)
@@ -28,22 +28,26 @@ def list_banks():
     return jsonify(banks)
 
 # This route is used to add a bank.
-@bank_api.route('/api/bank/add/', methods=['POST'])
+@bank_api.route('/api/bank/add', methods=['POST'])
 @login_required
 def add_bank():
     method = request.method
-    bank = request.json.get('bankFile')
+    bankName = request.json.get('bankName')
+    bankDiscription = request.json.get('bankDiscription')
+    userName = request.json.get('userName')
 
-    if not bank:
+    if not bankName or not bankDiscription or not userName:
         return 'No bank added', HTTPStatus.BAD_REQUEST
 
-    new_bank = BankAccess(user_id= bank.user_id, bank_id= bank.bank_id)
+    new_bank_access = BankAccess(user_name=bankName, bank_name=userName)
+    new_image_bank = ImageBank(bankname=bankName, description=bankDiscription)
 
-    db.session.add(new_bank)
+    db.session.add(new_bank_access)
+    db.session.add(new_image_bank)
     db.session.commit()
 
     return jsonify({
-        'bank_id': bank.bank_id,
+        'status': 200,
         'method': method
     })
 
