@@ -52,6 +52,9 @@ const actions = {
             },
         })
     },
+    addNewBank({dispatch}, {formData}) {
+        return axios.post('/api/bank/add', formData)
+    },
 }
 
 const getters = {

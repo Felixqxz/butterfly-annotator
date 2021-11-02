@@ -24,11 +24,10 @@
         </b-col>
 
         <b-col class="textbox-area" sm="3">
-          Description 
           <b-form-textarea
             id="textarea-auto-height"
             v-model="text"
-            placeholder="Auto height textarea"
+            placeholder="Description"
             rows="10"
             max-rows="8"
           ></b-form-textarea>

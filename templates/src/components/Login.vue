@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div >
     <div id="login-row" class="row justify-content-center align-items-center">
       <div id="login-column" class="col-md-6">
         <div id="login-box" class="col-md-12">
@@ -103,3 +103,11 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+#username.form-control.is-valid, #password.form-control.is-valid {
+  border-color: #495057;
+  box-shadow: none;
+  background-image: none;
+}
+</style>
