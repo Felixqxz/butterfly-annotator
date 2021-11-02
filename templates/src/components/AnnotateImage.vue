@@ -116,12 +116,9 @@ export default {
         }
       })
     },
-  },
-  watch: {
-    $route(to, from) {
+
+    updatePage() {
       const t = this
-      this.noNext = false
-      this.noPrevious = false
       this.getImageInfo()
       this.nextImage({ imageId: this.$route.params.imageId }).then((res) => {
         if (res.data.status === 404) {
@@ -135,21 +132,17 @@ export default {
           }
         }
       )
+    }
+  },
+  watch: {
+    $route(to, from) {
+      this.noNext = false
+      this.noPrevious = false
+      this.updatePage()
     },
   },
   created() {
-    const t = this
-    this.getImageInfo()
-    this.nextImage({ imageId: this.$route.params.imageId }).then((res) => {
-      if (res.data.status === 404) {
-        this.noNext = true
-      }
-    });
-    this.previousImage({ imageId: this.$route.params.imageId }).then((res) => {
-      if (res.data.status === 404) {
-        t.noPrevious = true
-      }
-    })
+    this.updatePage()
   },
 }
 </script>

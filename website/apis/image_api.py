@@ -130,19 +130,18 @@ def get_image(image_id):
 def get_next_image(image_id):
     image = db.session.query(ImageToAnnotate).filter(
         ImageToAnnotate.id == image_id).first()
-    bank_id = image.image_bank_id
+    bank_name = image.image_bank_name
 
-    banks_dict = {
-        access.bank_id: access.bank for access in current_user.accesses}
+    # banks_dict = {
+    #     access.bank_id: access.bank for access in current_user.accesses}
 
-    next_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_id == bank_id,
+    next_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_name == bank_name,
                                                           ImageToAnnotate.id > image_id).first()
     if next_image is None:
         return jsonify({
             'status': 404,
             'message': 'no next image'})
 
-    next_image_id = next_image.id
     return {
         'status': 200,
         'image': {
@@ -160,9 +159,9 @@ def get_next_image(image_id):
 def get_previous_image(image_id):
     image = db.session.query(ImageToAnnotate).filter(
         ImageToAnnotate.id == image_id).first()
-    bank_id = image.image_bank_id
+    bank_name = image.image_bank_name
 
-    previous_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_id == bank_id,
+    previous_image = db.session.query(ImageToAnnotate).filter(ImageToAnnotate.image_bank_name == bank_name,
                                                               ImageToAnnotate.id < image_id).order_by(ImageToAnnotate.id.desc()).first()
     if previous_image is None:
         return jsonify({

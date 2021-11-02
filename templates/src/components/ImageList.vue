@@ -155,7 +155,7 @@ export default {
       getImages: 'getImages'
     }),
     fetchImageList() {
-      this.listImages({bankId: this.$route.params.bankId})
+      this.listImages({bankId: this.$route.params.bankName})
           .then(res => {
             if (res.status !== 200) {
               console.log('Could not load DB => ERROR, HTTP status=' + res.status) // TODO: handle correctly
