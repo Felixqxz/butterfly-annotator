@@ -11,8 +11,8 @@ const userData = new Vuex.Store({
         listBanks({ dispatch }) {
             return axios.get('/api/bank-list')
         },
-        listImages({ dispatch }, { bankId }) {
-            return axios.get('/api/bank/' + bankId)
+        listImages({ dispatch }, { bankName }) {
+            return axios.get('/api/bank/' + bankName)
         },
         getImage({ dispatch }, { imageId }) {
             return axios.get('api/image/' + imageId)

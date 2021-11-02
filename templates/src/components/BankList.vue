@@ -44,7 +44,7 @@
         v-bind:key="bank.id"
       >
         <b-col cols="12">
-          <router-link :to="'/bank/' + bank.id">
+          <router-link :to="'/bank/' + bank.name">
             <b-card class="card-hover bank-list-card">
               <b-card-title>
                 {{ bank.name }}
@@ -93,9 +93,6 @@ export default {
             if (res.status !== 200) {
               console.log('Failed to add new bank, HTTP status=' + res.status) // TODO: handle correctly
             } else {
-              // let data = res.data
-              // this.images = data.images
-              // this.bankName = data.bankName
               console.log('success!')
             }
           }).catch(err => {
@@ -120,11 +117,27 @@ export default {
     username() {
       return this.isLoggedIn ? this.user.username : "";
     },
+    listAllBanks() {
+      let data = {
+        userName: this.username(),
+      }
+      axios.post('http://localhost:5000' + '/api/bank/list', data)
+          .then(res => {
+            if (res.status !== 200) {
+              console.log('Failed to add new bank, HTTP status=' + res.status) // TODO: handle correctly
+            } else {
+              this.availableBanks = res.data
+            }
+          }).catch(err => {
+            console.log(err) // TODO: handle errors properly
+          })
+    },
   },
   created() {
-    this.listBanks()
-      .then((req) => (this.availableBanks = req.data))
-      .catch((err) => console.log(err)); // TODO: handle errors correctly
+    // this.listBanks()
+    //   .then((req) => (this.availableBanks = req.data))
+    //   .catch((err) => console.log(err)); // TODO: handle errors correctly
+    this.listAllBanks()
   },
   
 };
