@@ -239,17 +239,14 @@ def delete_image():
 @login_required
 def get_images(bank_name):
     images = []
-    count = ImageToAnnotate.query.filter_by(image_bank_name=bank_name).count()
-    for i in range(count):
-        image = ImageToAnnotate.query.filter_by(
-            id=i).first()
+    image_stored = ImageToAnnotate.query.filter_by(image_bank_name=bank_name).all()
+    for image in image_stored:
         images.append({
-            'id': i,
+            'id': image.id,
             'url': image.file_url,
         })
 
     return jsonify({
-        'bankName': bank_name,
         'images': images
     })
 

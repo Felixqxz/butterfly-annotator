@@ -65,13 +65,8 @@
         <img
           :src="imgSrc(image)"
           class="figure-img img-fluid rounded"
-          :alt="image.id"
-         @click="putIntoBox(image)" 
         />
         <b-button @click="deleteImage(image.id)">delete</b-button>
-        <figcaption class="figure-caption text-center">
-          {{""}}
-        </figcaption>
       </figure>
 
 
@@ -178,6 +173,7 @@ export default {
     },
 
     getAllImages() {
+      this.bankName = this.$route.params.bankName
       this.getImages({bankName: this.$route.params.bankName})
           .then(res => {
             if (res.status !== 200) {
@@ -185,7 +181,6 @@ export default {
             } else {
               let data = res.data
               this.images = data.images
-              this.bankName = data.bank_name
             }
           })
           .catch(err => {
@@ -204,10 +199,10 @@ export default {
       }
 
       let formData = new FormData()
-      console.log(this.multipleImages)
+      // console.log(this.multipleImages)
       this.multipleImages.forEach((image) => {
         formData.append('images', image)
-        formData.append('bank_name', bankName)
+        formData.append('bank_name', this.bankName)
       })
       axios
         .post('http://localhost:5000' + "/api/upload/multiple/images", formData, {
