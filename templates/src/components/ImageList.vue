@@ -36,6 +36,8 @@
       </b-col>
 
     </b-row>
+
+
     <form>
       <b-row>
         <b-col cols="10">
@@ -53,6 +55,26 @@
         </b-col>
       </b-row>
     </form>
+
+
+      <figure
+        class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
+        v-for="image in images"
+        v-bind:key="image.id"
+      >
+        <img
+          :src="imgSrc(image)"
+          class="figure-img img-fluid rounded"
+          :alt="image.id"
+         @click="putIntoBox(image)" 
+        />
+        <b-button @click="deleteImage(image.id)">delete</b-button>
+        <figcaption class="figure-caption text-center">
+          {{""}}
+        </figcaption>
+      </figure>
+
+
     <b-row>
       <b-col md="4" sm="6" xs="12" v-for="(image, index) in images" v-bind:key="image.id">
         <router-link :to="{name: 'AnnotateImage', params: {imageId: image.id}}">
@@ -133,7 +155,12 @@ export default {
     }
   },
   methods: {
-    ...mapActions({listImages: 'listImages', uploadImages: 'uploadImages', uploadImage: 'uploadImage'}),
+    ...mapActions({
+      listImages: 'listImages', 
+      uploadImages: 'uploadImages', 
+      uploadImage: 'uploadImage',
+      getImages: 'getImages'
+    }),
     fetchImageList() {
       this.listImages({bankId: this.$route.params.bankId})
           .then(res => {
@@ -149,6 +176,27 @@ export default {
             console.log(err) // TODO: handle errors properly
           })
     },
+
+    getAllImages() {
+      this.getImages({bankName: this.$route.params.bankName})
+          .then(res => {
+            if (res.status !== 200) {
+              console.log('Could not load DB => ERROR, HTTP status=' + res.status) // TODO: handle correctly
+            } else {
+              let data = res.data
+              this.images = data.images
+              this.bankName = data.bank_name
+            }
+          })
+          .catch(err => {
+            console.log(err) // TODO: handle errors properly
+          })
+    },
+
+    imgSrc(image) {
+      return require(image.file_url);
+    },
+
     uploadMultipleImages() {
       if (this.multipleImages == null) {
         this.$bvModal.show('no-image-message-modal')
@@ -159,6 +207,7 @@ export default {
       console.log(this.multipleImages)
       this.multipleImages.forEach((image) => {
         formData.append('images', image)
+        formData.append('bank_name', bankName)
       })
       axios
         .post('http://localhost:5000' + "/api/upload/multiple/images", formData, {
@@ -209,6 +258,7 @@ export default {
   },
   created() {
     this.fetchImageList()
+    this.getAllImages()
   },
 }
 </script>

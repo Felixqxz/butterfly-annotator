@@ -76,7 +76,9 @@ def upload_multiple_images():
     # TODO: fix this here; might remove this whole endpoint
     method = request.method
     pics = request.files.getlist('images')
-    # print(request.files.count)
+    bank_name = request.files.get('bank_name')
+
+    print(bank_name)
     print(pics)
     if not pics:
         return 'No pic uploaded', HTTPStatus.BAD_REQUEST
@@ -88,10 +90,9 @@ def upload_multiple_images():
         file_path = path + pic.filename
         pic.save(file_path)
 
-        image_bank_name = pic.bank_name
         file_url = '../../../website/static/source_images/' + pic.filename
 
-        image_to_annotate = ImageToAnnotate(image_bank_name=image_bank_name, file_url=file_url)
+        image_to_annotate = ImageToAnnotate(image_bank_name=bank_name, file_url=file_url)
         db.session.add(image_to_annotate)
         db.session.commit()
 
@@ -234,21 +235,21 @@ def delete_image():
 
 
 # This route is used to get all images info that user uploaded.
-@image_api.route('/api/image/getImage', methods=['GET'])
+@image_api.route('/api/<bank_name>/images', methods=['GET'])
 @login_required
-def get_images():
+def get_images(bank_name):
     images = []
-    count = ImageToAnnotate.query.filter_by(image_bank_id=1).count()
+    count = ImageToAnnotate.query.filter_by(image_bank_name=bank_name).count()
     for i in range(count):
         image = ImageToAnnotate.query.filter_by(
-            id=i + 1).first()  # TODO: what is this?
+            id=i).first()
         images.append({
             'id': i,
             'url': image.file_url,
         })
 
     return jsonify({
-        'bankName': 'Butterfly',
+        'bankName': bank_name,
         'images': images
     })
 
