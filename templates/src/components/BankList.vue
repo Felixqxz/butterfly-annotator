@@ -90,6 +90,7 @@ export default {
               console.log('Failed to add new bank, HTTP status=' + res.status) // TODO: handle correctly
             } else {
               console.log('success!')
+              this.listAllBanks()
             }
           }).catch(err => {
             console.log(err) // TODO: handle errors properly

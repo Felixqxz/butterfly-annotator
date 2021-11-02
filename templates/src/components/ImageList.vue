@@ -213,6 +213,7 @@ export default {
         })
         .then((res) => {
           if (res.status == 200) {
+            this.getAllImages()
             this.$bvModal.show("success-message-modal");
           } else {
             this.$bvModal.show("failed-message-modal");

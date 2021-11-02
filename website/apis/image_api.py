@@ -73,23 +73,20 @@ def list_images(bank_id):
 # This route is used to upload multiple images.
 @image_api.route('/api/upload/multiple/images', methods=['POST'])
 def upload_multiple_images():
-    # TODO: fix this here; might remove this whole endpoint
+    
     method = request.method
     pics = request.files.getlist('images')
     bank_name = request.form.get('bank_name')
 
-    print(pics)
-    print(bank_name)
     if not pics:
         return 'No pic uploaded', HTTPStatus.BAD_REQUEST
 
     for pic in pics:
-        path = basedir + '/static/source_images/'
+        path = basedir + '/website/static/source_images/'
         file_path = path + pic.filename
         pic.save(file_path)
 
         file_url = '../../../website/static/source_images/' + pic.filename
-        print(bank_name)
         image_to_annotate = ImageToAnnotate(image_bank_name=bank_name, file_url=file_url)
         db.session.add(image_to_annotate)
         db.session.commit()
