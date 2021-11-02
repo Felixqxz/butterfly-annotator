@@ -84,7 +84,7 @@ def upload_multiple_images():
         return 'No pic uploaded', HTTPStatus.BAD_REQUEST
 
     for pic in pics:
-        path = basedir + '/website/static/source_images/'
+        path = basedir + '/static/source_images/'
         file_path = path + pic.filename
         pic.save(file_path)
 

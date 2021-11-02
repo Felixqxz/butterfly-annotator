@@ -79,12 +79,21 @@ export default {
       previousImage: "previousImage",
       getImage: "getImage",
     }),
+    imgSrc(image) {
+      let arr = image.split("/")
+      let image_name = arr[arr.length - 1]
+      // console.log("../../../website/static/source_images/" + image_name)
+      this.imageBox =  require(`../../../website/static/source_images/${image_name}`);
+    },
     getImageInfo() {
       this.getImage({ imageId: this.$route.params.imageId })
         .then(res => {
           const image = res.data.image
           this.text = image.description
-          this.imageBox = image.url
+
+          let arr = image.url.split("/")
+          let image_name = arr[arr.length - 1]
+          this.imageBox =  require("../../../website/static/source_images/" + image_name);
         })
         .catch((error) => {
           console.log(error)
@@ -120,13 +129,13 @@ export default {
     updatePage() {
       const t = this
       this.getImageInfo()
-      this.nextImage({ imageId: this.$route.params.imageId }).then((res) => {
+      this.nextImage({ imageId: this.$route.params.imageId }).then(res => {
         if (res.data.status === 404) {
-          this.noNext = true
+          t.noNext = true
         }
       })
       this.previousImage({ imageId: this.$route.params.imageId }).then(
-        (res) => {
+        res => {
           if (res.data.status === 404) {
             t.noPrevious = true
           }
