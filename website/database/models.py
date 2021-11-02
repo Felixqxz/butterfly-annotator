@@ -90,6 +90,11 @@ class ImageToAnnotate(db.Model):
         self.width = width
         self.height = height
 
+    def __init__(self, image_bank_id, file_url):
+        self.image_bank_id = image_bank_id
+        self.file_url = file_url
+
+
 class Description(db.Model):
     """
     Represents an image to annotate.

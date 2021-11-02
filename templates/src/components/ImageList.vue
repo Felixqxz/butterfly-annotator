@@ -14,13 +14,25 @@
       <b-col class="align-file-input" sm="3">
         <b-form-file
           v-model="multipleImages"
-          placeholder="Please choose an image or drop it here!"
+          placeholder="Please choose an image/images or drop it here!"
           accept="image/jpeg, image/png"
           multiple
         ></b-form-file>
       </b-col>
       <b-col class="align-button" sm="2">
         <b-button class="button-submit" @click="uploadMultipleImages">Upload images</b-button>
+      </b-col>
+
+        <b-col class="align-file-input" sm="5">
+        <b-form-file
+          v-model="imageFolder"
+          placeholder="Please choose an image folder or drop it here!"
+          directory
+          no-traverse
+        ></b-form-file>
+      </b-col>
+      <b-col class="align-button" sm="4">
+        <b-button class="button-submit" @click="uploadImageFolder">Upload image folder</b-button>
       </b-col>
 
     </b-row>
@@ -116,6 +128,7 @@ export default {
       images: [],
       bankName: '(loading)',
       multipleImages: [],
+      imageFolder: [],
       imageFile: null,
     }
   },
@@ -147,6 +160,35 @@ export default {
       this.multipleImages.forEach((image) => {
         formData.append('images', image)
       })
+      axios
+        .post('http://localhost:5000' + "/api/upload/multiple/images", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((res) => {
+          if (res.status == 200) {
+            this.$bvModal.show("success-message-modal");
+          } else {
+            this.$bvModal.show("failed-message-modal");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    uploadImageFolder() {
+      if (this.imageFolder == null) {
+        this.$bvModal.show('no-image-message-modal')
+        return
+      }
+
+      let formData = new FormData()
+      console.log(this.imageFolder)
+      this.imageFolder.forEach((image) => {
+        formData.append('images', image)
+      })
+      // formData.append('images', this.imageFolder)
       axios
         .post('http://localhost:5000' + "/api/upload/multiple/images", formData, {
           headers: {

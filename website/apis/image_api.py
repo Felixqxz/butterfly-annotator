@@ -97,19 +97,23 @@ def upload_multiple_images():
         return 'No pic uploaded', HTTPStatus.BAD_REQUEST
 
     # print(pics)
+
+    for pic in pics:
+        path = basedir + '/website/static/source_images/'
+        file_path = path + pic.filename
+        pic.save(file_path)
+
+        image_bank_id = 1
+        file_url = '../../../website/static/source_images/' + pic.filename
+
+        image_to_annotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url)
+        db.session.add(image_to_annotate)
+        db.session.commit()
+
+
     return jsonify({
             'status': 200})
-    # path = basedir + '/website/static/source_images/'
-    # file_path = path + pic.filename
-    # pic.save(file_path)
 
-    # image_bank_id = 1
-    # # TODO convert to path relative to the folder containing the banks
-    # file_url = '../../../website/static/source_images/' + pic.filename
-
-    # image_to_annotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url)
-    # db.session.add(image_to_annotate)
-    # db.session.commit()
 
     # return jsonify({
     #     'image_bank_id': image_bank_id,
