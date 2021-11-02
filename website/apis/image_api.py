@@ -99,13 +99,12 @@ def manage_access_bank():
         return jsonify({'error': 'missing field'}), HTTPStatus.BAD_REQUEST
     if not data['id'].isnumeric():
         return jsonify({'error': 'invalid bank id'}), HTTPStatus.BAD_REQUEST
-    level_raw = data['level']
-    if not level_raw.isnumeric() or int(level_raw) < -1 or int(level_raw) > 90:
+    level = data['level']
+    if level < -1 or level > 90:
         # the maximal assignable level is admin (super-admin is reserved)
-        return jsonify({'error': 'invalid permission level'})
-    level = int(data['level'])
+        return jsonify({'error': 'invalid permission level'}), HTTPStatus.UNAUTHORIZED
     # search target user
-    target_user = db.session.query(User).filter(User.username == escape(data['targetName']))
+    target_user = db.session.query(User).filter(User.username == escape(data['targetName'])).first()
     if target_user is None:
         return jsonify({'error': 'no such target user'}), HTTPStatus.NOT_FOUND
     bank = db.session.query(ImageBank).filter(ImageBank.id == int(data['id'])).first()
