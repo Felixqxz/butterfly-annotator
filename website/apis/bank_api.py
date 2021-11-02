@@ -37,7 +37,7 @@ def get_bank_list():
     # all_banks = bank_access_query.first()
 
     if not all_banks:
-        return 'Have no banks currently', 200
+        return "", 200
 
     banks = []
     for bank in all_banks:

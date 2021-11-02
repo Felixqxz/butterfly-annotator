@@ -5,10 +5,6 @@
         <h2 class="page-title">Your banks</h2>
       </b-col>
       <b-col cols="12">
-        <!-- <b-button type="button" 
-                  @click="addNewBank()">
-          Add a new bank
-        </b-button> -->
         <div>
           <b-button v-b-modal.modal>Add a new bank</b-button>
 
@@ -98,20 +94,6 @@ export default {
           }).catch(err => {
             console.log(err) // TODO: handle errors properly
           })
-
-      // this.addNewBank(data)
-      //     .then(res => {
-      //       if (res.status !== 200) {
-      //         console.log('Failed to add new bank, HTTP status=' + res.status) // TODO: handle correctly
-      //       } else {
-      //         // let data = res.data
-      //         // this.images = data.images
-      //         // this.bankName = data.bankName
-      //         console.log('success!')
-      //       }
-      //     }).catch(err => {
-      //       console.log(err) // TODO: handle errors properly
-      //     })
       this.$bvModal.hide("modal");
     },
     username() {
