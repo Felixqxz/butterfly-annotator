@@ -44,13 +44,13 @@
 
         <b-col sm="8">
           <div class="card" style="width: 40rem">
-            <img
+            <!-- <img
               :src="imageBox"
               class="card-img-top figure-img img-fluid rounded"
               alt="Currently no image in this area, please choose one from the image you uploaded."
               style="width: auto; height: auto"
-            />
-
+            /> -->
+            <div id="canvas" width=638 height=407 :image_url="imageBox"></div>
             <div class="card-body" style="text-align: center">
               <h5 class="card-text">{{ imageDescription }}</h5>
               <b-button class="button-submit" type="button">
@@ -60,6 +60,7 @@
           </div>
         </b-col>
       </b-row>
+      <div id="canvas" width=300 height=400></div>
     </div>
   </div>
 </template>
@@ -128,9 +129,12 @@ export default {
 
     getNext() {
       const t = this;
+      console.log("next")
       this.nextImage({ imageId: this.$route.params.imageId }).then((res) => {
         if (res.data.status === 200) {
           const nextImage = res.data.image;
+          console.log("next here")
+          this.imageBox = nextImage.url
           t.$router.push({
             name: "AnnotateImage",
             params: {
@@ -138,6 +142,8 @@ export default {
               imageId: nextImage.id,
             },
           });
+          console.log("heree")
+          console.log(this.imageBox)
         }
       });
     },
@@ -165,9 +171,21 @@ export default {
       this.noPrevious = false;
       this.updatePage();
     },
+    // imageBox(newUrl, oldUrl) {
+    //   console.log(newUrl)
+    //   console.log(oldUrl)
+    // }
   },
   created() {
     this.updatePage();
+  },
+  mounted() {
+    let recaptchaScript = document.createElement('script')
+    recaptchaScript.setAttribute('src', 'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.js')
+    let recaptchaScript2 = document.createElement('script')
+    recaptchaScript2.setAttribute('src', '/p5/sketch.js')
+    document.head.appendChild(recaptchaScript)
+    document.head.appendChild(recaptchaScript2)
   },
 };
 </script>

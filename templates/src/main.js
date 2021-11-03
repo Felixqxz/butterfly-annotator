@@ -19,6 +19,7 @@ Vue.use(VeeValidate, {
 Vue.config.productionTip = false
 Vue.use(BootstrapVue)
 Vue.use(BootstrapVueIcons)
+// Vue.loadScript("sketch.js")
 // default Flask port = 5000
 
 new Vue({

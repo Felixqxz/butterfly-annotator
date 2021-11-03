@@ -205,12 +205,12 @@ export default {
         formData.append('images', image)
       })
       formData.append('bank_name', this.bankName)
-      axios
-        .post('http://localhost:5000' + "/api/upload/multiple/images", formData, {
+      axios.post('http://localhost:5000' + "/api/upload/multiple/images", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         })
+      // this.uploadImages(formData)
         .then((res) => {
           if (res.status == 200) {
             this.getAllImages()
