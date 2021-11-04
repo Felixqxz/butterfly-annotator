@@ -15,15 +15,7 @@ const actions = {
     },
     fetchImageData({dispatch}, {imageId}) {
         // TODO
-        return new Promise((resolve, reject) => resolve({
-            data: {
-                imageUrl: 'https://static.standard.co.uk/2021/07/16/11/urnpublicidap.org8b4bf632ce0a40fa893f1d5c853e5056.jpg?width=968&auto=webp&quality=75&crop=968%3A645%2Csmart',
-                width: 968,
-                height: 645,
-                description: 'Generic description of an image here',
-                annotations: [],
-            },
-        }))
+        return axios.get('/api/image/' + imageId)
     },
 }
 

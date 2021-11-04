@@ -11,6 +11,7 @@ import * as _ from './permission'
 
 axios.defaults.withCredentials = true
 axios.defaults.baseURL = 'http://localhost:' + (process.env.PORT ? process.env.PORT : '5000')
+Vue.prototype.$hostname = 'http://localhost:' + (process.env.PORT ? process.env.PORT : '5000')
 Vue.use(BootstrapVue)
 Vue.use(VeeValidate, {
     inject: true,

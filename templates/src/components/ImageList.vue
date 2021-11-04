@@ -33,15 +33,14 @@
               <!-- Do not use b-card: it creates automatically a b-card-body tag -->
               <div class="card card-hover no-drag image-to-annotate">
                 <div class="image-hover-container">
-                  <img :src=image.url class="card-img-top image-hover"
+                  <img :src="$hostname + '/api/' + image.url" class="card-img-top image-hover image-in-place"
                        :style="'animation-delay:' + Math.floor(index / 3) * 100 + 'ms'"
                        :alt=image.id />
                 </div>
                 <b-card-body class="row justify-content-between align-items-center">
-                  <b-col lg="9" sm="12" xs="9">
-                    <b-card-text>{{ image.fullDescription }}</b-card-text>
+                  <b-col cols="12">
+                    <b-card-text>{{ image.fullDescription.substring(0, 120) }}...</b-card-text>
                   </b-col>
-                  <b-col lg="3" sm="12" xs="3">TODO<!-- TODO --></b-col>
                 </b-card-body>
               </div>
             </router-link>
@@ -212,3 +211,32 @@ export default {
   },
 }
 </script>
+<style scoped>
+.image-in-place {
+  object-fit: cover;
+  max-width:100%;
+  max-height:100%;
+}
+
+.image-hover-container {
+    overflow: hidden;
+    height: 12em;
+}
+
+.image-hover {
+    transform: scale(1.0);
+    transform-origin: center;
+    transition: 400ms transform;
+}
+
+.image-hover:hover {
+    transform: scale(1.2);
+    transform-origin: center;
+}
+
+.image-to-annotate {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+</style>

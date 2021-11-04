@@ -8,7 +8,7 @@
         <!-- the description part -->
         <h4>Image description</h4>
         <b-card class="mb-2">
-          <p @mouseup="checkTextSelection()" id="description-selection">
+          <p @mouseup="checkTextSelection()" id="description-selection" style="white-space: pre-line">
             {{ textDescription() }}
           </p>
         </b-card>
@@ -21,7 +21,7 @@
         <b-list-group>
           <b-list-group-item v-for="polygon in availablePolygons"
                              v-bind:key="polygon.i"
-                             class="'polygon-item no-drag"
+                             class="no-drag"
                              :active="selectedPolygon === polygon.i"
                              @click="selectPolygon(polygon.i)">
             Polgyon number {{ polygon.i }}
@@ -144,7 +144,7 @@ export default {
       // P5 handling
       p5.setup = () => {
         p5.createCanvas(t.imageData.width, t.imageData.height)
-        annotateImage = p5.loadImage(t.imageData.imageUrl)
+        annotateImage = p5.loadImage(t.$hostname + '/api/' + t.imageData.imageUrl)
       }
 
       p5.draw = () => {
@@ -223,7 +223,4 @@ export default {
 </script>
 
 <style scoped>
-.polygon-item:hover {
-  background-color: #2fc1db;
-}
 </style>

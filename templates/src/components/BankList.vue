@@ -10,12 +10,12 @@
         <b-col cols="12">
           <router-link :to="'/bank/' + bank.id">
             <b-card class="card-hover bank-list-card">
-                <b-card-title>
-                  {{ bank.name }}
-                </b-card-title>
-                <b-card-text class="text-muted">
-                  {{ bank.description }}
-                </b-card-text>
+              <b-card-title>
+                {{ bank.name }}
+              </b-card-title>
+              <b-card-text class="text-muted">
+                {{ bank.description }}
+              </b-card-text>
             </b-card>
           </router-link>
         </b-col>
@@ -35,7 +35,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions({ listBanks: 'listBanks' }),
+    ...mapActions({listBanks: 'listBanks'}),
     updateBanks() {
       this.listBanks().then(req => this.availableBanks = req.data)
           .catch(err => console.log(err)) // TODO: handle errors correctly
@@ -46,3 +46,9 @@ export default {
   },
 }
 </script>
+<style scoped>
+.bank-list-card {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+</style>

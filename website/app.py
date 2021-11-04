@@ -63,18 +63,19 @@ def create_app(config_name=None):
     from .cli import create_all, drop_all
     app.cli.add_command(create_all)
     app.cli.add_command(drop_all)
-
-    app.config['SECRET_KEY'] = '766574a7486ff3209b5b2a347a854f168d0a5d2af588b681cf592fb7f61f99e2'
-
-    # create super admin user if doesn't exist
-
+    # init database
     with app.app_context():
+        db.create_all()
         create_super_user()
         discover_all_banks()
 
+    app.config['SECRET_KEY'] = '766574a7486ff3209b5b2a347a854f168d0a5d2af588b681cf592fb7f61f99e2'
+
     return app
 
+
 app = create_app()
+
 
 if __name__ == '__main__':
     app.run()
