@@ -55,7 +55,6 @@ class BankAccess(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
-    # TODO define what int defines what level of privilege
     permission_level = db.Column(db.SmallInteger)
 
     user = relationship('User', back_populates='accesses')
