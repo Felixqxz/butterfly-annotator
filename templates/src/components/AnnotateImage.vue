@@ -1,294 +1,165 @@
 <template>
-  <div>
-    <div>
-
-      <b-row>
-        <b-col class="align-file-input" sm="5">
-          <b-form-file
-              v-model="textFile"
-              placeholder="Click here to choose a .txt file, then click import!"
-              accept=".txt"
-          ></b-form-file>
-        </b-col>
-
-        <b-col class="align-button" sm="1">
-          <b-button class="button-submit" @click="readFile">Import</b-button>
-        </b-col>
-
-        <b-col class="align-file-input" sm="5">
-          <b-form-file
-              v-model="imageFile"
-              placeholder="Please choose an image or drop it here!"
-              accept="image/jpeg, image/png"
-          ></b-form-file>
-        </b-col>
-
-        <b-col class="align-button" sm="1">
-          <b-button class="button-submit" @click="uploadImage">Upload</b-button>
-        </b-col>
-      </b-row>
-      <br>
-      <b-row>
-        <b-col class="textbox-area" sm="1">
-          <b-button class="button-submit">Select words</b-button>
-        </b-col>
-
-        <b-col class="textbox-area" sm="5">
-          <b-form-textarea
-              id="textarea-auto-height"
-              v-model="text"
-              placeholder="Auto height textarea"
-              rows="10"
-              max-rows="8"
-          ></b-form-textarea>
-        </b-col>
-
-        <b-col sm="6">
-          <div class="card" style="width: 32rem">
-            <img
-                :src="imageBox"
-                class="card-img-top figure-img img-fluid rounded"
-                alt="Currently no image in this area, please choose one from the image you uploaded."
-                style="width: auto; height: 380px;"
-            />
-
-            <div class="card-body" style="text-align: center">
-              <h5 class="card-text">{{ imageDescription }}</h5>
-              <b-button class="button-submit" type="button">
-                Select regions
-              </b-button>
-            </div>
-
-          </div>
-        </b-col>
-
-      </b-row>
-
-      <div style="text-align: center">
-        <b-button id="button-export" class="button-submit" type="button" size="lg">Export as PDF</b-button>
-      </div>
-
-    </div>
-
-    <figure
-        class="figure col col-md-4 col-sm-6 col-xs-12 no-drag"
-        v-for="image in newImages"
-        v-bind:key="image.id"
-    >
-      <img
-          :src="imgSrc(image)"
-          class="figure-img img-fluid rounded"
-          :alt="image.id"
-          @click="putIntoBox(image)"
-      />
-      <figcaption class="figure-caption text-center">
-        {{ image.imageName }}
-      </figcaption>
-    </figure>
-
-    <b-modal id="success-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Upload an image successfully!</h3>
-      </div>
-      <b-button
-          class="mt-3"
-          block
-          @click="$bvModal.hide('success-message-modal')"
-      >Close Me
-      </b-button
-      >
-    </b-modal>
-
-    <b-modal id="success-textFile-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>import file successfully!</h3>
-      </div>
-      <b-button
-          class="mt-3"
-          block
-          @click="$bvModal.hide('success-textFile-message-modal')"
-      >Close Me
-      </b-button
-      >
-    </b-modal>
-
-    <b-modal id="failed-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Failed to upload an image!</h3>
-      </div>
-      <b-button
-          class="mt-3"
-          block
-          @click="$bvModal.hide('failed-message-modal')"
-      >Close Me
-      </b-button
-      >
-    </b-modal>
-
-    <b-modal id="failed-textFile-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Failed to upload an image!</h3>
-      </div>
-
-      <b-button
-          class="mt-3"
-          block
-          @click="$bvModal.hide('failed-textFile-message-modal')"
-      >Close Me
-      </b-button
-      >
-    </b-modal>
-
-    <b-modal id="no-image-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Please upload an image!</h3>
-      </div>
-      <b-button
-          class="mt-3"
-          block
-          @click="$bvModal.hide('no-image-message-modal')"
-      >Close Me
-      </b-button
-      >
-    </b-modal>
-
-    <b-modal id="no-textFile-message-modal" hide-footer>
-      <div class="d-block text-center">
-        <h3>Please choose a .txt file!</h3>
-      </div>
-      <b-button
-          class="mt-3"
-          block
-          @click="$bvModal.hide('no-textFile-message-modal')"
-      >Close Me
-      </b-button
-      >
-    </b-modal>
-  </div>
+  <b-container>
+    <b-row class="justify-content-center">
+      <div id="canvas"/>
+    </b-row>
+    <b-row>
+      <b-col md="6" xs="12">
+        <!-- the description part -->
+      </b-col>
+      <b-col md="6" xs="12">
+        <!-- the linking between the tags and the polygons -->
+      </b-col>
+    </b-row>
+  </b-container>
 </template>
 
 <script>
-import axios from 'axios'
 import {mapActions} from 'vuex'
+import P5 from 'p5'
 
 export default {
   name: 'AnnotateImage',
+  methods: {
+    ...mapActions({fetchImageData: 'fetchImageData'}),
+  },
   data() {
     return {
-      // Text area
-      text: '',
-      // The .txt file uploaded
-      textFile: null,
-      // Save all the images info that user uploaded
-      newImages: [],
-      // The image uploaded
-      imageFile: null,
-      // This may be deleted
-      imageState: null,
-      // Box to display the image to be annotated
-      imageBox:
-          'https://cdn.mos.cms.futurecdn.net/MutKXr3Z2za46Zdi3XM3BM-1200-80.jpg',
-      // The description of the image user selected
-      imageDescription:
-          'This is an example image, please click one you uploaded!',
+      description: '', // of the image
+      imageData: null,
     }
   },
-  methods: {
-    ...mapActions({ doUploadImage: 'uploadImage', doReadFile: 'readFile' }),
-    // Handle upload image feature, still have problems
-    uploadImage() {
-      if (this.imageFile == null) {
-        this.$bvModal.show('no-image-message-modal')
-        return
-      }
-
-      let formData = new FormData()
-      formData.append('imgFile', this.imageFile)
-      this.doUploadImage(formData).then(res => {
-        if (res.status === 200) {
-          this.$bvModal.show('success-message-modal')
-        } else {
-          this.$bvModal.show('failed-message-modal')
+  mounted() {
+    const t = this
+    const script = p5 => {
+      // draws lines that connect all (i, i + 1) dots and closes the shape if close is true
+      const connectDotsOpen = (dots, close) => {
+        p5.beginShape()
+        for (let i = 0; i < dots.length - 1; i++) {
+          const currentPoint = dots[i]
+          const nextPoint = dots[i + 1]
+          p5.line(currentPoint.x, currentPoint.y, nextPoint.x, nextPoint.y)
         }
-      }).catch(err => {
-        console.log(err) // TODO: handle
-      })
-      this.getAllImages()
-    },
-    // Handle text import feature
-    // text is defined in data() {}
-    readFile() {
-      if (this.textFile == null) {
-        this.$bvModal.show('no-textFile-message-modal')
-        return
-      }
-      let fileReader = new FileReader()
-      fileReader.readAsText(this.textFile)
-      fileReader.onload = () => {
-        this.text = fileReader.result
-      }
-
-      let formData = new FormData()
-      formData.append('txtFile', this.textFile)
-
-      this.doReadFile({formData}).then(res => {
-        if (res.status === 200) {
-          this.$bvModal.show('success-textFile-message-modal')
-        } else {
-          this.$bvModal.show('failed-textFile-message-modal')
+        if (close) {
+          // join the first and last points of the polygon
+          const first = dots[0]
+          const last = dots[dots.length - 1]
+          p5.line(last.x, last.y, first.x, first.y)
         }
-      }).catch(err => {
-        console.log(err)
-      })
-    },
-    //display all the images the user uploaded
-    getAllImages() {
-      axios
-        .get("/api/image/getImage")
-        .then((res) => {
-          let data = res.data
-          this.newImages = data.images
+        p5.endShape()
+      }
+
+      class Polygon {
+        constructor(dots) {
+          this.dots = dots
+        }
+
+        display() {
+          connectDotsOpen(this.dots, true)
+        }
+      }
+
+      // the radius around a point we allow
+      const EPS = 15
+      // the disk following the mouse
+      const MOUSE_RAD = 10
+      const MOUSE_STROKE_WEIGHT = 2
+      // general stroke weight
+      const STROKE_WEIGHT = 4
+
+      // we will build a color sequence that always assigns the same color to a given index
+      // (color(0), color(1), ..., color(n), ...)
+      const colorSequence = i => {
+        return p5.color((16 * i) % 256, (128 * i) % 256, (30 * i) % 256)
+      }
+
+      // allows to check if the mouse is within the canvas
+      const mouseInCanvas = () => 0 < p5.mouseX && p5.mouseX < t.imageData.width
+          && 0 < p5.mouseY && p5.mouseY < t.imageData.height
+
+      // returns true if the two provided points are considered to be close enough
+      // so that they are at the same position, provided the tolerance radius `EPS`
+      // (used for the user's mouse and another point)
+      const closeEnough = (a, b) => a.dist(b) < EPS
+
+      // variables
+      let polygons = []
+      let currentPoints = []
+      let annotateImage = undefined
+
+      // P5 handling
+      p5.setup = () => {
+        p5.createCanvas(t.imageData.width, t.imageData.height)
+        annotateImage = p5.loadImage(t.imageData.imageUrl)
+      }
+
+      p5.draw = () => {
+        p5.clear()
+        p5.background(255, 204, 0) // just a default background
+        // display the image to be annotated
+        p5.image(annotateImage, 0, 0, t.imageData.width, t.imageData.height)
+        // display all polygons
+        p5.strokeWeight(STROKE_WEIGHT)
+        polygons.forEach((polygon, i) => {
+          p5.stroke(colorSequence(i))
+          polygon.display()
         })
-        .catch((err) => {
-          console.log(err)
-        })
-    },
-    imgSrc(image) {
-      return require('../../../website/static/source_images/' +
-          image.imageName)
-    },
-    putIntoBox(image) {
-      this.imageBox = require('../../../website/static/source_images/' +
-          image.imageName)
-      this.imageDescription = image.imageName.split('.')[0]
-    },
-  },
-  created() {
-    this.getAllImages()
+        p5.stroke(colorSequence(polygons.length))
+        // draw the current polygon being drawn
+        if (currentPoints.length > 0) {
+          connectDotsOpen(currentPoints, false)
+          // connect the last point to the mouse's position
+          const last = currentPoints[currentPoints.length - 1]
+          p5.line(last.x, last.y, p5.mouseX, p5.mouseY)
+        }
+        p5.strokeWeight(MOUSE_STROKE_WEIGHT)
+        p5.fill(colorSequence(polygons.length))
+        p5.ellipse(p5.mouseX, p5.mouseY, MOUSE_RAD)
+      }
+
+      p5.mousePressed = () => {
+        if (mouseInCanvas()) {
+          // if the user hasn't started drawing any polygon
+          const position = p5.createVector(p5.mouseX, p5.mouseY)
+          if (currentPoints.length === 0) {
+            currentPoints.push(position)
+            return
+          }
+          // if the user has only put a single point on the screen
+          if (currentPoints.length === 1) {
+            const only = currentPoints[0]
+            if (closeEnough(only, position)) {
+              // just delete previous point
+              currentPoints = []
+            } else {
+              currentPoints.push(position)
+            }
+            return
+          }
+          // two points at least
+          // check if closing polygon
+          const first = currentPoints[0]
+          if (closeEnough(first, position)) {
+            // add a new polygon!
+            polygons.push(new Polygon(currentPoints))
+            currentPoints = []
+            return
+          }
+          // check if the user is deleting the previous point
+          const last = currentPoints[currentPoints.length - 1]
+          if (closeEnough(last, position)) {
+            currentPoints.pop() // remove it
+            return
+          }
+          // otherwise, just adding a point
+          currentPoints.push(position)
+        }
+      }
+    }
+    this.fetchImageData({imageId: this.$route.params.imageId}).then(res => {
+      this.imageData = res.data
+      const p5canvas = new P5(script, 'canvas')
+    })
   },
 }
 </script>
-
-<style>
-.col-sm-1.align-button {
-  padding-left: 0;
-}
-
-.col-sm-5.align-file-input {
-  padding-right: 0;
-}
-
-.button-submit.btn-secondary {
-  color: black;
-  background-color: #E9ECEF;
-}
-
-.textbox-area.col-sm-1 {
-  padding: 0;
-  margin-top: 70px;
-}
-
-#button-export {
-  margin-top: 40px;
-}
-</style>

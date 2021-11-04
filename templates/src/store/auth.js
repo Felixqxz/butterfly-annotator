@@ -25,24 +25,10 @@ const actions = {
             commit('deleteInfo')
         })
     },
-    uploadImage({dispatch}, {formData}) {
-        return axios.post('/api/image/upload', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        })
-    },
     registerAccount({commit}, {registrationForm}) {
         return axios.post('/register', registrationForm).then(res => {
             const userInfo = res.data
             commit('setUserInfo', {userInfo})
-        })
-    },
-    readFile({dispatch}, {formData}) {
-        return axios.post('/api/description/upload', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
         })
     },
 }
