@@ -276,12 +276,11 @@ export default {
         this.hasNextImage = this.imageData.hasNext !== -1
         this.hasPreviousImage = this.imageData.hasPrevious !== -1
         this.imageData.annotations.forEach((annotation, i) => {
-          console.log(annotation)
           let points = []
-          for (const rawPoint in annotation.regionInfo.split(';')) {
+          annotation.regionInfo.split(';').forEach(rawPoint => {
             const rawCoord = rawPoint.split(',')
             points.push(new P5.Vector(parseInt(rawCoord[0]), parseInt(rawCoord[1])))
-          }
+          })
           this.availablePolygons.push(new Polygon(points, i))
         })
         const p5canvas = new P5(script, 'canvas')
