@@ -7,6 +7,11 @@
         </b-button>
       </b-col>
       <b-col cols="1">
+        <b-button @click="saveAnnotations()">
+          Save
+        </b-button>
+      </b-col>
+      <b-col cols="1">
         <b-button @click="nextImage()" :disabled="!hasNextImage">
           Next
         </b-button>
@@ -57,6 +62,13 @@
 import {mapActions} from 'vuex'
 import P5 from 'p5'
 
+class Polygon {
+  constructor(dots, i) {
+    this.dots = dots
+    this.i = i
+  }
+}
+
 export default {
   name: 'AnnotateImage',
   data() {
@@ -82,12 +94,13 @@ export default {
         this.availablePolygons = []
         this.selectedPolygon = -1
         this.bitButtonDisabled = true
+        this.annotations = []
         this.initializeAll()
       }
     },
   },
   methods: {
-    ...mapActions({fetchImageData: 'fetchImageData'}),
+    ...mapActions({fetchImageData: 'fetchImageData', sendAnnotations: 'sendAnnotations'}),
     textDescription() {
       return this.imageData ? this.imageData.description : ''
     },
@@ -117,6 +130,24 @@ export default {
     nextImage() {
       this.$router.push({path: '/annotate/' + this.imageData.hasNext})
     },
+    serializePoints(p) {
+      return p.map(v => Math.round(v.x) + ',' + Math.round(v.y)).join(';')
+    },
+    saveAnnotations() {
+      const annotations = this.annotations.map(annotation => {
+        return {
+          'id': -1,
+          'points': this.serializePoints(annotation.polygon.dots),
+          'tag': annotation.description,
+        }
+      })
+      this.sendAnnotations({
+        data: {
+          imageId: this.$route.params.imageId,
+          annotations
+        },
+      })
+    },
     initializeAll() {
       const t = this
       const script = p5 => {
@@ -135,17 +166,6 @@ export default {
             p5.line(last.x, last.y, first.x, first.y)
           }
           p5.endShape()
-        }
-
-        class Polygon {
-          constructor(dots, i) {
-            this.dots = dots
-            this.i = i
-          }
-
-          display() {
-            connectDotsOpen(this.dots, true)
-          }
         }
 
         // the radius around a point we allow
@@ -171,6 +191,9 @@ export default {
         // (used for the user's mouse and another point)
         const closeEnough = (a, b) => a.dist(b) < EPS
 
+        // displays a polygon
+        const display = polygon => connectDotsOpen(polygon.dots, true)
+
         // variables
         let currentPoints = []
         let annotateImage = undefined
@@ -190,7 +213,7 @@ export default {
           p5.strokeWeight(STROKE_WEIGHT)
           t.availablePolygons.forEach((polygon, i) => {
             p5.stroke(colorSequence(i))
-            polygon.display()
+            display(polygon)
           })
           p5.stroke(colorSequence(t.availablePolygons.length))
           // draw the current polygon being drawn
@@ -252,6 +275,15 @@ export default {
         this.imageData = res.data
         this.hasNextImage = this.imageData.hasNext !== -1
         this.hasPreviousImage = this.imageData.hasPrevious !== -1
+        this.imageData.annotations.forEach((annotation, i) => {
+          console.log(annotation)
+          let points = []
+          for (const rawPoint in annotation.regionInfo.split(';')) {
+            const rawCoord = rawPoint.split(',')
+            points.push(new P5.Vector(parseInt(rawCoord[0]), parseInt(rawCoord[1])))
+          }
+          this.availablePolygons.push(new Polygon(points, i))
+        })
         const p5canvas = new P5(script, 'canvas')
       })
     },

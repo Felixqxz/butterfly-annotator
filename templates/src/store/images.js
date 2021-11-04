@@ -14,8 +14,10 @@ const actions = {
         return axios.put('/api/bank-access', {targetName: targetUser, level, id: bankId})
     },
     fetchImageData({dispatch}, {imageId}) {
-        // TODO
         return axios.get('/api/image/' + imageId)
+    },
+    sendAnnotations({dispatch}, {data}) {
+        return axios.post('/api/image/annotate', data)
     },
 }
 

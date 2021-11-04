@@ -171,7 +171,7 @@ def insert_annotation():
     Allows to push all the annotations of the image to the database.
     """
     req = request.get_json()
-    image = ensure_image_exists(req['image_id'])
+    image = ensure_image_exists(req['imageId'])
     if image is None:
         return jsonify({'error': 'there exists no image with such an id'}), HTTPStatus.NOT_FOUND
     if 'annotations' not in req:
@@ -181,24 +181,25 @@ def insert_annotation():
     # first pass: verify all data
     for annotation in req['annotations']:
         try:
-            region = PolygonalRegion(annotation['points'])
+            region = PolygonalRegion.deserialize_from_json(annotation['points'])
         except Exception:
             return jsonify({'error': 'ill-formed polygonal region'}), HTTPStatus.BAD_REQUEST
         if max(map(lambda p: p.x, region.points)) > image.width or \
                 min(map(lambda p: p.x, region.points)) < 0 or \
                 max(map(lambda p: p.y, region.points)) > image.height or \
                 min(map(lambda p: p.y, region.points)) < 0:
+            print("mais oui c'est clair !!!")
             return jsonify({'error': 'there exists a point out of bounds'}), HTTPStatus.BAD_REQUEST
-        if annotation['id'] != '-1':
+        if annotation['id'] != -1:
             # trying to update existing annotation
             if int(annotation['id']) not in [annot.id for annot in image.annotations]:
                 return jsonify({'error': 'trying to update an annotation that does not exist'}), HTTPStatus.BAD_REQUEST
 
     # second pass: update database
     for annotation in req['annotations']:
-        region = PolygonalRegion(annotation['points'])
-        stripped_tag = annotation['tag'].strip().tolower()
-        if annotation['id'] == '-1':
+        region = PolygonalRegion.deserialize_from_json(annotation['points'])
+        stripped_tag = annotation['tag'].strip().lower()
+        if annotation['id'] == -1:
             # new region
             a = ImageAnnotation(image.id, stripped_tag, region.sql_serialize_region(), current_user.get_id())
             db.session.add(a)
