@@ -1,14 +1,41 @@
 <template>
   <b-container>
-    <b-row class="justify-content-center">
+    <b-row class="justify-content-center" style="padding-bottom: 2em;">
       <div id="canvas"/>
     </b-row>
-    <b-row>
+    <b-row class="mb-2">
       <b-col md="6" xs="12">
         <!-- the description part -->
+        <h4>Image description</h4>
+        <b-card class="mb-2">
+          <p @mouseup="checkTextSelection()" id="description-selection">
+            {{ textDescription() }}
+          </p>
+        </b-card>
+        <b-button @click="addDescriptionBit()" :disabled="bitButtonDisabled">Add bit</b-button>
       </b-col>
+      <!-- the linking between the tags and the polygons -->
       <b-col md="6" xs="12">
-        <!-- the linking between the tags and the polygons -->
+        <!-- list of polygons -->
+        <h4>Available region</h4>
+        <b-list-group>
+          <b-list-group-item v-for="polygon in availablePolygons"
+                             v-bind:key="polygon.i"
+                             class="'polygon-item no-drag"
+                             :active="selectedPolygon === polygon.i"
+                             @click="selectPolygon(polygon.i)">
+            Polgyon number {{ polygon.i }}
+          </b-list-group-item>
+        </b-list-group>
+      </b-col>
+    </b-row>
+    <b-row>
+      <b-col>
+        <b-list-group>
+          <b-list-group-item v-for="(annotation, idx) in annotations" v-bind:key="idx">
+            {{ annotation.description }}
+          </b-list-group-item>
+        </b-list-group>
       </b-col>
     </b-row>
   </b-container>
@@ -20,14 +47,41 @@ import P5 from 'p5'
 
 export default {
   name: 'AnnotateImage',
-  methods: {
-    ...mapActions({fetchImageData: 'fetchImageData'}),
-  },
   data() {
     return {
       description: '', // of the image
       imageData: null,
+      availablePolygons: [],
+      selectedPolygon: -1,
+      bitButtonDisabled: true,
+      annotations: [],
     }
+  },
+  methods: {
+    ...mapActions({fetchImageData: 'fetchImageData'}),
+    textDescription() {
+      return this.imageData ? this.imageData.description : ''
+    },
+    selectPolygon(i) {
+      this.selectedPolygon = i
+    },
+    checkTextSelection() {
+      const selectedText = window.getSelection().toString().trim()
+      if (!selectedText) {
+        this.bitButtonDisabled = true
+        return
+      }
+      // no overlap, proceed
+      this.bitButtonDisabled = false
+    },
+    addDescriptionBit() {
+      const selected = window.getSelection().toString().trim()
+      this.bitButtonDisabled = true
+      window.getSelection().empty()
+      if (this.selectedPolygon !== -1) {
+        this.annotations.push({ polygon: this.availablePolygons[this.selectedPolygon], description: selected })
+      }
+    },
   },
   mounted() {
     const t = this
@@ -50,8 +104,9 @@ export default {
       }
 
       class Polygon {
-        constructor(dots) {
+        constructor(dots, i) {
           this.dots = dots
+          this.i = i
         }
 
         display() {
@@ -83,7 +138,6 @@ export default {
       const closeEnough = (a, b) => a.dist(b) < EPS
 
       // variables
-      let polygons = []
       let currentPoints = []
       let annotateImage = undefined
 
@@ -100,11 +154,11 @@ export default {
         p5.image(annotateImage, 0, 0, t.imageData.width, t.imageData.height)
         // display all polygons
         p5.strokeWeight(STROKE_WEIGHT)
-        polygons.forEach((polygon, i) => {
+        t.availablePolygons.forEach((polygon, i) => {
           p5.stroke(colorSequence(i))
           polygon.display()
         })
-        p5.stroke(colorSequence(polygons.length))
+        p5.stroke(colorSequence(t.availablePolygons.length))
         // draw the current polygon being drawn
         if (currentPoints.length > 0) {
           connectDotsOpen(currentPoints, false)
@@ -113,7 +167,7 @@ export default {
           p5.line(last.x, last.y, p5.mouseX, p5.mouseY)
         }
         p5.strokeWeight(MOUSE_STROKE_WEIGHT)
-        p5.fill(colorSequence(polygons.length))
+        p5.fill(colorSequence(t.availablePolygons.length))
         p5.ellipse(p5.mouseX, p5.mouseY, MOUSE_RAD)
       }
 
@@ -125,12 +179,16 @@ export default {
             currentPoints.push(position)
             return
           }
-          // if the user has only put a single point on the screen
-          if (currentPoints.length === 1) {
-            const only = currentPoints[0]
-            if (closeEnough(only, position)) {
-              // just delete previous point
-              currentPoints = []
+          // if the user has only put 1 or 2 points so far
+          if (currentPoints.length <= 2) {
+            const first = currentPoints[0]
+            if (closeEnough(first, position)) {
+              if (currentPoints.length === 1) {
+                // just delete previous point
+                currentPoints = []
+              } else {
+                currentPoints.pop()
+              }
             } else {
               currentPoints.push(position)
             }
@@ -141,7 +199,7 @@ export default {
           const first = currentPoints[0]
           if (closeEnough(first, position)) {
             // add a new polygon!
-            polygons.push(new Polygon(currentPoints))
+            t.availablePolygons.push(new Polygon(currentPoints, t.availablePolygons.length))
             currentPoints = []
             return
           }
@@ -163,3 +221,9 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.polygon-item:hover {
+  background-color: #2fc1db;
+}
+</style>

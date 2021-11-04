@@ -21,6 +21,7 @@ const actions = {
                 width: 968,
                 height: 645,
                 description: 'Generic description of an image here',
+                annotations: [],
             },
         }))
     },
