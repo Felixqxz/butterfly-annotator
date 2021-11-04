@@ -4,6 +4,7 @@ The part of the API that allows access to the images of a database.
 from flask.json import jsonify
 from flask import Blueprint, request, escape, send_file
 from flask_login import login_required, current_user
+from sqlalchemy import and_, desc
 from http import HTTPStatus
 import os
 from ..database.access import db
@@ -222,12 +223,24 @@ def get_image_data(image_id):
         return jsonify({'message': 'there is no image with such an id'}), HTTPStatus.NOT_FOUND
     if not can_access_bank(image.image_bank, current_user):
         return jsonify({'message': 'not authorized to view this bank'}), HTTPStatus.UNAUTHORIZED
+    next_image = db.session.query(ImageToAnnotate)\
+        .filter(and_(ImageToAnnotate.image_bank_id == image.image_bank_id,
+                     ImageToAnnotate.id > image.id))\
+        .order_by(ImageToAnnotate.id)\
+        .first()
+    prev_image = db.session.query(ImageToAnnotate)\
+        .filter(and_(ImageToAnnotate.image_bank_id == image.image_bank_id,
+                     ImageToAnnotate.id < image.id))\
+        .order_by(desc(ImageToAnnotate.id))\
+        .first()
     return jsonify({
         'id': image.id,
         'description': image.description,
         'width': image.width,
         'height': image.height,
         'imageUrl':  'image-serve/' + image.file_url,
+        'hasNext': next_image.id if next_image is not None else -1,
+        'hasPrevious': prev_image.id if prev_image is not None else -1,
         'annotations': [
             {
                 'tag': annotation.tag,
