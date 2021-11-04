@@ -1,14 +1,32 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_login import LoginManager
+import os
 
 from .config import config_by_name
 from .database.access import db
 from .database.models import User
+from .images.discovery import discover_all_banks
 
 # configuration
 DEBUG = True
 config_name = 'default'
+
+
+def create_super_user():
+    find = db.session.query(User).filter(User.username == 'admin').first()
+    if find is None:
+        password = 'admin'
+        if os.path.isfile('password.txt'):
+            with open('password.txt', 'r') as file:
+                password = file.read().strip()
+        from .apis.account_api import bcrypt
+        db.session.add(User('admin', 'none-required', bcrypt.generate_password_hash(password)))
+        db.session.commit()
+        print('added super user!')
+    else:
+        print('super user already exists')
+
 
 def create_app(config_name=None):
     # create and configure the app
@@ -47,6 +65,13 @@ def create_app(config_name=None):
     app.cli.add_command(drop_all)
 
     app.config['SECRET_KEY'] = '766574a7486ff3209b5b2a347a854f168d0a5d2af588b681cf592fb7f61f99e2'
+
+    # create super admin user if doesn't exist
+
+    with app.app_context():
+        create_super_user()
+        discover_all_banks()
+
     return app
 
 app = create_app()
