@@ -2,13 +2,15 @@
 The part of the API that allows access to the images of a database.
 """
 from flask.json import jsonify
-from flask import Blueprint, request, escape
+from flask import Blueprint, request, escape, send_file
 from flask_login import login_required, current_user
+from sqlalchemy import and_, desc
 from http import HTTPStatus
 import os
 from ..database.access import db
 from ..database.models import User, BankAccess, ImageToAnnotate, ImageAnnotation, ImageBank
 from ..images.geometry import PolygonalRegion
+from ..images.discovery import default_bank_directory
 
 basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
@@ -67,28 +69,6 @@ def list_banks():
             'description': access.bank.description
         })
     return jsonify(banks)
-
-
-@image_api.route('/api/bank-create', methods=['POST'])
-@login_required
-def create_image_bank():
-    data = request.get_json()
-    if 'bankName' not in data or 'description' not in data:
-        return jsonify({'error': 'a bank needs a description and a name'}), HTTPStatus.BAD_REQUEST
-    bankname = escape(data['bankName'])
-    if db.session.query(ImageBank).filter(ImageBank.bankname == bankname).first() is not None:
-        return jsonify({'error': 'a bank with the same name already exists'}), HTTPStatus.UNAUTHORIZED
-    newBank = ImageBank(bankname, escape(data['description']))
-    db.session.add(newBank)
-    db.session.commit()
-    # allow creator to see his new bank
-    db.session.add(BankAccess(current_user.get_id(), newBank.id, bank_access_levels['admin']))
-    db.session.commit()
-    return jsonify({
-        'id': newBank.id,
-        'bankName': newBank.bankname,
-        'description': newBank.description
-    })
 
 
 @image_api.route('/api/bank-access', methods=['PUT'])
@@ -178,60 +158,10 @@ def list_images(bank_id):
         'images': [
             {
                 'id': image.id,
-                'url': image.file_url,
+                'url': 'image-serve/' + image.file_url,
                 'fullDescription': image.description,
             } for image in banks_dict[bank_id].images
         ]}
-
-
-# This route is used to upload an image.
-@image_api.route('/api/image/upload', methods=['POST'])
-@login_required
-def upload_image():
-    # TODO: fix this here; might remove this whole endpoint
-    method = request.method
-    pic = request.files['imgFile']
-
-    if not pic:
-        return 'No pic uploaded', HTTPStatus.BAD_REQUEST
-
-    path = basedir + '/website/static/source_images/'
-    file_path = path + pic.filename
-    pic.save(file_path)
-
-    image_bank_id = 1
-    # TODO convert to path relative to the folder containing the banks
-    file_url = '../../../website/static/source_images/' + pic.filename
-
-    image_to_annotate = ImageToAnnotate(image_bank_id=image_bank_id, file_url=file_url)
-    db.session.add(image_to_annotate)
-    db.session.commit()
-
-    return jsonify({
-        'image_bank_id': image_bank_id,
-        'image_name': pic.filename,
-        'method': method
-    })
-
-
-# This route is used to get all images info that user uploaded.
-@image_api.route('/api/image/getImage', methods=['GET'])
-@login_required
-def get_image():  # TODO: remove this endpoint
-    images = []
-    count = ImageToAnnotate.query.filter_by(image_bank_id=1).count()
-    for i in range(count):
-        image = ImageToAnnotate.query.filter_by(id=i + 1).first()  # TODO: what is this?
-        images.append({
-            'id': i,
-            'url': image.file_url,
-            'imageName': '',  # Removed image's name!
-        })
-
-    return jsonify({
-        'bankName': 'Butterfly',
-        'images': images
-    })
 
 
 @image_api.route('/api/image/annotate', methods=['POST'])
@@ -241,7 +171,7 @@ def insert_annotation():
     Allows to push all the annotations of the image to the database.
     """
     req = request.get_json()
-    image = ensure_image_exists(req['image_id'])
+    image = ensure_image_exists(req['imageId'])
     if image is None:
         return jsonify({'error': 'there exists no image with such an id'}), HTTPStatus.NOT_FOUND
     if 'annotations' not in req:
@@ -251,24 +181,25 @@ def insert_annotation():
     # first pass: verify all data
     for annotation in req['annotations']:
         try:
-            region = PolygonalRegion(annotation['points'])
+            region = PolygonalRegion.deserialize_from_json(annotation['points'])
         except Exception:
             return jsonify({'error': 'ill-formed polygonal region'}), HTTPStatus.BAD_REQUEST
         if max(map(lambda p: p.x, region.points)) > image.width or \
                 min(map(lambda p: p.x, region.points)) < 0 or \
                 max(map(lambda p: p.y, region.points)) > image.height or \
                 min(map(lambda p: p.y, region.points)) < 0:
+            print("mais oui c'est clair !!!")
             return jsonify({'error': 'there exists a point out of bounds'}), HTTPStatus.BAD_REQUEST
-        if annotation['id'] != '-1':
+        if annotation['id'] != -1:
             # trying to update existing annotation
             if int(annotation['id']) not in [annot.id for annot in image.annotations]:
                 return jsonify({'error': 'trying to update an annotation that does not exist'}), HTTPStatus.BAD_REQUEST
 
     # second pass: update database
     for annotation in req['annotations']:
-        region = PolygonalRegion(annotation['points'])
-        stripped_tag = annotation['tag'].strip().tolower()
-        if annotation['id'] == '-1':
+        region = PolygonalRegion.deserialize_from_json(annotation['points'])
+        stripped_tag = annotation['tag'].strip().lower()
+        if annotation['id'] == -1:
             # new region
             a = ImageAnnotation(image.id, stripped_tag, region.sql_serialize_region(), current_user.get_id())
             db.session.add(a)
@@ -283,6 +214,43 @@ def insert_annotation():
                 })
             db.session.commit()
     return jsonify({'result': 'success'})
+
+
+@image_api.route('/api/image/<image_id>', methods=['GET'])
+@login_required
+def get_image_data(image_id):
+    image = ensure_image_exists(image_id)
+    if image is None:
+        return jsonify({'message': 'there is no image with such an id'}), HTTPStatus.NOT_FOUND
+    if not can_access_bank(image.image_bank, current_user):
+        return jsonify({'message': 'not authorized to view this bank'}), HTTPStatus.UNAUTHORIZED
+    next_image = db.session.query(ImageToAnnotate)\
+        .filter(and_(ImageToAnnotate.image_bank_id == image.image_bank_id,
+                     ImageToAnnotate.id > image.id))\
+        .order_by(ImageToAnnotate.id)\
+        .first()
+    prev_image = db.session.query(ImageToAnnotate)\
+        .filter(and_(ImageToAnnotate.image_bank_id == image.image_bank_id,
+                     ImageToAnnotate.id < image.id))\
+        .order_by(desc(ImageToAnnotate.id))\
+        .first()
+    return jsonify({
+        'id': image.id,
+        'description': image.description,
+        'width': image.width,
+        'height': image.height,
+        'imageUrl':  'image-serve/' + image.file_url,
+        'hasNext': next_image.id if next_image is not None else -1,
+        'hasPrevious': prev_image.id if prev_image is not None else -1,
+        'annotations': [
+            {
+                'tag': annotation.tag,
+                'regionInfo': annotation.region_info,
+                'author': annotation.author.username,
+            }
+            for annotation in image.annotations
+        ]
+    })
 
 
 @image_api.route('/api/image/annotations/<image_id>', methods=['GET'])
@@ -306,3 +274,10 @@ def get_annotations(image_id):
             } for annotation in image.annotations
         ]
     })
+
+
+@image_api.route('/api/image-serve/<path:path>')
+def serve_image(path):
+    if path:
+        return send_file(os.path.join(default_bank_directory, path), mimetype='image/jpeg')
+    return jsonify({'message': 'no such image'}), HTTPStatus.NOT_FOUND

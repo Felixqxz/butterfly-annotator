@@ -16,33 +16,8 @@ a {
     -ms-user-select: none;
 }
 
-.image-hover-container {
-    overflow: hidden;
-}
-
-.image-hover {
-    transform: scale(1.0);
-    transform-origin: center;
-    transition: 400ms transform;
-}
-
-.image-hover:hover {
-    transform: scale(1.2);
-    transform-origin: center;
-}
-
-.image-to-annotate {
-    margin-top: 1em;
-    margin-bottom: 1em;
-}
-
 .page-title {
     margin-top: 1rem;
-}
-
-.bank-list-card {
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
 }
 
 .card-hover {

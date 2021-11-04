@@ -13,6 +13,12 @@ const actions = {
     requestPermission({dispatch}, {targetUser, level, bankId}) {
         return axios.put('/api/bank-access', {targetName: targetUser, level, id: bankId})
     },
+    fetchImageData({dispatch}, {imageId}) {
+        return axios.get('/api/image/' + imageId)
+    },
+    sendAnnotations({dispatch}, {data}) {
+        return axios.post('/api/image/annotate', data)
+    },
 }
 
 export default {
