@@ -50,8 +50,8 @@
       <!-- Accesses tab -->
       <b-tab title="Accesses">
         <b-row :v-show="hasPermissionToAdd()">
-          <b-col cols="6">
-            <b-button v-b-modal.add variant="primary">Add user</b-button>
+          <b-col cols="12">
+            <b-button v-b-modal.add variant="primary" class="mb-2 mt-2">Add user</b-button>
           </b-col>
 
           <b-modal id="add" ref="add-modal" title="Add user" hide-footer>
@@ -71,12 +71,16 @@
             </b-form>
           </b-modal>
         </b-row>
-        <b-card v-for="access in userAccesses" v-bind:key="access.username">
-          {{ access.username }}
-          <permission-badge :color-variant="levelToVariant(access.level)"
-                            :permission-title="levelToTitle(access.level)"></permission-badge>
-          <b-button variant="danger" @click="removeUser(access.username)" class="float-right"><ion-icon name="close-circle-outline"></ion-icon></b-button>
-        </b-card>
+        <b-row v-for="access in userAccesses" v-bind:key="access.username" class="mb-2">
+          <b-col cols="12">
+            <b-card>
+              {{ access.username }}
+              <permission-badge :color-variant="levelToVariant(access.level)"
+                                :permission-title="levelToTitle(access.level)"></permission-badge>
+              <b-button variant="danger" @click="removeUser(access.username)" class="float-right"><ion-icon name="close-circle-outline"></ion-icon></b-button>
+            </b-card>
+          </b-col>
+        </b-row>
       </b-tab>
     </b-tabs>
   </b-container>

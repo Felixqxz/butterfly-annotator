@@ -45,12 +45,24 @@ nav li.router-link-exact-active {
 
 nav li a, .navbar-brand a {
   text-decoration: none !important;
-  color: white !important;
+  color: #fff;
   transition: color 0.2s;
 }
 
-nav li a:hover, .navbar-brand a:hover {
-  color: lightgray !important;
+.navbar-brand a:hover {
+  color: rgb(211, 211, 211) !important;
+}
+
+.nav-item a {
+  transition: color 0.2s;
+}
+
+.nav-item a:hover {
+  color: rgb(172, 172, 172) !important;
+}
+
+.dropdown-menu li {
+  color: red !important;
 }
 
 </style>
