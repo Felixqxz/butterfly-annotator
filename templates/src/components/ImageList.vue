@@ -12,7 +12,7 @@
       <b-tab title="Images" active>
         <form>
           <b-row>
-            <b-col cols="10">
+            <b-col cols="10" class="mt-2">
               <b-input-group>
                 <b-input-group-prepend>
                   <b-input-group-text>
