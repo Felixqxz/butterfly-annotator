@@ -125,10 +125,14 @@ export default {
       }
     },
     previousImage() {
-      this.$router.push({path: '/annotate/' + this.imageData.hasPrevious})
+      const path = '/annotate/' + this.imageData.hasPrevious
+      this.$router.push({path})
+      this.$router.go()
     },
     nextImage() {
-      this.$router.push({path: '/annotate/' + this.imageData.hasNext})
+      const path = '/annotate/' + this.imageData.hasNext
+      this.$router.push({path})
+      this.$router.go()
     },
     serializePoints(p) {
       return p.map(v => Math.round(v.x) + ',' + Math.round(v.y)).join(';')
@@ -152,7 +156,8 @@ export default {
       const t = this
       const script = p5 => {
         // draws lines that connect all (i, i + 1) dots and closes the shape if close is true
-        const connectDotsOpen = (dots, close) => {
+        const connectDotsOpen = (color, dots, close) => {
+          p5.stroke(color)
           p5.beginShape()
           for (let i = 0; i < dots.length - 1; i++) {
             const currentPoint = dots[i]
@@ -166,6 +171,11 @@ export default {
             p5.line(last.x, last.y, first.x, first.y)
           }
           p5.endShape()
+          p5.noStroke()
+          p5.fill(color)
+          dots.forEach(dot => {
+            p5.ellipse(dot.x, dot.y, EPS)
+          })
         }
 
         // the radius around a point we allow
@@ -182,6 +192,20 @@ export default {
           return p5.color((16 * i) % 256, (128 * i) % 256, (30 * i) % 256)
         }
 
+        const closestPointInRadius = () => {
+          const mousePosition = p5.createVector(p5.mouseX, p5.mouseY)
+          for (let i = 0; i < t.availablePolygons.length; ++i) {
+            const polygon = t.availablePolygons[i]
+            for (let j = 0; j < polygon.dots.length; ++j) {
+              const dot = polygon.dots[j]
+              if (closeEnough(dot, mousePosition)) {
+                return { dot, polygon: i, dotIdx: j }
+              }
+            }
+          }
+          return null
+        }
+
         // allows to check if the mouse is within the canvas
         const mouseInCanvas = () => 0 < p5.mouseX && p5.mouseX < t.imageData.width
             && 0 < p5.mouseY && p5.mouseY < t.imageData.height
@@ -192,11 +216,12 @@ export default {
         const closeEnough = (a, b) => a.dist(b) < EPS
 
         // displays a polygon
-        const display = polygon => connectDotsOpen(polygon.dots, true)
+        const display = (color, polygon) => connectDotsOpen(color, polygon.dots, true)
 
         // variables
         let currentPoints = []
         let annotateImage = undefined
+        let movedPoint = null
 
         // P5 handling
         p5.setup = () => {
@@ -211,27 +236,58 @@ export default {
           p5.image(annotateImage, 0, 0, t.imageData.width, t.imageData.height)
           // display all polygons
           p5.strokeWeight(STROKE_WEIGHT)
-          t.availablePolygons.forEach((polygon, i) => {
-            p5.stroke(colorSequence(i))
-            display(polygon)
-          })
-          p5.stroke(colorSequence(t.availablePolygons.length))
+          // currently displacing a point
+          if (movedPoint) {
+            t.availablePolygons[movedPoint.polygon].dots[movedPoint.dotIdx] = p5.createVector(p5.mouseX, p5.mouseY)
+          }
+          // draw all existing polygons
+          t.availablePolygons.forEach((polygon, i) => display(colorSequence(i), polygon))
           // draw the current polygon being drawn
           if (currentPoints.length > 0) {
-            connectDotsOpen(currentPoints, false)
+            const color = colorSequence(t.availablePolygons.length)
+            connectDotsOpen(color, currentPoints, false)
             // connect the last point to the mouse's position
+            p5.stroke(color)
             const last = currentPoints[currentPoints.length - 1]
             p5.line(last.x, last.y, p5.mouseX, p5.mouseY)
           }
           p5.strokeWeight(MOUSE_STROKE_WEIGHT)
           p5.fill(colorSequence(t.availablePolygons.length))
           p5.ellipse(p5.mouseX, p5.mouseY, MOUSE_RAD)
+
+          const closest = closestPointInRadius()
+          if (closest) {
+            p5.cursor(p5.MOVE)
+          } else {
+            p5.cursor(p5.ARROW)
+          }
         }
 
         p5.mousePressed = () => {
+          if (!mouseInCanvas()) {
+            return
+          }
+
+          const closest = closestPointInRadius()
+          // no close point, or already creating a polygon
+          if (!closest || currentPoints.length > 0) {
+            return
+          }
+
+          movedPoint = closest
+        }
+
+        p5.mouseReleased = () => {
+          console.log('it is the case!')
           if (mouseInCanvas()) {
             // if the user hasn't started drawing any polygon
             const position = p5.createVector(p5.mouseX, p5.mouseY)
+            // was displacing a point
+            if (movedPoint) {
+              movedPoint = null
+              return
+            }
+            // start polygon
             if (currentPoints.length === 0) {
               currentPoints.push(position)
               return
@@ -240,14 +296,21 @@ export default {
             if (currentPoints.length <= 2) {
               const first = currentPoints[0]
               if (closeEnough(first, position)) {
-                if (currentPoints.length === 1) {
-                  // just delete previous point
-                  currentPoints = []
-                } else {
-                  currentPoints.pop()
-                }
+                currentPoints.pop()
               } else {
-                currentPoints.push(position)
+                // two points
+                if (currentPoints.length === 2) {
+                  const second = currentPoints[1]
+                  // remove point as usual
+                  if (closeEnough(second, position)) {
+                    currentPoints.pop()
+                  } else {
+                    currentPoints.push(position)
+                  }
+                } else {
+                  // only one point => add the new one
+                  currentPoints.push(position)
+                }
               }
               return
             }
@@ -257,6 +320,7 @@ export default {
             if (closeEnough(first, position)) {
               // add a new polygon!
               t.availablePolygons.push(new Polygon(currentPoints, t.availablePolygons.length))
+              console.log(t.availablePolygons.length)
               currentPoints = []
               return
             }
