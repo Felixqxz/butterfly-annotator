@@ -174,24 +174,28 @@ export default {
           p5.noStroke()
           p5.fill(color)
           dots.forEach(dot => {
-            p5.ellipse(dot.x, dot.y, EPS)
+            p5.ellipse(dot.x, dot.y, MOUSE_RAD)
           })
         }
 
         // the radius around a point we allow
         const EPS = 15
         // the disk following the mouse
-        const MOUSE_RAD = 10
+        const MOUSE_RAD = 9
         const MOUSE_STROKE_WEIGHT = 2
         // general stroke weight
         const STROKE_WEIGHT = 4
 
+        // the key to be pressed to delete a polygon
+        const DELETE_KEY = p5.SHIFT
+
         // we will build a color sequence that always assigns the same color to a given index
         // (color(0), color(1), ..., color(n), ...)
-        const colorSequence = i => {
-          return p5.color((16 * i) % 256, (128 * i) % 256, (30 * i) % 256)
-        }
+        const colorSequence = i => p5.color((16 * i) % 256, (128 * i) % 256, (30 * i) % 256)
 
+        // returns the closest point constituting a polygon in an `EPS` radius
+        // to the mouse
+        // TODO: this doesn't return the closest point, it returns the first in radius
         const closestPointInRadius = () => {
           const mousePosition = p5.createVector(p5.mouseX, p5.mouseY)
           for (let i = 0; i < t.availablePolygons.length; ++i) {
@@ -206,6 +210,31 @@ export default {
           return null
         }
 
+        // returns the closest line constituting a polygon in a right angle `EPS` distance
+        // to the mouse
+        const closestLineInRadius = () => {
+          const mousePosition = p5.createVector(p5.mouseX, p5.mouseY)
+          let polygonArgmin = -1
+          let dotsArgmin = -1
+          let minDist = Number.POSITIVE_INFINITY
+          for (let i = 0; i < t.availablePolygons.length; ++i) {
+            const polygon = t.availablePolygons[i]
+            for (let j = 0; j < polygon.dots.length; ++j) {
+              const pointA = polygon.dots[j]
+              const pointB = polygon.dots[(j + 1) % polygon.dots.length] // cycle back to close
+              const numerator = (pointB.x - pointA.x) * (pointA.y - mousePosition.y)
+                - (pointA.x - mousePosition.x) * (pointB.y - pointA.y)
+              const endDist = Math.abs(numerator) / pointB.dist(pointA)
+              if (endDist < minDist) {
+                minDist = endDist
+                polygonArgmin = i
+                dotsArgmin = i
+              }
+            }
+          }
+          return {polygon: polygonArgmin, dotsIdx: dotsArgmin, distance: minDist}
+        }
+
         // allows to check if the mouse is within the canvas
         const mouseInCanvas = () => 0 < p5.mouseX && p5.mouseX < t.imageData.width
             && 0 < p5.mouseY && p5.mouseY < t.imageData.height
@@ -217,6 +246,11 @@ export default {
 
         // displays a polygon
         const display = (color, polygon) => connectDotsOpen(color, polygon.dots, true)
+
+        // next polygon index
+        const nextIndex = () => t.availablePolygons.length > 0 
+          ? t.availablePolygons[t.availablePolygons.length - 1].i + 1
+          : 0
 
         // variables
         let currentPoints = []
@@ -241,10 +275,10 @@ export default {
             t.availablePolygons[movedPoint.polygon].dots[movedPoint.dotIdx] = p5.createVector(p5.mouseX, p5.mouseY)
           }
           // draw all existing polygons
-          t.availablePolygons.forEach((polygon, i) => display(colorSequence(i), polygon))
+          t.availablePolygons.forEach(polygon => display(colorSequence(polygon.i), polygon))
           // draw the current polygon being drawn
           if (currentPoints.length > 0) {
-            const color = colorSequence(t.availablePolygons.length)
+            const color = colorSequence(nextIndex())
             connectDotsOpen(color, currentPoints, false)
             // connect the last point to the mouse's position
             p5.stroke(color)
@@ -255,13 +289,20 @@ export default {
           p5.fill(colorSequence(t.availablePolygons.length))
           p5.ellipse(p5.mouseX, p5.mouseY, MOUSE_RAD)
 
-          const closest = closestPointInRadius()
-          if (closest) {
-            p5.cursor(p5.MOVE)
+          // select cursor
+          if (p5.keyIsDown(DELETE_KEY)) {
+            p5.cursor(p5.HAND)
           } else {
-            p5.cursor(p5.ARROW)
+            const closest = closestPointInRadius()
+            if (closest) {
+              p5.cursor(p5.MOVE)
+            } else {
+              p5.cursor(p5.ARROW)
+            }
           }
         }
+
+        // TODO: sometimes it's not the closest polygon that gets deleted
 
         p5.mousePressed = () => {
           if (!mouseInCanvas()) {
@@ -278,13 +319,20 @@ export default {
         }
 
         p5.mouseReleased = () => {
-          console.log('it is the case!')
           if (mouseInCanvas()) {
             // if the user hasn't started drawing any polygon
             const position = p5.createVector(p5.mouseX, p5.mouseY)
             // was displacing a point
             if (movedPoint) {
               movedPoint = null
+              return
+            }
+            // is deleting a polygon
+            if (p5.keyIsDown(DELETE_KEY)) {
+              const closest = closestLineInRadius()
+              if (closest && closest.distance < EPS) {
+                t.availablePolygons.splice(closest.polygon, 1)
+              }
               return
             }
             // start polygon
@@ -319,8 +367,8 @@ export default {
             const first = currentPoints[0]
             if (closeEnough(first, position)) {
               // add a new polygon!
-              t.availablePolygons.push(new Polygon(currentPoints, t.availablePolygons.length))
-              console.log(t.availablePolygons.length)
+              t.availablePolygons.push(new Polygon(currentPoints,
+                nextIndex()))
               currentPoints = []
               return
             }
