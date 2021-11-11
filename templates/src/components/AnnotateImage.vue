@@ -173,9 +173,7 @@ export default {
           p5.endShape()
           p5.noStroke()
           p5.fill(color)
-          dots.forEach(dot => {
-            p5.ellipse(dot.x, dot.y, MOUSE_RAD)
-          })
+          dots.forEach(dot => p5.ellipse(dot.x, dot.y, MOUSE_RAD))
         }
 
         // the radius around a point we allow
