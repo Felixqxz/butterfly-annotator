@@ -1,5 +1,10 @@
 <template>
   <b-container>
+    <b-row class="mb-2">
+      <b-col cols="12">
+        <router-link :to="'/bank/' + bankId">Back to bank</router-link>
+      </b-col>
+    </b-row>
     <b-row class="justify-content-between mb-2">
       <b-col cols="1">
         <b-button @click="previousImage()" :disabled="!hasPreviousImage">
@@ -80,10 +85,12 @@ export default {
       annotations: [],
       hasPreviousImage: false,
       hasNextImage: false,
+      bankId: -1,
     }
   },
   watch: {
     $route(to, from) {
+      // used to remove old canvas
       if (to !== from) {
         const toRemove = document.getElementById('defaultCanvas0')
         if (toRemove) {
@@ -383,6 +390,7 @@ export default {
       }
       this.fetchImageData({imageId: this.$route.params.imageId}).then(res => {
         this.imageData = res.data
+        this.bankId = this.imageData.bankId
         this.hasNextImage = this.imageData.hasNext !== -1
         this.hasPreviousImage = this.imageData.hasPrevious !== -1
         this.imageData.annotations.forEach((annotation, i) => {
