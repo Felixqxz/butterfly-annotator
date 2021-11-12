@@ -291,7 +291,7 @@ def upload_avatar():
     print(avatarName)
     avatar_image = request.files['avatarFile']
     username = request.form.get('username')
-    discription = request.form.get('discription')
+    description = request.form.get('description')
     if (avatarName != "null"):
         path = basedir + "/website/static/avatar/"
         avatar_path = path + avatarName
@@ -301,14 +301,14 @@ def upload_avatar():
         db.session.query(User).filter(User.username == username)\
             .update({ 
                 User.avatar_path: avatarName,
-                User.discription: discription
+                User.description: description
             })
         db.session.commit()
         return "200"
     else:
         db.session.query(User).filter(User.username == username)\
             .update({ 
-                User.discription: discription
+                User.description: description
             })
         db.session.commit()
         return "200"
@@ -319,5 +319,5 @@ def get_avatar():
     print(current_user.avatar_path)
     return jsonify({
         'avatar': current_user.avatar_path,
-        'discription': current_user.discription
+        'description': current_user.description
         })

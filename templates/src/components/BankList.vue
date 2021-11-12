@@ -84,9 +84,9 @@ export default {
             console.log(res)
             this.avatarPath = res.data.avatar == "null" ? "" : res.data.avatar
             console.log("text", this.text)
-            let discription = res.data.discription == "null" ? "" : res.data.discription
-            if (this.text != discription) {
-              this.text = discription
+            let description = res.data.description == "null" ? "" : res.data.description
+            if (this.text != description) {
+              this.text = description
             }
           } else {
             console.log("F!")
@@ -127,7 +127,7 @@ export default {
       }
 
       formData.append('username', this.userName)
-      formData.append('discription', this.text)
+      formData.append('description', this.text)
 
       axios
         .post(this.$hostname + "/api/avatar/upload", formData, {
