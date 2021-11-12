@@ -17,6 +17,7 @@ class User(db.Model, UserMixin):
     annotations = relationship('ImageAnnotation', back_populates='author')
 
     avatar_path = db.Column(db.String())
+    discription = db.Column(db.String())
 
     def __init__(self, username, email, password_hash):
         self.username = username

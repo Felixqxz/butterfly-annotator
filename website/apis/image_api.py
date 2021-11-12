@@ -283,16 +283,41 @@ def serve_image(path):
         return send_file(os.path.join(default_bank_directory, path), mimetype='image/jpeg')
     return jsonify({'message': 'no such image'}), HTTPStatus.NOT_FOUND
 
+
 @image_api.route('/api/avatar/upload', methods=['POST'])
 def upload_avatar():
-    req = request.get_json()
-    avatarName = req['avatarName']
-    # db.session.query(User)
-    #     .filter(User.username == req['username'])\
-    #     .update({ User.avatar_path: avatarName })
 
-    db.session.query(User)\
-                .filter(User.username == req['username'])\
-                .update({
-                    User.avatar_path: avatarName
-                })
+    avatarName = request.form.get('avatarName')
+    avatar_image = request.files['avatarFile']
+    username = request.form.get('username')
+    discription = request.form.get('discription')
+    print(123)
+    if not avatar_image:
+        return 'No pic uploaded', 400
+
+    # print(pic)
+    # print(pic.name)
+    # print(avatarName)
+    # print(username)
+
+    path = basedir + "/website/static/avatar/"
+    avatar_path = path + avatarName
+    avatar_image.save(avatar_path)
+
+    db.session.query(User).filter(User.username == username)\
+        .update({ 
+            User.avatar_path: avatarName,
+            User.discription: discription
+        })
+    db.session.commit()
+    # jsonify({'message': 'no such image'}), HTTPStatus.NOT_FOUND
+    return "200"
+
+
+@image_api.route('/api/avatar/get', methods=['GET'])
+def get_avatar():
+    print(current_user.avatar_path)
+    return jsonify({
+        'avatar': current_user.avatar_path,
+        'discription': current_user.discription
+        })

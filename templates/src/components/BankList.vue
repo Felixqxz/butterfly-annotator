@@ -7,19 +7,23 @@
     </b-row> -->
     <b-row class="mb-2">
       <b-col md="2" xs="12" class="justify-content-center">
-        <!-- <b-avatar src="https://placekitten.com/300/300" size="72px"></b-avatar> -->
         <label for="id_avator">
-          <b-avatar id="avator" :src="imgSrc(avatarPath)" size="72px" @click="overrideName"></b-avatar>
+          <b-avatar id="avator" :src="imgSrc(avatarPath)" size="72px"></b-avatar>
         </label>
         <!-- <div v-show="false"> -->
           <b-form-file
             id="id_avator"
             v-model="avatarName"
             accept="image/*"
-            @click="overrideName"
           ></b-form-file>
         <!-- </div> -->
-        <b-button @click="previousImage()" :disabled="!edited">
+        <b-form-textarea
+          id="textarea"
+          v-model="text"
+          placeholder="Enter something..."
+          rows="9"
+        ></b-form-textarea>
+        <b-button @click="save()" :disabled="!edited">
           Save
         </b-button>
       </b-col>
@@ -47,6 +51,7 @@
 </template>
 
 <script>
+import axios from "axios";
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
@@ -57,28 +62,40 @@ export default {
       avatarPath: '',
       userName: "",
       avatarName: null,
-      edited: false,
+      edited: true,
+      text: '',
     }
   },
-  // watch: {
-  //   avatarName(val, oldVal) {
-  //     // console.log("avatarName :" + val, oldVal)
-  //     // console.log(val)
-  //   }
-  // },
   computed: {
     ...mapGetters({ user: 'currentUser', isLoggedIn: 'isLoggedIn' }),
   },
   methods: {
-    ...mapActions({listBanks: 'listBanks'}),
+    ...mapActions({listBanks: 'listBanks', getAvatar: 'getAvatar'}),
     updateBanks() {
       this.listBanks().then(req => this.availableBanks = req.data)
           .catch(err => console.log(err)) // TODO: handle errors correctly
     },
     getAvatarPath() {
+      this.userName = this.isLoggedIn ? this.user.username : ''
       this.avatarPath = this.isLoggedIn ? this.user.avatar : ''
+      this.getAvatar()
+        .then(res => {
+          if (res.status === 200) {
+            console.log(res)
+            this.avatarPath = res.data.avatar
+            this.text = res.data.discription == "null" ? "" : res.data.discription
+          } else {
+            console.log("F!")
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
     },
     imgSrc(imageUrl) {
+      if (imageUrl === undefined || imageUrl === null) {
+        return
+      }
       // In this case, the imageUrl is from fileReader.readAsDataURL which means we don't need to parse it
       if (imageUrl.indexOf(",") > 0) {
         return imageUrl
@@ -86,33 +103,51 @@ export default {
       return require("../../../website/static/avatar/" + imageUrl);
     },
     save() {
-      
-      axios.post(this.$hostname + '/api/', {
-        image_id: imageId
-      }) 
+      if (this.avatarName == null) {
+        return
+      }
+
+      let formData = new FormData();
+      console.log(this.text)
+      // avatar_name = this.avatarName == null ? ""
+      formData.append("avatarFile", this.avatarName)
+      formData.append('avatarName', this.avatarName.name)
+      formData.append('username', this.userName)
+      formData.append('discription', this.text)
+
+      axios
+        .post(this.$hostname + "/api/avatar/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((res) => {
+          console.log("res", res)
+          if (res.status == 200) {
+            console.log("success!")
+            this.getAvatarPath()
+          } else {
+            console.log("fail!")
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     },
-    overrideName() {
-      console.log(this.avatarName)
-    },
-    yulan() {
+    preview() {
       let t = this
       document.getElementById('id_avator').onchange = function () {
         var imgFile = this.files[0]
         var fr = new FileReader()
-        let that = this
         fr.onload = function () {
           t.avatarPath = fr.result
-        };
-                    
-        fr.readAsDataURL(imgFile);
+        }
+        fr.readAsDataURL(imgFile)
       }
     },
-    // user() {
-    //   this.userName = this.isLoggedIn ? this.user : ''
-    // },
   },
   mounted() {
-    this.yulan()
+    this.preview()
   },
   created() {
     this.updateBanks()
