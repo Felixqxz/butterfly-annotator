@@ -4,9 +4,11 @@ from flask_bcrypt import Bcrypt
 from http import HTTPStatus
 from ..database.models import User
 from ..database.access import db
+import os
 
 account_api = Blueprint('account_api', __name__)
 bcrypt = Bcrypt(current_app)
+basedir = os.path.abspath(os.path.dirname(__name__))
 
 
 @account_api.route('/register', methods=['POST'])
@@ -22,6 +24,8 @@ def register():
     else:
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=password_hash)
+        path = "default_avatar.png"
+        user.avatar_path = path
         db.session.add(user)
         db.session.commit()
         login_user(user)
@@ -41,7 +45,7 @@ def login():
     if user is not None:
         if bcrypt.check_password_hash(user.password_hash, password):
             login_user(user)
-            return jsonify({"username": user.username, "email": user.email})
+            return jsonify({"username": user.username, "email": user.email, "avatar": user.avatar_path})
         else:
             return jsonify({"message": "incorrect password"}), HTTPStatus.UNAUTHORIZED
     else:

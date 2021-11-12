@@ -282,3 +282,17 @@ def serve_image(path):
     if path:
         return send_file(os.path.join(default_bank_directory, path), mimetype='image/jpeg')
     return jsonify({'message': 'no such image'}), HTTPStatus.NOT_FOUND
+
+@image_api.route('/api/avatar/upload', methods=['POST'])
+def upload_avatar():
+    req = request.get_json()
+    avatarName = req['avatarName']
+    # db.session.query(User)
+    #     .filter(User.username == req['username'])\
+    #     .update({ User.avatar_path: avatarName })
+
+    db.session.query(User)\
+                .filter(User.username == req['username'])\
+                .update({
+                    User.avatar_path: avatarName
+                })
