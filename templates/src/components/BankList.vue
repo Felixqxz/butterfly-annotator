@@ -9,16 +9,19 @@
       <b-col md="2" xs="12" class="justify-content-center">
         <!-- <b-avatar src="https://placekitten.com/300/300" size="72px"></b-avatar> -->
         <label for="id_avator">
-          <b-avatar :src="imgSrc(avatarPath)" size="72px" @click="overrideName"></b-avatar>
+          <b-avatar id="avator" :src="imgSrc(avatarPath)" size="72px" @click="overrideName"></b-avatar>
         </label>
-        <!-- <div v-show="seen"> -->
+        <!-- <div v-show="false"> -->
           <b-form-file
             id="id_avator"
             v-model="avatarName"
-            accept=".jpg, .png, .gif, .jpeg"
+            accept="image/*"
             @click="overrideName"
           ></b-form-file>
         <!-- </div> -->
+        <b-button @click="previousImage()" :disabled="!edited">
+          Save
+        </b-button>
       </b-col>
       <b-col md="10" xs="12">
         <h2 class="page-title">Your banks</h2>
@@ -53,10 +56,16 @@ export default {
       availableBanks: [],
       avatarPath: '',
       userName: "",
-      seen: false,
       avatarName: null,
+      edited: false,
     }
   },
+  // watch: {
+  //   avatarName(val, oldVal) {
+  //     // console.log("avatarName :" + val, oldVal)
+  //     // console.log(val)
+  //   }
+  // },
   computed: {
     ...mapGetters({ user: 'currentUser', isLoggedIn: 'isLoggedIn' }),
   },
@@ -69,8 +78,12 @@ export default {
     getAvatarPath() {
       this.avatarPath = this.isLoggedIn ? this.user.avatar : ''
     },
-    imgSrc(imageName) {
-      return require("../../../website/static/avatar/" + imageName);
+    imgSrc(imageUrl) {
+      // In this case, the imageUrl is from fileReader.readAsDataURL which means we don't need to parse it
+      if (imageUrl.indexOf(",") > 0) {
+        return imageUrl
+      }
+      return require("../../../website/static/avatar/" + imageUrl);
     },
     save() {
       
@@ -80,15 +93,30 @@ export default {
     },
     overrideName() {
       console.log(this.avatarName)
-    }
+    },
+    yulan() {
+      let t = this
+      document.getElementById('id_avator').onchange = function () {
+        var imgFile = this.files[0]
+        var fr = new FileReader()
+        let that = this
+        fr.onload = function () {
+          t.avatarPath = fr.result
+        };
+                    
+        fr.readAsDataURL(imgFile);
+      }
+    },
     // user() {
     //   this.userName = this.isLoggedIn ? this.user : ''
     // },
   },
+  mounted() {
+    this.yulan()
+  },
   created() {
     this.updateBanks()
     this.getAvatarPath()
-    // this.username()
   },
 }
 </script>
