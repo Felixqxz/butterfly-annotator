@@ -1,29 +1,25 @@
 <template>
   <b-container>
-    <!-- <b-row class="justify-content-center">
-      <b-col cols="12">
-        
-      </b-col>
-    </b-row> -->
     <b-row class="mb-2">
       <b-col md="2" xs="12" class="justify-content-center">
         <label for="id_avator">
           <b-avatar id="avator" :src="imgSrc(avatarPath)" size="72px"></b-avatar>
         </label>
-        <!-- <div v-show="false"> -->
+        <div v-show="false">
           <b-form-file
             id="id_avator"
             v-model="avatarName"
             accept="image/*"
           ></b-form-file>
-        <!-- </div> -->
+        </div>
         <b-form-textarea
           id="textarea"
           v-model="text"
           placeholder="Enter something..."
           rows="9"
+          @change="edit"
         ></b-form-textarea>
-        <b-button @click="save()" :disabled="!edited">
+        <b-button @click="save()" :disabled="edited">
           Save
         </b-button>
       </b-col>
@@ -66,6 +62,11 @@ export default {
       text: '',
     }
   },
+  watch: {
+    avatarName(val, oldVal) {
+      this.edited = false
+    }
+  },
   computed: {
     ...mapGetters({ user: 'currentUser', isLoggedIn: 'isLoggedIn' }),
   },
@@ -77,13 +78,16 @@ export default {
     },
     getAvatarPath() {
       this.userName = this.isLoggedIn ? this.user.username : ''
-      this.avatarPath = this.isLoggedIn ? this.user.avatar : ''
       this.getAvatar()
         .then(res => {
           if (res.status === 200) {
             console.log(res)
-            this.avatarPath = res.data.avatar
-            this.text = res.data.discription == "null" ? "" : res.data.discription
+            this.avatarPath = res.data.avatar == "null" ? "" : res.data.avatar
+            console.log("text", this.text)
+            let discription = res.data.discription == "null" ? "" : res.data.discription
+            if (this.text != discription) {
+              this.text = discription
+            }
           } else {
             console.log("F!")
           }
@@ -92,8 +96,11 @@ export default {
           console.log(err)
         })
     },
+    edit() {
+      this.edited = false
+    },
     imgSrc(imageUrl) {
-      if (imageUrl === undefined || imageUrl === null) {
+      if (imageUrl === undefined || imageUrl === null || imageUrl === "") {
         return
       }
       // In this case, the imageUrl is from fileReader.readAsDataURL which means we don't need to parse it
@@ -103,15 +110,22 @@ export default {
       return require("../../../website/static/avatar/" + imageUrl);
     },
     save() {
-      if (this.avatarName == null) {
-        return
-      }
+      // if (this.avatarName == null) {
+      //   return
+      // }
 
       let formData = new FormData();
       console.log(this.text)
-      // avatar_name = this.avatarName == null ? ""
-      formData.append("avatarFile", this.avatarName)
-      formData.append('avatarName', this.avatarName.name)
+
+      if (this.avatarName == null) {
+        var file = new File([""], "avatarFile")
+        formData.append("avatarFile", file)
+        formData.append('avatarName', null)
+      } else {
+        formData.append("avatarFile", this.avatarName)
+        formData.append('avatarName', this.avatarName.name)
+      }
+
       formData.append('username', this.userName)
       formData.append('discription', this.text)
 
@@ -126,6 +140,7 @@ export default {
           if (res.status == 200) {
             console.log("success!")
             this.getAvatarPath()
+            this.edited = true
           } else {
             console.log("fail!")
           }

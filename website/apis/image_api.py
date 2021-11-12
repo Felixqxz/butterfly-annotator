@@ -288,30 +288,30 @@ def serve_image(path):
 def upload_avatar():
 
     avatarName = request.form.get('avatarName')
+    print(avatarName)
     avatar_image = request.files['avatarFile']
     username = request.form.get('username')
     discription = request.form.get('discription')
-    print(123)
-    if not avatar_image:
-        return 'No pic uploaded', 400
+    if (avatarName != "null"):
+        path = basedir + "/website/static/avatar/"
+        avatar_path = path + avatarName
+        print(avatar_image)
+        avatar_image.save(avatar_path)
 
-    # print(pic)
-    # print(pic.name)
-    # print(avatarName)
-    # print(username)
-
-    path = basedir + "/website/static/avatar/"
-    avatar_path = path + avatarName
-    avatar_image.save(avatar_path)
-
-    db.session.query(User).filter(User.username == username)\
-        .update({ 
-            User.avatar_path: avatarName,
-            User.discription: discription
-        })
-    db.session.commit()
-    # jsonify({'message': 'no such image'}), HTTPStatus.NOT_FOUND
-    return "200"
+        db.session.query(User).filter(User.username == username)\
+            .update({ 
+                User.avatar_path: avatarName,
+                User.discription: discription
+            })
+        db.session.commit()
+        return "200"
+    else:
+        db.session.query(User).filter(User.username == username)\
+            .update({ 
+                User.discription: discription
+            })
+        db.session.commit()
+        return "200"
 
 
 @image_api.route('/api/avatar/get', methods=['GET'])
