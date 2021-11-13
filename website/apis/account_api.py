@@ -35,7 +35,7 @@ def register():
 @account_api.route('/login', methods=['POST'])
 def login():
     if current_user.is_authenticated:
-        return jsonify({'message': 'user already logged in'}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'User already logged in'}), HTTPStatus.UNAUTHORIZED
 
     user_info = request.get_json(force=True)
     username = user_info.get('username')
@@ -47,9 +47,9 @@ def login():
             login_user(user)
             return jsonify({'username': user.username, 'email': user.email})
         else:
-            return jsonify({'message': 'incorrect password'}), HTTPStatus.UNAUTHORIZED
+            return jsonify({'message': 'Incorrect password'}), HTTPStatus.UNAUTHORIZED
     else:
-        return jsonify({'message': 'no user with such username'}), HTTPStatus.NOT_FOUND
+        return jsonify({'message': 'User does not exist'}), HTTPStatus.NOT_FOUND
 
 
 @account_api.route('/logout', methods=['POST'])
