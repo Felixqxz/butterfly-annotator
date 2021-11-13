@@ -20,22 +20,22 @@ def register():
     duplicate_email = db.session.query(User).filter(User.email == email).first()
 
     if user:
-        return jsonify({"message": "User already exists"}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'User already exists'}), HTTPStatus.UNAUTHORIZED
     if duplicate_email:
-        return jsonify({"message": "Email already exists"}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'Email already exists'}), HTTPStatus.UNAUTHORIZED
     else:
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=password_hash)
         db.session.add(user)
         db.session.commit()
         login_user(user)
-        return jsonify({"username": user.username, "email": user.email})
+        return jsonify({'username': user.username, 'email': user.email})
 
 
 @account_api.route('/login', methods=['POST'])
 def login():
     if current_user.is_authenticated:
-        return jsonify({"message": "user already logged in"}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'user already logged in'}), HTTPStatus.UNAUTHORIZED
 
     user_info = request.get_json(force=True)
     username = user_info.get('username')
@@ -45,17 +45,17 @@ def login():
     if user is not None:
         if bcrypt.check_password_hash(user.password_hash, password):
             login_user(user)
-            return jsonify({"username": user.username, "email": user.email})
+            return jsonify({'username': user.username, 'email': user.email})
         else:
-            return jsonify({"message": "incorrect password"}), HTTPStatus.UNAUTHORIZED
+            return jsonify({'message': 'incorrect password'}), HTTPStatus.UNAUTHORIZED
     else:
-        return jsonify({"message": "no user with such username"}), HTTPStatus.NOT_FOUND
+        return jsonify({'message': 'no user with such username'}), HTTPStatus.NOT_FOUND
 
 
 @account_api.route('/logout', methods=['POST'])
 def logout():
     if current_user.is_authenticated:
         logout_user()
-        return jsonify({"message": "Log out success"})
+        return jsonify({'message': 'Log out success'})
     else:
-        return jsonify({"message": "Not logged in"}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'Not logged in'}), HTTPStatus.UNAUTHORIZED
