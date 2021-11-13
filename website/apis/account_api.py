@@ -17,8 +17,12 @@ def register():
     password = user_info.get('password')
 
     user = db.session.query(User).filter(User.username == username).first()
+    duplicate_email = db.session.query(User).filter(User.email == email).first()
+
     if user:
         return jsonify({"message": "User already exists"}), HTTPStatus.UNAUTHORIZED
+    if duplicate_email:
+        return jsonify({"message": "Email already exists"}), HTTPStatus.UNAUTHORIZED
     else:
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=password_hash)
