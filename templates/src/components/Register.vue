@@ -119,9 +119,15 @@ export default {
       this.$validator.validateAll().then((valid) => {
         if (valid) {
           const registrationForm = this.registrationForm
-          this.register({registrationForm}).then(_ => t.$router.push('/').catch(e => console.log(e)))
+          this.register({registrationForm}).then(_ => {
+            t.$router.push('/')
+            this.$root.$refs.Alert.showSuccessAlert("Login Success!")
+            }).catch(e => {
+            const errorMessage = e.response.data.message
+            this.$root.$refs.Alert.showWarningAlert(errorMessage)
+          })
         } else {
-          // TODO: handle errors correctly
+          this.$root.$refs.Alert.showWarningAlert("Error submit")
         }
       })
     },

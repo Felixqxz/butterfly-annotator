@@ -80,9 +80,15 @@ export default {
       const formData = this.form
       this.$validator.validateAll().then(valid => {
         if (valid) {
-          this.logIn({formData}).then(_ => t.$router.push({ path: '/' })).catch(e => console.log(e))
+          this.logIn({formData}).then(_ => {
+            this.$root.$refs.Alert.showSuccessAlert("Login success!")
+            t.$router.push({ path: '/' })
+            }).catch(e => {
+            const errorMessage = e.response.data.message
+            this.$root.$refs.Alert.showWarningAlert(errorMessage)
+          })
         } else {
-          console.log('error submit') // TODO: handle errors correctly
+          this.$root.$refs.Alert.showWarningAlert("Error submit")
         }
       })
     },
