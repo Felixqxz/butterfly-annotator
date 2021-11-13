@@ -2,9 +2,14 @@
   <b-container>
     <b-row class="mb-2">
       <b-col md="2" xs="12" class="justify-content-center">
-        <label for="id_avator">
-          <b-avatar id="avator" :src="imgSrc(avatarPath)" size="72px"></b-avatar>
-        </label>
+        <b-row align-h="center">
+          <label for="id_avator">
+            <b-avatar id="avator" :src="imgSrc(avatarPath)" size="6rem" 
+            rounded="circle" badge-variant="dark">
+              <!-- <template #badge><b-icon icon="camera" font-scale="1"></b-icon></template> -->
+            </b-avatar>
+          </label>
+        </b-row>
         <div v-show="false">
           <b-form-file
             id="id_avator"
@@ -16,12 +21,15 @@
           id="textarea"
           v-model="text"
           placeholder="Enter something..."
-          rows="9"
+          rows="15"
+          max-rows="100"
           @change="edit"
         ></b-form-textarea>
-        <b-button @click="save()" :disabled="edited">
+
+        <b-button variant="outline-primary" size="sm" @click="save()" :disabled="edited">
           Save
         </b-button>
+
       </b-col>
       <b-col md="10" xs="12">
         <h2 class="page-title">Your banks</h2>
@@ -49,8 +57,13 @@
 <script>
 import axios from "axios";
 import { mapGetters, mapActions } from 'vuex'
+import { BIcon } from 'bootstrap-vue'
 
 export default {
+  components: {
+    BIcon,
+  },
+
   name: 'BankList',
   data() {
     return {
