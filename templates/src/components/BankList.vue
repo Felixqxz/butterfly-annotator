@@ -26,9 +26,13 @@
           @change="edit"
         ></b-form-textarea>
 
-        <b-button variant="outline-primary" size="sm" @click="save()" :disabled="edited">
-          Save
-        </b-button>
+        <b-row align-h="center">
+          <b-button variant="outline-primary" size="sm" @click="save()" :disabled="edited">
+            Save
+          </b-button>
+        </b-row>
+
+        
 
       </b-col>
       <b-col md="10" xs="12">
