@@ -89,3 +89,11 @@ export default {
   },
 }
 </script>
+
+<style>
+#username.form-control.is-valid, #password.form-control.is-valid {
+  border-color: #495057;
+  box-shadow: none;
+  background-image: none;
+}
+</style>

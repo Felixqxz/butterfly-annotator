@@ -128,3 +128,11 @@ export default {
   },
 }
 </script>
+
+<style>
+#email.form-control.is-valid {
+  border-color: #495057;
+  box-shadow: none;
+  background-image: none;
+}
+</style>
