@@ -31,8 +31,13 @@
         </b-card>
         <b-button @click="addDescriptionBit()" :disabled="bitButtonDisabled">Add bit</b-button>
       </b-col>
+      <!-- auto keywords -->
+      <b-col md="3" xs="12">
+        <h4>Keywords</h4>
+        <!-- TODO: complete keywords -->
+      </b-col>
       <!-- the linking between the tags and the polygons -->
-      <b-col md="6" xs="12">
+      <b-col md="3" xs="12">
         <!-- list of polygons -->
         <h4>Available region</h4>
         <b-list-group>
@@ -80,6 +85,7 @@ export default {
       annotations: [],
       hasPreviousImage: false,
       hasNextImage: false,
+      keywords: []
     }
   },
   watch: {
