@@ -30,11 +30,22 @@
           </p>
         </b-card>
         <b-button @click="addDescriptionBit()" :disabled="bitButtonDisabled">Add bit</b-button>
+        <br>
+        <b-button @click="addKeyword()" :disabled="bitButtonDisabled">Add Keyword</b-button>
       </b-col>
       <!-- auto keywords -->
       <b-col md="3" xs="12">
         <h4>Keywords</h4>
-        <!-- TODO: complete keywords -->
+        <b-list-group>
+          <b-list-group-item v-for = "keyword in keywords"
+                             v-bind:key="keyword"
+                             class="no-drag"
+                             :active="selectedKeyword === keyword"
+                             @click="selectKeyword(keyword)">
+            {{ keyword }}
+          </b-list-group-item>
+        </b-list-group>
+
       </b-col>
       <!-- the linking between the tags and the polygons -->
       <b-col md="3" xs="12">
@@ -81,6 +92,7 @@ export default {
       imageData: null,
       availablePolygons: [],
       selectedPolygon: -1,
+      selectedKeyword: '',
       bitButtonDisabled: true,
       annotations: [],
       hasPreviousImage: false,
@@ -107,11 +119,26 @@ export default {
   },
   methods: {
     ...mapActions({fetchImageData: 'fetchImageData', sendAnnotations: 'sendAnnotations'}),
+    addKeyword(){
+      const selected = window.getSelection().toString().trim()
+      this.bitButtonDisabled = true
+      window.getSelection().empty()
+      this.keywords.push(selected)
+    },
+    selectKeyword(keyword){
+      this.selectedKeyword = keyword
+      if (this.selectedPolygon !== -1) {
+        this.bitButtonDisabled = false
+      }
+    },
     textDescription() {
       return this.imageData ? this.imageData.description : ''
     },
     selectPolygon(i) {
       this.selectedPolygon = i
+      if (this.selectedKeyword !== '') {
+        this.bitButtonDisabled = false
+      }
     },
     checkTextSelection() {
       const selectedText = window.getSelection().toString().trim()
@@ -123,11 +150,8 @@ export default {
       this.bitButtonDisabled = false
     },
     addDescriptionBit() {
-      const selected = window.getSelection().toString().trim()
-      this.bitButtonDisabled = true
-      window.getSelection().empty()
-      if (this.selectedPolygon !== -1) {
-        this.annotations.push({polygon: this.availablePolygons[this.selectedPolygon], description: selected})
+      if (this.selectedPolygon !== -1 && this.selectedKeyword !== '') {
+        this.annotations.push({polygon: this.availablePolygons[this.selectedPolygon], description: this.selectedKeyword})
       }
     },
     previousImage() {
