@@ -16,7 +16,8 @@
                   name="username"
                   v-model="registrationForm.username"
                   v-validate="{ required: true }"
-                  :state="validateState('username')"></b-form-input>
+                  :state="validateState('username')"
+                  v-on:keyup.enter="submitForm()"></b-form-input>
               <b-form-invalid-feedback id="username">{{
                   veeErrors.first('username')
                 }}
@@ -35,6 +36,7 @@
                   type="password"
                   v-validate="{ required: true }"
                   :state="validateState('password')"
+                  v-on:keyup.enter="submitForm()"
               ></b-form-input>
               <b-form-invalid-feedback id="password">{{
                   veeErrors.first('password')
@@ -52,7 +54,8 @@
                   v-model="registrationForm.confirmedPassword"
                   type="password"
                   v-validate="'required|confirmed:password'"
-                  :state="validateState('confirmedPassword')"></b-form-input>
+                  :state="validateState('confirmedPassword')"
+                  v-on:keyup.enter="submitForm()"></b-form-input>
               <b-form-invalid-feedback id="confirmedPassword">{{
                   veeErrors.first('confirmedPassword')
                 }}
@@ -67,7 +70,8 @@
                   v-model="registrationForm.email"
                   type="email"
                   v-validate="{ required: true, email: true }"
-                  :state="validateState('email')"></b-form-input>
+                  :state="validateState('email')"
+                  v-on:keyup.enter="submitForm()"></b-form-input>
               <b-form-invalid-feedback id="email">{{
                   veeErrors.first('email')
                 }}
