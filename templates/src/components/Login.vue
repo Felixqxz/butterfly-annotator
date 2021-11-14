@@ -15,6 +15,7 @@
                   v-model="form.username"
                   v-validate="'required'"
                   :state="validateState('username')"
+                  v-on:keyup.enter="submitForm()"
               ></b-form-input>
               <b-form-invalid-feedback id="username">{{ veeErrors.first('username') }}</b-form-invalid-feedback>
             </b-form-group>
@@ -30,6 +31,7 @@
                   type="password"
                   v-validate="'required'"
                   :state="validateState('password')"
+                  v-on:keyup.enter="submitForm()"
               ></b-form-input>
               <b-form-invalid-feedback id="password">{{
                   veeErrors.first('password')
