@@ -15,6 +15,11 @@ from ..images.discovery import default_bank_directory
 basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
 
+TERM_LIST_PATH = 'termlist'
+ADJ_LIST_PATH = 'adjlist.txt'
+COLOR_LIST_PATH = 'colorlist.txt'
+PATTERN_LIST_PATH = 'patternlist.txt'
+PATTERN_VERBS_PATH = 'patternverbs.txt'
 
 bank_access_levels = {
     'super-admin': 100,  # reserved: one such account per app instance
@@ -53,6 +58,57 @@ def get_bank_access_level(user, bank_id):
     bank_access = [access for access in user.accesses 
         if access.bank_id == bank_id]
     return bank_access[0] if bank_access else None 
+
+def get_keywords(description):
+    # fourth line of the file is always the description.
+    words = (description.split('\n')[3]).split()
+    adj_list = []
+    pattern_list = []
+    keywords = []
+
+    adj_list_path = os.path.join(TERM_LIST_PATH, ADJ_LIST_PATH)
+    color_list_path = os.path.join(TERM_LIST_PATH, COLOR_LIST_PATH)
+    pattern_list_path = os.path.join(TERM_LIST_PATH, PATTERN_LIST_PATH)
+    pattern_verbs_path = os.path.join(TERM_LIST_PATH, PATTERN_VERBS_PATH)
+
+    if os.path.isfile(adj_list_path):
+        with open(adj_list_path, 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                adj_list.append(line.rstrip())
+
+    if os.path.isfile(color_list_path):
+        with open(color_list_path, 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                adj_list.append(line.rstrip())
+
+    if os.path.isfile(pattern_verbs_path):
+        with open(pattern_verbs_path, 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                adj_list.append(line.rstrip())
+
+    if os.path.isfile(pattern_list_path):
+        with open(pattern_list_path, 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                pattern_list.append(line.rstrip()) 
+    
+    start_index = -1
+    end_index = -1
+    for word in words:
+        for adj_word in adj_list:
+            if word == adj_word:
+                start_index = description.find(word, start_index+len(word))
+                print(start_index)
+        for pattern_word in pattern_list:
+            if word == pattern_word:
+                end_index = description.find(word, end_index+len(word)) + len(word)
+                if end_index > start_index and start_index not in [pair[0] for pair in keywords]:
+                    pair = [start_index, end_index]
+                    keywords.append(pair)
+    return keywords
 
 
 @image_api.route('/api/bank-list', methods=['GET'])
@@ -234,6 +290,10 @@ def get_image_data(image_id):
                      ImageToAnnotate.id < image.id))\
         .order_by(desc(ImageToAnnotate.id))\
         .first()
+    
+    # auto keywords
+    keywords = get_keywords(image.description)
+    
     return jsonify({
         'id': image.id,
         'description': image.description,
@@ -249,7 +309,8 @@ def get_image_data(image_id):
                 'author': annotation.author.username,
             }
             for annotation in image.annotations
-        ]
+        ],
+        'keywords': keywords,
     })
 
 
