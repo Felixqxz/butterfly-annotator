@@ -84,15 +84,13 @@ def get_keywords(description):
     start_index = -1
     end_index = -1
     for word in words:
-        for adj_word in adj_list:
-            if word == adj_word:
-                start_index = description.find(word, start_index+len(word))
-        for pattern_word in pattern_list:
-            if word == pattern_word:
-                end_index = description.find(word, end_index+len(word)) + len(word)
-                if end_index > start_index and start_index not in [pair[0] for pair in keywords]:
-                    pair = [start_index, end_index]
-                    keywords.append(pair)
+        if word in adj_list:
+            start_index = description.find(word, start_index+len(word))
+        if word in pattern_list:
+            end_index = description.find(word, end_index+len(word)) + len(word)
+            if end_index > start_index and start_index not in [pair[0] for pair in keywords]:
+                pair = [start_index, end_index]
+                keywords.append(pair)
     return keywords
 
 
