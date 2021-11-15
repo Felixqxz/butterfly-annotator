@@ -28,14 +28,16 @@
         <div v-if="hasNoDescription">
           <p>This polygon has no description!</p>
           <p>Please choose one:</p>
-          <b-form-select v-model="selectedDescription" :options="descriptionOptions" size="sm"></b-form-select>
+          <b-form-select v-model="selectedDescription" :options="descriptionOptions" size="sm" class="mb-2"></b-form-select>
+          <b-button variant="primary" size="sm" @click="addAnnotation()" :disabled="descriptionOptions.length === 0">Add!</b-button>
         </div>
         <div v-else>
-
+          <p>This polygon has a description:</p>
+          <p><em>{{ descriptionOfSelectedPolygon() }}</em></p>
         </div>
       </div>
       <div id="mouse-position" style="position: absolute !important"></div>
-      <div id="canvas" name="canvas"/>
+      <div id="canvas"/>
     </b-row>
     <!-- text selection -->
     <b-row class="mb-2">
@@ -139,6 +141,7 @@ export default {
           value: i, text: this.imageData.description.substring(bit.start, bit.end)
         })
       }
+      return ret
     },
   },
   methods: {
@@ -160,6 +163,9 @@ export default {
     serializePoints(p) {
       return p.map(v => Math.floor(v.x) + ',' + Math.floor(v.y)).join(';')
     },
+    addAnnotation() {
+      // TODO
+    },
     createTooltip() {
       // position invisible div
       const posDiv = document.getElementById('mouse-position')
@@ -169,28 +175,7 @@ export default {
         this.previousTippy.destroy()
       }
       // prepare content
-      let content = ''
-      const currentPolygon = this.availablePolygons[this.selectedPolygon]
-      if (currentPolygon.description) {
-        content = `
-          <p>${currentPolygon.description}</p>
-        `
-      } else {
-        content = `
-          <p>This polygon has no description!</p>
-          <p>Pick one:</p>
-          <select class="custom-select custom-select-sm mb-2">
-        `
-        for (let i = 0; i < this.selectedBits.length; ++i) {
-          const bit = this.selectedBits[i]
-          content += `
-            <option value="${i}">${this.imageData.description.substring(bit.start, bit.end)}</option>
-          `
-        }
-        content += `</select>
-        <button class="btn btn-primary btn-sm">Add!</button>
-        `
-      }
+      const content = document.getElementById('tooltip-content').innerHTML
       this.previousTippy = tippy('#mouse-position', {
         content,
         interactive: true,
@@ -338,6 +323,44 @@ export default {
           return null
         }
 
+        // returns the distance between the given point and the closest point of
+        // the given polygon
+        const polygonDistance = (search, polygon) => {
+          let distMin = 0
+          let argMin = 0
+          for (let i = 0; i < polygon.dots.length; ++i) {
+            const pointA = polygon.dots[i]
+            const pointB = polygon.dots[(i + 1) % polygon.dots.length] // (roll)
+            const lineX = pointB.x - pointA.x
+            const lineY = pointB.y - pointA.y
+            const diffX = search.x - pointA.x
+            const diffY = search.y - pointA.y
+            const d = diffX * lineX + diffY * lineY
+            const r = d / (lineX * lineX + lineY * lineY)
+            
+            let compX = 0.0
+            let compY = 0.0
+            if (r < 0) {
+              compX = pointA.x
+              compY = pointA.y
+            } else if (r > 1) {
+              compX = pointB.x
+              compY = pointB.y
+            } else {
+              compX = pointA.x + r * lineX
+              compY = pointA.y + r * lineY
+            }
+            const dx = search.x - compX
+            const dy = search.y - compY
+            const dist = dx * dx + dy * dy
+            if (dist < distMin || i === 0) {
+              distMin = dist
+              argMin = i
+            }
+          }
+          return { distance: distMin, index: argMin }
+        }
+
         // returns the closest line constituting a polygon in a right angle `EPS` distance
         // to the mouse
         const closestLineInRadius = () => {
@@ -347,17 +370,11 @@ export default {
           let minDist = Number.POSITIVE_INFINITY
           for (let i = 0; i < t.availablePolygons.length; ++i) {
             const polygon = t.availablePolygons[i]
-            for (let j = 0; j < polygon.dots.length; ++j) {
-              const pointA = polygon.dots[j]
-              const pointB = polygon.dots[(j + 1) % polygon.dots.length] // cycle back to close
-              const numerator = (pointB.x - pointA.x) * (pointA.y - mousePosition.y)
-                - (pointA.x - mousePosition.x) * (pointB.y - pointA.y)
-              const endDist = Math.abs(numerator) / pointB.dist(pointA)
-              if (endDist < minDist) {
-                minDist = endDist
-                polygonArgmin = i
-                dotsArgmin = i
-              }
+            const {distance, index} = polygonDistance(mousePosition, polygon)
+            if (minDist > distance) {
+              minDist = distance
+              dotsArgmin = index
+              polygonArgmin = i
             }
           }
           return {polygon: polygonArgmin, dotsIdx: dotsArgmin, distance: minDist}
@@ -475,8 +492,9 @@ export default {
             // is deleting a polygon
             if (p5.keyIsDown(DELETE_KEY)) {
               const closest = closestLineInRadius()
-              if (closest && closest.distance < EPS) {
+              if (closest && closest.distance < EPS * EPS) {
                 t.availablePolygons.splice(closest.polygon, 1)
+                t.selectedPolygon = -1
               }
               return
             }
@@ -484,7 +502,7 @@ export default {
             if (currentPoints.length === 0) {
               const closest = closestLineInRadius()
               // clicking existing polygon
-              if (closest && closest.distance < EPS) {
+              if (closest && closest.distance < EPS * EPS) {
                 t.selectedPolygon = closest.polygon
               } else {
                 currentPoints.push(position)
@@ -556,11 +574,6 @@ export default {
   },
   mounted() {
     this.initializeAll()
-    /*this.tooltip = tippy('#canvas', {
-      content: content,
-      followCursor: true,
-      interactive: true,
-    })[0]*/
   },
 }
 </script>
