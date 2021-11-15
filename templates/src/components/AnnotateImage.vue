@@ -26,38 +26,27 @@
       <div id="canvas"/>
     </b-row>
     <b-row class="mb-2">
-      <b-col md="6" xs="12">
-        <!-- the description part -->
-        <h4>Image description</h4>
-        <b-card class="mb-2">
-          <p @mouseup="checkTextSelection()" id="description-selection" style="white-space: pre-line">
-            {{ textDescription() }}
+      <b-col cols="12">
+        <b-card>
+          <!-- IMPORTANT: do not mess with the paragraph! leave as is -->
+          <p style="white-space: pre-wrap"
+            id="description"
+            @mouseup="checkTextSelection()"
+            @mousedown="checkTextSelection()">
+            <span v-for="bit in createChunks()" v-bind:key="bit.start">
+              <description-bit v-if="bit.selected" :text="bit.text" 
+                :start-index="bit.start" :click-handler="handleBitClick"></description-bit>
+              <span v-else>{{ bit.text }}</span>
+            </span>
           </p>
         </b-card>
-        <b-button @click="addDescriptionBit()" :disabled="bitButtonDisabled">Add bit</b-button>
-      </b-col>
-      <!-- the linking between the tags and the polygons -->
-      <b-col md="6" xs="12">
-        <!-- list of polygons -->
-        <h4>Available region</h4>
-        <b-list-group>
-          <b-list-group-item v-for="polygon in availablePolygons"
-                             v-bind:key="polygon.i"
-                             class="no-drag"
-                             :active="selectedPolygon === polygon.i"
-                             @click="selectPolygon(polygon.i)">
-            Polgyon number {{ polygon.i }}
-          </b-list-group-item>
-        </b-list-group>
       </b-col>
     </b-row>
     <b-row>
-      <b-col>
-        <b-list-group>
-          <b-list-group-item v-for="(annotation, idx) in annotations" v-bind:key="idx">
-            {{ annotation.description }}
-          </b-list-group-item>
-        </b-list-group>
+      <b-col cols="12">
+        <b-button @click="addTextBit()" :disabled="!canAddBit">
+          Add bit
+        </b-button>
       </b-col>
     </b-row>
   </b-container>
@@ -66,6 +55,8 @@
 <script>
 import {mapActions} from 'vuex'
 import P5 from 'p5'
+
+import DescriptionBit from './DescriptionBit'
 
 class Polygon {
   constructor(dots, i) {
@@ -76,16 +67,20 @@ class Polygon {
 
 export default {
   name: 'AnnotateImage',
+  components: {
+    DescriptionBit,
+  },
   data() {
     return {
       imageData: null,
       availablePolygons: [],
-      selectedPolygon: -1,
-      bitButtonDisabled: true,
       annotations: [],
       hasPreviousImage: false,
       hasNextImage: false,
       bankId: -1,
+      canAddBit: false,
+      selectedBits: [],
+      chunkedDescription: [],
     }
   },
   watch: {
@@ -99,38 +94,16 @@ export default {
         this.hasNextImage = false
         this.hasPreviousImage = false
         this.availablePolygons = []
-        this.selectedPolygon = -1
-        this.bitButtonDisabled = true
         this.annotations = []
+        this.selectedBits = []
+        this.chunkedDescription = []
+        this.canAddBit = false
         this.initializeAll()
       }
     },
   },
   methods: {
     ...mapActions({fetchImageData: 'fetchImageData', sendAnnotations: 'sendAnnotations'}),
-    textDescription() {
-      return this.imageData ? this.imageData.description : ''
-    },
-    selectPolygon(i) {
-      this.selectedPolygon = i
-    },
-    checkTextSelection() {
-      const selectedText = window.getSelection().toString().trim()
-      if (!selectedText) {
-        this.bitButtonDisabled = true
-        return
-      }
-      // no overlap, proceed
-      this.bitButtonDisabled = false
-    },
-    addDescriptionBit() {
-      const selected = window.getSelection().toString().trim()
-      this.bitButtonDisabled = true
-      window.getSelection().empty()
-      if (this.selectedPolygon !== -1) {
-        this.annotations.push({polygon: this.availablePolygons[this.selectedPolygon], description: selected})
-      }
-    },
     previousImage() {
       const path = '/annotate/' + this.imageData.hasPrevious
       this.$router.push({path})
@@ -142,7 +115,42 @@ export default {
       this.$router.go()
     },
     serializePoints(p) {
-      return p.map(v => Math.round(v.x) + ',' + Math.round(v.y)).join(';')
+      return p.map(v => Math.floor(v.x) + ',' + Math.floor(v.y)).join(';')
+    },
+    createChunks() {
+      if (!this.imageData) {
+        return []
+      }
+      if (this.selectedBits.length === 0) {
+        return [{text: this.imageData.description, selected: false}]
+      }
+      let ret = []
+      let previousEnd = 0
+      // the code assumes that the bits are sorted by their beginning index,
+      // and that there are no overlaps
+      for (let i = 0; i < this.selectedBits.length; ++i) {
+        const bit = this.selectedBits[i]
+        // add beginning
+        if (bit.start !== previousEnd) {
+          ret.push({text: this.imageData.description.substring(previousEnd, bit.start), selected: false, start: previousEnd})
+        }
+        // add the actual selected bit
+        ret.push({text: this.imageData.description.substring(bit.start, bit.end), selected: true, start: bit.start})
+        previousEnd = bit.end
+        // add remainder
+      }
+      const last = this.selectedBits[this.selectedBits.length - 1]
+      if (last.end !== this.imageData.description.length) {
+        ret.push({text: this.imageData.description.substring(last.end), selected: false, start: last.end})
+      }
+      return ret
+    },
+    handleBitClick(start) {
+      const i = this.selectedBits.findIndex(b => b.start === start)
+      if (i === -1) {
+        return // (not found)
+      }
+      this.selectedBits.splice(i, 1)
     },
     saveAnnotations() {
       const annotations = this.annotations.map(annotation => {
@@ -155,9 +163,28 @@ export default {
       this.sendAnnotations({
         data: {
           imageId: this.$route.params.imageId,
-          annotations
+          annotations,
         },
       })
+    },
+    checkTextSelection() {
+      const selection = window.getSelection()
+      const selectedText = selection.toString().trim()
+      this.canAddBit = !!selectedText // coerce to boolean
+    },
+    addTextBit() {
+      const selection = window.getSelection()
+      const rawText = selection.toString()
+      const selectedText = rawText.trim()
+      if (!selectedText) {
+        return
+      }
+      const start = this.imageData.description.indexOf(rawText)
+      const end = start + selectedText.length // (exclusive)
+      this.selectedBits.push({ start, end })
+      this.selectedBits.sort((b, a) => b.start - a.start) // first start first; should be no overlap too
+      selection.empty()
+      this.canAddBit = false
     },
     initializeAll() {
       const t = this
@@ -196,7 +223,7 @@ export default {
 
         // we will build a color sequence that always assigns the same color to a given index
         // (color(0), color(1), ..., color(n), ...)
-        const colorSequence = i => p5.color((16 * i) % 256, (128 * i) % 256, (30 * i) % 256)
+        const colorSequence = i => p5.color((16 * i) % 256, (64 * (i + 1)) % 256, (30 * i) % 256, 150)
 
         // returns the closest point constituting a polygon in an `EPS` radius
         // to the mouse
@@ -393,6 +420,7 @@ export default {
         this.bankId = this.imageData.bankId
         this.hasNextImage = this.imageData.hasNext !== -1
         this.hasPreviousImage = this.imageData.hasPrevious !== -1
+        // add all annotations
         this.imageData.annotations.forEach((annotation, i) => {
           let points = []
           annotation.regionInfo.split(';').forEach(rawPoint => {

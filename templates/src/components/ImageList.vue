@@ -16,7 +16,7 @@
               <b-input-group>
                 <b-input-group-prepend>
                   <b-input-group-text>
-                    <ion-icon name="search-outline"></ion-icon>
+                    <b-icon-search></b-icon-search>
                   </b-input-group-text>
                 </b-input-group-prepend>
                 <input type="text" class="form-control" placeholder="Search..."/>
@@ -71,13 +71,13 @@
             </b-form>
           </b-modal>
         </b-row>
-        <b-row v-for="access in userAccesses" v-bind:key="access.username" class="mb-2">
+        <b-row v-for="access in userAccesses" v-bind:key="access.username" class="mb-2 justify-content-center">
           <b-col cols="12">
             <b-card>
               {{ access.username }}
               <permission-badge :color-variant="levelToVariant(access.level)"
                                 :permission-title="levelToTitle(access.level)"></permission-badge>
-              <b-button variant="danger" @click="removeUser(access.username)" class="float-right"><ion-icon name="close-circle-outline"></ion-icon></b-button>
+              <b-button variant="danger" @click="removeUser(access.username)" class="float-right remove-user-button"><b-icon-x-circle></b-icon-x-circle></b-button>
             </b-card>
           </b-col>
         </b-row>
@@ -243,4 +243,10 @@ export default {
   margin-bottom: 1em;
 }
 
+.remove-user-button {
+  padding-bottom: 0.2rem;
+  padding-top: 0.2rem;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+}
 </style>

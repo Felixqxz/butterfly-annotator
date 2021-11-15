@@ -7,6 +7,15 @@
 <script>
 export default {
   name: 'PermissionBadge',
-  props: ['colorVariant', 'permissionTitle']
+  props: {
+    colorVariant: {
+      type: String,
+      required: true,
+    }, 
+    permissionTitle: {
+      type: String,
+      required: true
+    },
+  },
 }
 </script>
