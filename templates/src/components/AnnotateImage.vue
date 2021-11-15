@@ -167,9 +167,21 @@ export default {
         },
       })
     },
+    descriptionIndices(text) {
+      const start = this.imageData.description.indexOf(text)
+      const end = start + text.trim().length // (exclusive)
+      return { start, end }
+    },
     checkTextSelection() {
       const selection = window.getSelection()
-      const selectedText = selection.toString().trim()
+      const rawText = selection.toString()
+      const {start, end} = this.descriptionIndices(rawText)
+      // trying to add an overlapping bit!
+      if (this.selectedBits.some(bit => start <= bit.end && bit.start <= end)) {
+        this.canAddBit = false
+        return
+      }
+      const selectedText = rawText.trim()
       this.canAddBit = !!selectedText // coerce to boolean
     },
     addTextBit() {
@@ -179,8 +191,7 @@ export default {
       if (!selectedText) {
         return
       }
-      const start = this.imageData.description.indexOf(rawText)
-      const end = start + selectedText.length // (exclusive)
+      const {start, end} = this.descriptionIndices(rawText)
       this.selectedBits.push({ start, end })
       this.selectedBits.sort((b, a) => b.start - a.start) // first start first; should be no overlap too
       selection.empty()
