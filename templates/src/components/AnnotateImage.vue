@@ -137,8 +137,8 @@ export default {
         // add the actual selected bit
         ret.push({text: this.imageData.description.substring(bit.start, bit.end), selected: true, start: bit.start})
         previousEnd = bit.end
-        // add remainder
       }
+      // add remainder, if any
       const last = this.selectedBits[this.selectedBits.length - 1]
       if (last.end !== this.imageData.description.length) {
         ret.push({text: this.imageData.description.substring(last.end), selected: false, start: last.end})
