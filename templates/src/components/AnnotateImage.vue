@@ -1,5 +1,5 @@
 <template>
-  <b-container>
+  <b-container @mousemove="trackMouse">
     <b-row class="mb-2">
       <b-col cols="12">
         <router-link :to="'/bank/' + bankId">Back to bank</router-link>
@@ -22,9 +22,22 @@
         </b-button>
       </b-col>
     </b-row>
-    <b-row class="justify-content-center" style="padding-bottom: 2em;">
-      <div id="canvas"/>
+    <!-- P5 canvas -->
+    <b-row class="justify-content-center mb-2">
+      <div id="tooltip-content" style="display: none">
+        <div v-if="hasNoDescription">
+          <p>This polygon has no description!</p>
+          <p>Please choose one:</p>
+          <b-form-select v-model="selectedDescription" :options="descriptionOptions" size="sm"></b-form-select>
+        </div>
+        <div v-else>
+
+        </div>
+      </div>
+      <div id="mouse-position" style="position: absolute !important"></div>
+      <div id="canvas" name="canvas"/>
     </b-row>
+    <!-- text selection -->
     <b-row class="mb-2">
       <b-col cols="12">
         <b-card>
@@ -53,8 +66,9 @@
 </template>
 
 <script>
-import {mapActions} from 'vuex'
+import { mapActions } from 'vuex'
 import P5 from 'p5'
+import { tippy } from 'vue-tippy'
 
 import DescriptionBit from './DescriptionBit'
 
@@ -80,7 +94,12 @@ export default {
       bankId: -1,
       canAddBit: false,
       selectedBits: [],
+      selectedPolygon: -1,
       chunkedDescription: [],
+      mousePosX: 0,
+      mousePosY: 0,
+      previousTippy: null,
+      selectedDescription: 0,
     }
   },
   watch: {
@@ -98,12 +117,36 @@ export default {
         this.selectedBits = []
         this.chunkedDescription = []
         this.canAddBit = false
+        this.selectedPolygon = -1
+        if (this.previousTippy) {
+          this.previousTippy.destroy()
+          this.previousTippy = null
+        }
+        this.selectedDescription = 0
         this.initializeAll()
+      }
+    },
+  },
+  computed: {
+    hasNoDescription() {
+      return this.selectedPolygon === -1 || !this.availablePolygons[this.selectedPolygon].description
+    },
+    descriptionOptions() {
+      const ret = []
+      for (let i = 0; i < this.selectedBits.length; ++i) {
+        const bit = this.selectedBits[i]
+        ret.push({
+          value: i, text: this.imageData.description.substring(bit.start, bit.end)
+        })
       }
     },
   },
   methods: {
     ...mapActions({fetchImageData: 'fetchImageData', sendAnnotations: 'sendAnnotations'}),
+    trackMouse(event) {
+      this.mousePosX = event.pageX
+      this.mousePosY = event.pageY
+    },
     previousImage() {
       const path = '/annotate/' + this.imageData.hasPrevious
       this.$router.push({path})
@@ -116,6 +159,48 @@ export default {
     },
     serializePoints(p) {
       return p.map(v => Math.floor(v.x) + ',' + Math.floor(v.y)).join(';')
+    },
+    createTooltip() {
+      // position invisible div
+      const posDiv = document.getElementById('mouse-position')
+      posDiv.style.left = this.mousePosX + 'px'
+      posDiv.style.top = this.mousePosY + 'px'
+      if (this.previousTippy) {
+        this.previousTippy.destroy()
+      }
+      // prepare content
+      let content = ''
+      const currentPolygon = this.availablePolygons[this.selectedPolygon]
+      if (currentPolygon.description) {
+        content = `
+          <p>${currentPolygon.description}</p>
+        `
+      } else {
+        content = `
+          <p>This polygon has no description!</p>
+          <p>Pick one:</p>
+          <select class="custom-select custom-select-sm mb-2">
+        `
+        for (let i = 0; i < this.selectedBits.length; ++i) {
+          const bit = this.selectedBits[i]
+          content += `
+            <option value="${i}">${this.imageData.description.substring(bit.start, bit.end)}</option>
+          `
+        }
+        content += `</select>
+        <button class="btn btn-primary btn-sm">Add!</button>
+        `
+      }
+      this.previousTippy = tippy('#mouse-position', {
+        content,
+        interactive: true,
+      })[0]
+      const t = this
+      setTimeout(() => {
+        if (t.previousTippy) { 
+          t.previousTippy.show()
+        }
+      }, 100) // delay to avoid instant close
     },
     createChunks() {
       if (!this.imageData) {
@@ -328,9 +413,14 @@ export default {
             const last = currentPoints[currentPoints.length - 1]
             p5.line(last.x, last.y, p5.mouseX, p5.mouseY)
           }
-          p5.strokeWeight(MOUSE_STROKE_WEIGHT)
-          p5.fill(colorSequence(t.availablePolygons.length))
-          p5.ellipse(p5.mouseX, p5.mouseY, MOUSE_RAD)
+
+          // hovering and not drawing? then don't suggest new circle
+          const closest = closestLineInRadius()
+          if (!closest || closest.distance >= EPS || currentPoints.length > 0) {
+            p5.strokeWeight(MOUSE_STROKE_WEIGHT)
+            p5.fill(colorSequence(t.availablePolygons.length))
+            p5.ellipse(p5.mouseX, p5.mouseY, MOUSE_RAD)
+          }
 
           // select cursor
           if (p5.keyIsDown(DELETE_KEY)) {
@@ -342,6 +432,18 @@ export default {
             } else {
               p5.cursor(p5.ARROW)
             }
+          }
+        }
+
+        p5.keyPressed = () => {
+          if (p5.keyCode === p5.ESCAPE) {
+            if (t.previousTippy) {
+              const prev = t.previousTippy
+              t.previousTippy = null
+              prev.hide()
+              setTimeout(() => prev.destroy(), 500)
+            }
+            currentPoints = []
           }
         }
 
@@ -362,7 +464,7 @@ export default {
         }
 
         p5.mouseReleased = () => {
-          if (mouseInCanvas()) {
+          if (mouseInCanvas() && (!t.previousTippy || !t.previousTippy.isVisible)) {
             // if the user hasn't started drawing any polygon
             const position = p5.createVector(p5.mouseX, p5.mouseY)
             // was displacing a point
@@ -380,7 +482,13 @@ export default {
             }
             // start polygon
             if (currentPoints.length === 0) {
-              currentPoints.push(position)
+              const closest = closestLineInRadius()
+              // clicking existing polygon
+              if (closest && closest.distance < EPS) {
+                t.selectedPolygon = closest.polygon
+              } else {
+                currentPoints.push(position)
+              }
               return
             }
             // if the user has only put 1 or 2 points so far
@@ -410,8 +518,10 @@ export default {
             const first = currentPoints[0]
             if (closeEnough(first, position)) {
               // add a new polygon!
-              t.availablePolygons.push(new Polygon(currentPoints,
-                nextIndex()))
+              const index = nextIndex()
+              t.availablePolygons.push(new Polygon(currentPoints, index))
+              t.selectedPolygon = index
+              t.createTooltip()
               currentPoints = []
               return
             }
@@ -446,6 +556,11 @@ export default {
   },
   mounted() {
     this.initializeAll()
+    /*this.tooltip = tippy('#canvas', {
+      content: content,
+      followCursor: true,
+      interactive: true,
+    })[0]*/
   },
 }
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <b-badge variant="primary">{{ text }}<b-icon-x-circle-fill size="sm" class="rem-button" @click="clickHandler(startIndex)" pill></b-icon-x-circle-fill></b-badge>
+  <b-badge class="no-drag" variant="primary">{{ text }}<b-icon-x-circle-fill size="sm" class="rem-button" @click="clickHandler(startIndex)" pill></b-icon-x-circle-fill></b-badge>
 </template>
 
 <script>
