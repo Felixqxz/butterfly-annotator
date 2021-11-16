@@ -99,7 +99,8 @@ class ImageAnnotation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     image_id = db.Column(db.Integer, db.ForeignKey('image.id'))
-    tag = db.Column(db.String())
+    text_start = db.Column(db.SmallInteger)
+    text_end = db.Column(db.SmallInteger)
     region_info = db.Column(db.String())
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
@@ -107,8 +108,9 @@ class ImageAnnotation(db.Model):
     # The user responsible for this annotation
     author = relationship('User', back_populates='annotations')
 
-    def __init__(self, image_id, tag, region_info, author_id):
+    def __init__(self, image_id, text_start, text_end, region_info, author_id):
         self.image_id = image_id
-        self.tag = tag
+        self.text_start = text_start
+        self.text_end = text_end
         self.region_info = region_info
         self.author_id = author_id

@@ -52,7 +52,7 @@ def get_bank_access_level(user, bank_id):
     """
     bank_access = [access for access in user.accesses 
         if access.bank_id == bank_id]
-    return bank_access[0] if bank_access else None 
+    return bank_access[0] if bank_access else None
 
 
 @image_api.route('/api/bank-list', methods=['GET'])
@@ -166,9 +166,10 @@ def list_images(bank_id):
 
 @image_api.route('/api/image/annotate', methods=['POST'])
 @login_required
-def insert_annotation():
+def insert_annotations():
     """
     Allows to push all the annotations of the image to the database.
+    Returns the ids in the order of insertion.
     """
     req = request.get_json()
     image = ensure_image_exists(req['imageId'])
@@ -180,6 +181,12 @@ def insert_annotation():
         return jsonify({'error': 'not authorized to annotate this bank'}), HTTPStatus.UNAUTHORIZED
     # first pass: verify all data
     for annotation in req['annotations']:
+        if annotation['id'] != -1:
+            # trying to update existing annotation
+            if int(annotation['id']) not in [annot.id for annot in image.annotations]:
+                return jsonify({'error': 'trying to update an annotation that does not exist'}), HTTPStatus.BAD_REQUEST
+        if 'rem' in annotation:
+            continue
         try:
             region = PolygonalRegion.deserialize_from_json(annotation['points'])
         except Exception:
@@ -188,32 +195,34 @@ def insert_annotation():
                 min(map(lambda p: p.x, region.points)) < 0 or \
                 max(map(lambda p: p.y, region.points)) > image.height or \
                 min(map(lambda p: p.y, region.points)) < 0:
-            print("mais oui c'est clair !!!")
             return jsonify({'error': 'there exists a point out of bounds'}), HTTPStatus.BAD_REQUEST
-        if annotation['id'] != -1:
-            # trying to update existing annotation
-            if int(annotation['id']) not in [annot.id for annot in image.annotations]:
-                return jsonify({'error': 'trying to update an annotation that does not exist'}), HTTPStatus.BAD_REQUEST
 
     # second pass: update database
+    ids = []
     for annotation in req['annotations']:
-        region = PolygonalRegion.deserialize_from_json(annotation['points'])
-        stripped_tag = annotation['tag'].strip().lower()
-        if annotation['id'] == -1:
-            # new region
-            a = ImageAnnotation(image.id, stripped_tag, region.sql_serialize_region(), current_user.get_id())
-            db.session.add(a)
-            db.session.commit()
+        if 'rem' in annotation:
+            db.session.query(ImageAnnotation).filter(ImageAnnotation.id == annotation['id']).delete()
         else:
-            db.session.query(ImageAnnotation)\
-                .filter(ImageAnnotation.id == int(annotation['id']))\
-                .update({
-                    ImageAnnotation.region_info: region.sql_serialize_region(),
-                    ImageAnnotation.tag: stripped_tag,
-                    ImageAnnotation.author_id: current_user.get_id()
-                })
-            db.session.commit()
-    return jsonify({'result': 'success'})
+            region = PolygonalRegion.deserialize_from_json(annotation['points'])
+            start = annotation['tag']['start']
+            end = annotation['tag']['end']
+            if annotation['id'] == -1:
+                # new region
+                a = ImageAnnotation(image.id, start, end, region.sql_serialize_region(), current_user.get_id())
+                db.session.add(a)
+                ids.append(a.id)
+            else:
+                db.session.query(ImageAnnotation)\
+                    .filter(ImageAnnotation.id == annotation['id'])\
+                    .update({
+                        ImageAnnotation.region_info: region.sql_serialize_region(),
+                        ImageAnnotation.text_start: start,
+                        ImageAnnotation.text_end: end,
+                        ImageAnnotation.author_id: current_user.get_id()
+                    })
+                ids.append(annotation['id'])
+    db.session.commit()
+    return jsonify({'result': 'success', 'ids': ids})
 
 
 @image_api.route('/api/image/<image_id>', methods=['GET'])
@@ -245,7 +254,11 @@ def get_image_data(image_id):
         'hasPrevious': prev_image.id if prev_image is not None else -1,
         'annotations': [
             {
-                'tag': annotation.tag,
+                'id': annotation.id,
+                'description': {
+                    'start': annotation.text_start,
+                    'end': annotation.text_end,
+                },
                 'regionInfo': annotation.region_info,
                 'author': annotation.author.username,
             }
@@ -270,7 +283,10 @@ def get_annotations(image_id):
         'annotations': [
             {
                 'id': annotation.id,
-                'tag': annotation.tag,
+                'description': {
+                    'start': annotation.text_start,
+                    'end': annotation.text_end,
+                },
                 'regionInfo': annotation.region_info,
             } for annotation in image.annotations
         ]

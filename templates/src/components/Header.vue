@@ -64,7 +64,6 @@ nav li a, .navbar-brand a {
 .dropdown-menu li {
   color: red !important;
 }
-
 </style>
 
 <script>

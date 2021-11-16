@@ -29,7 +29,7 @@
           <p>This polygon has no description!</p>
           <p>Please choose one:</p>
           <b-form-select v-model="selectedDescription" :options="descriptionOptions" size="sm" class="mb-2"></b-form-select>
-          <b-button variant="primary" size="sm" @click="addAnnotation()" :disabled="descriptionOptions.length === 0">Add!</b-button>
+          <b-button variant="primary" size="sm" onclick="addAnnotation()" :disabled="descriptionOptions.length === 0">Add!</b-button>
         </div>
         <div v-else>
           <p>This polygon has a description:</p>
@@ -68,7 +68,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import P5 from 'p5'
 import { tippy } from 'vue-tippy'
 
@@ -90,7 +90,6 @@ export default {
     return {
       imageData: null,
       availablePolygons: [],
-      annotations: [],
       hasPreviousImage: false,
       hasNextImage: false,
       bankId: -1,
@@ -115,7 +114,6 @@ export default {
         this.hasNextImage = false
         this.hasPreviousImage = false
         this.availablePolygons = []
-        this.annotations = []
         this.selectedBits = []
         this.chunkedDescription = []
         this.canAddBit = false
@@ -130,6 +128,7 @@ export default {
     },
   },
   computed: {
+    ...mapGetters({user: 'currentUser'}),
     hasNoDescription() {
       return this.selectedPolygon === -1 || !this.availablePolygons[this.selectedPolygon].description
     },
@@ -138,7 +137,7 @@ export default {
       for (let i = 0; i < this.selectedBits.length; ++i) {
         const bit = this.selectedBits[i]
         ret.push({
-          value: i, text: this.imageData.description.substring(bit.start, bit.end)
+          value: i, text: this.imageData.description.substring(bit.start, bit.end), disabled: bit.polygon !== undefined,
         })
       }
       return ret
@@ -164,7 +163,25 @@ export default {
       return p.map(v => Math.floor(v.x) + ',' + Math.floor(v.y)).join(';')
     },
     addAnnotation() {
-      // TODO
+      // invalid selection?
+      if (this.selectedPolygon === -1 || this.selectedBits.length === 0) {
+        // TODO: display error message
+        return
+      }
+      const polygon = this.availablePolygons[this.selectedPolygon]
+      const description = this.selectedBits[this.selectedDescription]
+      description.polygon = this.selectedPolygon
+      const annotation = {
+        polygon,
+        description,
+        author: this.user.username
+      }
+      // add
+      this.imageData.annotations.push(annotation)
+      if (this.previousTippy) {
+        this.previousTippy.destroy()
+        this.previousTippy = null
+      }
     },
     createTooltip() {
       // position invisible div
@@ -223,22 +240,44 @@ export default {
       this.selectedBits.splice(i, 1)
     },
     saveAnnotations() {
-      const annotations = this.annotations.map(annotation => {
-        return {
-          'id': -1,
-          'points': this.serializePoints(annotation.polygon.dots),
-          'tag': annotation.description,
+      // filter the annotations that never were online
+      const remPred = a => !(a.toRemove && !a.id)
+      const annotations = this.imageData.annotations.filter(remPred).map(annotation => {
+        const id = annotation.id ? annotation.id : -1 // new annotation!
+        if (annotation.toRemove) {
+          return {
+            'id': id,
+            'rem': true,
+          }
+        } else {
+          return {
+            'id': id,
+            'points': annotation.polygon.dots.map(p => {
+              return {
+                x: p.x,
+                y: p.y,
+              }
+            }),
+            'tag': annotation.description,
+          }
         }
       })
+      const t = this
       this.sendAnnotations({
         data: {
           imageId: this.$route.params.imageId,
           annotations,
         },
+      }).then(res => {
+        t.imageData.annotations = t.imageData.annotations.filter(remPred)
+        for (let i = 0; i < t.imageData.annotations.length; ++i) {
+          const annot = t.imageData.annotations[i]
+          annot.id = res.data.ids[i]
+        }
       })
     },
     descriptionIndices(text) {
-      const start = this.imageData.description.indexOf(text)
+      const start = this.imageData.description.indexOf(text) // TODO: what if beginning trimmed?
       const end = start + text.trim().length // (exclusive)
       return { start, end }
     },
@@ -493,7 +532,14 @@ export default {
             if (p5.keyIsDown(DELETE_KEY)) {
               const closest = closestLineInRadius()
               if (closest && closest.distance < EPS * EPS) {
+                // delete polygon
                 t.availablePolygons.splice(closest.polygon, 1)
+                const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === closest.polygon)
+                if (annot !== -1) {
+                  const annotation = t.imageData.annotations[annot]
+                  // remove the annotation when sending to server
+                  annotation.toRemove = true
+                }
                 t.selectedPolygon = -1
               }
               return
@@ -566,7 +612,10 @@ export default {
             const rawCoord = rawPoint.split(',')
             points.push(new P5.Vector(parseInt(rawCoord[0]), parseInt(rawCoord[1])))
           })
-          this.availablePolygons.push(new Polygon(points, i))
+          const polygon = new Polygon(points, i)
+          annotation.polygon = polygon
+          this.selectedBits.push({ start: annotation.description.start, end: annotation.description.end, polygon: i})
+          this.availablePolygons.push(polygon)
         })
         const p5canvas = new P5(script, 'canvas')
       })
@@ -574,6 +623,9 @@ export default {
   },
   mounted() {
     this.initializeAll()
+  },
+  created() {
+    window.addAnnotation = this.addAnnotation
   },
 }
 </script>
