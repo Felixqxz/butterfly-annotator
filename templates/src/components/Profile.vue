@@ -36,6 +36,7 @@
       <b-col md="10" xs="12">
       <h2 class="page-title">Account Settings</h2>
         
+        <br><br>
         <b-row class="my-1">
           <b-col sm="3">
             <code class="label-text-font">FirstName</code>:
@@ -44,6 +45,7 @@
             <b-form-input size="lg" v-model="firstName" @change="update"></b-form-input>
           </b-col>
         </b-row>
+        <br>
 
         <b-row class="my-1">
           <b-col sm="3">
@@ -53,6 +55,7 @@
             <b-form-input size="lg" v-model="lastName" @change="update"></b-form-input>
           </b-col>
         </b-row>
+        <br>
 
         <b-row class="my-1">
           <b-col sm="3">
@@ -62,6 +65,7 @@
             <b-form-input size="lg" v-model="email"></b-form-input>
           </b-col>
         </b-row>
+        <br>
 
         <b-row class="my-1">
           <b-col sm="3">
