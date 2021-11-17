@@ -28,7 +28,7 @@
         <div v-if="hasNoDescription">
           <p>This polygon has no description!</p>
           <p>Please choose one:</p>
-          <b-form-select v-model="selectedDescription" :options="descriptionOptions" size="sm" class="mb-2"></b-form-select>
+          <b-form-select :id="formDummyId" :options="descriptionOptions" size="sm" class="mb-2"></b-form-select>
           <b-button variant="primary" size="sm" onclick="addAnnotation()" :disabled="descriptionOptions.length === 0">Add!</b-button>
         </div>
         <div v-else>
@@ -50,7 +50,8 @@
             @mousedown="checkTextSelection()">
             <span v-for="bit in createChunks()" v-bind:key="bit.start">
               <description-bit v-if="bit.selected" :text="bit.text" 
-                :start-index="bit.start" :click-handler="handleBitClick"></description-bit>
+                :start-index="bit.start" :click-handler="handleBitClick"
+                :author="bit.author"></description-bit>
               <span v-else>{{ bit.text }}</span>
             </span>
           </p>
@@ -100,7 +101,6 @@ export default {
       mousePosX: 0,
       mousePosY: 0,
       previousTippy: null,
-      selectedDescription: 0,
     }
   },
   watch: {
@@ -122,7 +122,6 @@ export default {
           this.previousTippy.destroy()
           this.previousTippy = null
         }
-        this.selectedDescription = 0
         this.initializeAll()
       }
     },
@@ -137,10 +136,16 @@ export default {
       for (let i = 0; i < this.selectedBits.length; ++i) {
         const bit = this.selectedBits[i]
         ret.push({
-          value: i, text: this.imageData.description.substring(bit.start, bit.end), disabled: bit.polygon !== undefined,
+          value: i, text: this.imageData.description.substring(bit.start, bit.end), disabled: bit.annotation !== undefined,
         })
       }
       return ret
+    },
+    formDummyId() {
+      return 'XXXXX'
+    },
+    formActualId() {
+      return 'tooltip-selected-description'
     },
   },
   methods: {
@@ -169,13 +174,15 @@ export default {
         return
       }
       const polygon = this.availablePolygons[this.selectedPolygon]
-      const description = this.selectedBits[this.selectedDescription]
+      const selectedDescription = document.getElementById(this.formActualId).value
+      const description = this.selectedBits[selectedDescription]
       description.polygon = this.selectedPolygon
       const annotation = {
         polygon,
         description,
         author: this.user.username
       }
+      description.annotation = annotation
       // add
       this.imageData.annotations.push(annotation)
       if (this.previousTippy) {
@@ -192,7 +199,7 @@ export default {
         this.previousTippy.destroy()
       }
       // prepare content
-      const content = document.getElementById('tooltip-content').innerHTML
+      const content = document.getElementById('tooltip-content').innerHTML.replace(this.formDummyId, this.formActualId)
       this.previousTippy = tippy('#mouse-position', {
         content,
         interactive: true,
@@ -218,11 +225,17 @@ export default {
       for (let i = 0; i < this.selectedBits.length; ++i) {
         const bit = this.selectedBits[i]
         // add beginning
+        // start field for vue keys
         if (bit.start !== previousEnd) {
           ret.push({text: this.imageData.description.substring(previousEnd, bit.start), selected: false, start: previousEnd})
         }
         // add the actual selected bit
-        ret.push({text: this.imageData.description.substring(bit.start, bit.end), selected: true, start: bit.start})
+        ret.push({
+          text: this.imageData.description.substring(bit.start, bit.end), 
+          selected: true, 
+          start: bit.start, 
+          author: bit.annotation ? bit.annotation.author : ''
+        })
         previousEnd = bit.end
       }
       // add remainder, if any
@@ -258,7 +271,10 @@ export default {
                 y: p.y,
               }
             }),
-            'tag': annotation.description,
+            'tag': {
+              'start': annotation.description.start,
+              'end': annotation.description.end,
+            },
           }
         }
       })
@@ -503,8 +519,6 @@ export default {
           }
         }
 
-        // TODO: sometimes it's not the closest polygon that gets deleted
-
         p5.mousePressed = () => {
           if (!mouseInCanvas()) {
             return
@@ -539,6 +553,7 @@ export default {
                   const annotation = t.imageData.annotations[annot]
                   // remove the annotation when sending to server
                   annotation.toRemove = true
+                  annotation.description.annotation = null
                 }
                 t.selectedPolygon = -1
               }
@@ -614,7 +629,7 @@ export default {
           })
           const polygon = new Polygon(points, i)
           annotation.polygon = polygon
-          this.selectedBits.push({ start: annotation.description.start, end: annotation.description.end, polygon: i})
+          this.selectedBits.push({start: annotation.description.start, end: annotation.description.end, annotation})
           this.availablePolygons.push(polygon)
         })
         const p5canvas = new P5(script, 'canvas')
