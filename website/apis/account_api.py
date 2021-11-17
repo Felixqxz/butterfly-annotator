@@ -24,8 +24,8 @@ def register():
     else:
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=password_hash)
-        path = "default_avatar.png"
-        user.avatar_path = path
+        avatar_name = "default_avatar.png"
+        user.avatar_name = avatar_name
         db.session.add(user)
         db.session.commit()
         login_user(user)
@@ -45,7 +45,7 @@ def login():
     if user is not None:
         if bcrypt.check_password_hash(user.password_hash, password):
             login_user(user)
-            return jsonify({"username": user.username, "email": user.email, "avatar": user.avatar_path})
+            return jsonify({"username": user.username, "email": user.email, "avatar": user.avatar_name})
         else:
             return jsonify({"message": "incorrect password"}), HTTPStatus.UNAUTHORIZED
     else:

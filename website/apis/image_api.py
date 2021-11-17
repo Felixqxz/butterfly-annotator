@@ -288,24 +288,24 @@ def serve_image(path):
 def upload_avatar():
 
     avatarName = request.form.get('avatarName')
-    print(avatarName)
     avatar_image = request.files['avatarFile']
     username = request.form.get('username')
     description = request.form.get('description')
     if (avatarName != "null"):
         path = basedir + "/website/static/avatar/"
         avatar_path = path + avatarName
-        print(avatar_image)
         avatar_image.save(avatar_path)
 
+        # In this case, the avater changed
         db.session.query(User).filter(User.username == username)\
             .update({ 
-                User.avatar_path: avatarName,
+                User.avatar_name: avatarName,
                 User.description: description
             })
         db.session.commit()
         return "200"
     else:
+        # Only description changed in this case
         db.session.query(User).filter(User.username == username)\
             .update({ 
                 User.description: description
@@ -316,8 +316,8 @@ def upload_avatar():
 
 @image_api.route('/api/avatar/get', methods=['GET'])
 def get_avatar():
-    print(current_user.avatar_path)
+    print(current_user.avatar_name)
     return jsonify({
-        'avatar': current_user.avatar_path,
+        'avatar': current_user.avatar_name,
         'description': current_user.description
         })

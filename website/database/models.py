@@ -16,7 +16,7 @@ class User(db.Model, UserMixin):
     accesses = relationship('BankAccess', back_populates='user')
     annotations = relationship('ImageAnnotation', back_populates='author')
 
-    avatar_path = db.Column(db.String())
+    avatar_name = db.Column(db.String())
     description = db.Column(db.String())
 
     def __init__(self, username, email, password_hash):
