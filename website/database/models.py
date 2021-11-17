@@ -18,6 +18,8 @@ class User(db.Model, UserMixin):
 
     avatar_name = db.Column(db.String())
     description = db.Column(db.String())
+    first_name = db.Column(db.String())
+    last_name = db.Column(db.String())
 
     def __init__(self, username, email, password_hash):
         self.username = username

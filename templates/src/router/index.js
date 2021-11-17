@@ -6,6 +6,7 @@ import ImageList from '../components/ImageList.vue'
 import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
 import BankList from "../components/BankList.vue"
+import Profile from "../components/Profile.vue"
 
 Vue.use(Router)
 
@@ -40,5 +41,10 @@ export default new Router({
       component: Register,
       meta: { noAuth: true }
     },
+    {
+      path: '/profile',
+      name: 'Profile',
+      component: Profile,
+    }
   ],
 })

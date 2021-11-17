@@ -321,3 +321,28 @@ def get_avatar():
         'avatar': current_user.avatar_name,
         'description': current_user.description
         })
+
+
+@image_api.route('/api/info/get', methods=['GET'])
+def get_info():
+    return jsonify({
+        'firstName': current_user.first_name,
+        'lastName': current_user.last_name,
+        'email': current_user.email,
+        # 'username': current_user.username
+        })
+
+
+@image_api.route('/api/info/update', methods=['POST'])
+def update_info():
+
+    firstName = request.form.get('firstName')
+    lastName = request.form.get('lastName')
+
+    db.session.query(User).filter(User.username == current_user.username)\
+        .update({ 
+            User.first_name: firstName,
+            User.last_name: lastName
+        })
+    db.session.commit()
+    return "200"
