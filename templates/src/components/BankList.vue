@@ -4,7 +4,7 @@
       <b-col md="2" xs="12" class="justify-content-center">
         <b-row align-h="center">
           <label for="id_avator">
-            <b-avatar id="avator" :src="imgSrc(avatarPath)" size="6rem" 
+            <b-avatar id="avator" :src="imgSrc(avatarName)" size="6rem" 
             rounded="circle" badge-variant="dark">
               <!-- <template #badge><b-icon icon="camera" font-scale="1"></b-icon></template> -->
             </b-avatar>
@@ -13,7 +13,7 @@
         <div v-show="false">
           <b-form-file
             id="id_avator"
-            v-model="avatarName"
+            v-model="avatarFile"
             accept="image/*"
           ></b-form-file>
         </div>
@@ -72,15 +72,15 @@ export default {
   data() {
     return {
       availableBanks: [],
-      avatarPath: '',
+      avatarName: '',
       userName: "",
-      avatarName: null,
+      avatarFile: null,
       edited: true,
       text: '',
     }
   },
   watch: {
-    avatarName(val, oldVal) {
+    avatarFile(val, oldVal) {
       this.edited = false
     }
   },
@@ -98,9 +98,7 @@ export default {
       this.getAvatar()
         .then(res => {
           if (res.status === 200) {
-            console.log(res)
-            this.avatarPath = res.data.avatar == "null" ? "" : res.data.avatar
-            console.log("text", this.text)
+            this.avatarName = res.data.avatar == "null" ? "" : res.data.avatar
             let description = res.data.description == "null" ? "" : res.data.description
             if (this.text != description) {
               this.text = description
@@ -134,13 +132,13 @@ export default {
       let formData = new FormData();
       console.log(this.text)
 
-      if (this.avatarName == null) {
+      if (this.avatarFile == null) {
         var file = new File([""], "avatarFile")
         formData.append("avatarFile", file)
         formData.append('avatarName', null)
       } else {
-        formData.append("avatarFile", this.avatarName)
-        formData.append('avatarName', this.avatarName.name)
+        formData.append("avatarFile", this.avatarFile)
+        formData.append('avatarName', this.avatarFile.name)
       }
 
       formData.append('username', this.userName)
@@ -172,7 +170,7 @@ export default {
         var imgFile = this.files[0]
         var fr = new FileReader()
         fr.onload = function () {
-          t.avatarPath = fr.result
+          t.avatarName = fr.result
         }
         fr.readAsDataURL(imgFile)
       }
