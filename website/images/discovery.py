@@ -69,8 +69,8 @@ def discover_bank(bank_path):
             txt_description = file.read()
         all_pairs.append({
             'path': os.path.join(bank_path, name_no_ext + '.jpg'),
-            'name': bank_name + '/' + name_no_ext + '.jpg',
-            'description': txt_description,
+            'name': bank_name + '/' + name_no_ext + '.jpg', # the file's relative location to the banks/ folder
+            'description': txt_description.split('\n')[3], # the fourth line contains the description
         })
     print('>> found ' + str(len(all_images)) + ' image(s)')
     # now that we have all images, push them to the database

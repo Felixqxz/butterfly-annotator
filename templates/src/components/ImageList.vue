@@ -191,7 +191,6 @@ export default {
       }
       this.$refs['add-modal'].hide()
       const bankId = this.$route.params.bankId
-      console.log(bankId)
       this.requestPermission({targetUser, level, bankId}).then(_ => {
         this.relistAccesses()
       }).catch(e => {

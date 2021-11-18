@@ -212,6 +212,15 @@ def insert_annotations():
                 db.session.add(a)
                 ids.append(a.id)
             else:
+                existing_annotation = db.session.query(ImageAnnotation)\
+                    .filter(ImageAnnotation.id == annotation['id']).first()
+                if existing_annotation is None: # Ignore: trying to update non existing
+                    continue
+                # no actual change to the data
+                if existing_annotation.text_start != start or existing_annotation.text_end != end \
+                    or PolygonalRegion.sql_serialize_region(region) == existing_annotation.region_info:
+                    continue
+                # perform update
                 db.session.query(ImageAnnotation)\
                     .filter(ImageAnnotation.id == annotation['id'])\
                     .update({

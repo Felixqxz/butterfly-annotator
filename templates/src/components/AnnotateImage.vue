@@ -33,7 +33,8 @@
         </div>
         <div v-else>
           <p>This polygon has a description:</p>
-          <p><em>{{ descriptionOfSelectedPolygon() }}</em></p>
+          <p><em>{{ descriptionOfSelectedPolygon }}</em></p>
+          <p>Author: <em>{{ authorOfSelectedPolygon }}</em></p>
         </div>
       </div>
       <div id="mouse-position" style="position: absolute !important"></div>
@@ -42,12 +43,12 @@
     <!-- text selection -->
     <b-row class="mb-2">
       <b-col cols="12">
-        <b-card>
+        <b-card 
+          @mouseup="checkTextSelection()"
+          @mousedown="checkTextSelection()">
           <!-- IMPORTANT: do not mess with the paragraph! leave as is -->
           <p style="white-space: pre-wrap"
-            id="description"
-            @mouseup="checkTextSelection()"
-            @mousedown="checkTextSelection()">
+            id="description">
             <span v-for="bit in createChunks()" v-bind:key="bit.start">
               <description-bit v-if="bit.selected" :text="bit.text" 
                 :start-index="bit.start" :click-handler="handleBitClick"
@@ -129,7 +130,7 @@ export default {
   computed: {
     ...mapGetters({user: 'currentUser'}),
     hasNoDescription() {
-      return this.selectedPolygon === -1 || !this.availablePolygons[this.selectedPolygon].description
+      return this.selectedPolygon === -1 || !this.availablePolygons[this.selectedPolygon].hasDescription
     },
     descriptionOptions() {
       const ret = []
@@ -140,6 +141,19 @@ export default {
         })
       }
       return ret
+    },
+    descriptionOfSelectedPolygon() {
+      if (this.hasNoDescription) {
+        return ''
+      }
+      const annotation = this.imageData.annotations.find(annotation => annotation.polygon.i === this.selectedPolygon)
+      return this.imageData.description.substring(annotation.description.start, annotation.description.end)
+    },
+    authorOfSelectedPolygon() {
+      if (this.hasNoDescription) {
+        return ''
+      }
+      return this.imageData.annotations.find(annotation => annotation.polygon.i === this.selectedPolygon).author
     },
     formDummyId() {
       return 'XXXXX'
@@ -174,13 +188,14 @@ export default {
         return
       }
       const polygon = this.availablePolygons[this.selectedPolygon]
+      polygon.hasDescription = true
       const selectedDescription = document.getElementById(this.formActualId).value
       const description = this.selectedBits[selectedDescription]
       description.polygon = this.selectedPolygon
       const annotation = {
         polygon,
         description,
-        author: this.user.username
+        author: this.user.username,
       }
       description.annotation = annotation
       // add
@@ -189,6 +204,7 @@ export default {
         this.previousTippy.destroy()
         this.previousTippy = null
       }
+      this.selectedPolygon = -1
     },
     createTooltip() {
       // position invisible div
@@ -452,6 +468,20 @@ export default {
           ? t.availablePolygons[t.availablePolygons.length - 1].i + 1
           : 0
 
+        // deletes the provided polygon (`polygon` must be the index of the polygon to delete)
+        const deletePolygon = (polygon) => {
+          // delete polygon
+          t.availablePolygons.splice(polygon, 1)
+          const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
+          if (annot !== -1) {
+            const annotation = t.imageData.annotations[annot]
+            // remove the annotation when sending to server
+            annotation.toRemove = true
+            annotation.description.annotation = null
+          }
+          t.selectedPolygon = -1
+        }
+
         // variables
         let currentPoints = []
         let annotateImage = undefined
@@ -509,12 +539,14 @@ export default {
 
         p5.keyPressed = () => {
           if (p5.keyCode === p5.ESCAPE) {
+            // close tooltip and clear current polygon and selection
             if (t.previousTippy) {
               const prev = t.previousTippy
               t.previousTippy = null
               prev.hide()
               setTimeout(() => prev.destroy(), 500)
             }
+            t.selectedPolygon = -1
             currentPoints = []
           }
         }
@@ -542,21 +574,18 @@ export default {
               movedPoint = null
               return
             }
+            const closest = closestLineInRadius()
             // is deleting a polygon
             if (p5.keyIsDown(DELETE_KEY)) {
-              const closest = closestLineInRadius()
               if (closest && closest.distance < EPS * EPS) {
-                // delete polygon
-                t.availablePolygons.splice(closest.polygon, 1)
-                const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === closest.polygon)
-                if (annot !== -1) {
-                  const annotation = t.imageData.annotations[annot]
-                  // remove the annotation when sending to server
-                  annotation.toRemove = true
-                  annotation.description.annotation = null
-                }
-                t.selectedPolygon = -1
+                deletePolygon(closest.polygon)
               }
+              return
+            }
+            // clicking on a polygon and not creating a new one
+            if (closest.distance < EPS * EPS && currentPoints.length === 0) {
+              t.selectedPolygon = closest.polygon
+              setTimeout(() => t.createTooltip(), 1)
               return
             }
             // start polygon
@@ -628,6 +657,7 @@ export default {
             points.push(new P5.Vector(parseInt(rawCoord[0]), parseInt(rawCoord[1])))
           })
           const polygon = new Polygon(points, i)
+          polygon.hasDescription = true
           annotation.polygon = polygon
           this.selectedBits.push({start: annotation.description.start, end: annotation.description.end, annotation})
           this.availablePolygons.push(polygon)
