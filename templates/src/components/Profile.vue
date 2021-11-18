@@ -20,7 +20,7 @@
         <b-form-textarea
           id="textarea"
           v-model="text"
-          placeholder="Enter something..."
+          placeholder="Say something about yourself..."
           rows="15"
           max-rows="100"
           @change="edit"
@@ -62,19 +62,19 @@
             <code class="label-text-font">Email</code>:
           </b-col>
           <b-col sm="6">
-            <b-form-input size="lg" v-model="email"></b-form-input>
+            <b-form-input size="lg" v-model="email" @change="update"></b-form-input>
           </b-col>
         </b-row>
         <br>
 
-        <b-row class="my-1">
+        <!-- <b-row class="my-1">
           <b-col sm="3">
             <code class="label-text-font">Username</code>:
           </b-col>
           <b-col sm="6">
-            <b-form-input size="lg" v-model="userName"></b-form-input>
+            <b-form-input size="lg" v-model="userName" @change="update"></b-form-input>
           </b-col>
-        </b-row>
+        </b-row> -->
 
         <b-row align-h="center">
           <b-button variant="outline-primary" size="sm" @click="updateInfo()" :disabled="updated">
@@ -194,6 +194,14 @@ export default {
       let formData = new FormData()
       formData.append('firstName', this.firstName)
       formData.append('lastName', this.lastName)
+      formData.append('email', this.email)
+      // if (this.userName != this.user.username) {
+      //   console.log("if")
+      //   formData.append('username', this.userName)
+      // } else {
+      //   console.log("else")
+      //   formData.append('usernmae', "")
+      // }
 
       axios
         .post(this.$hostname + "/api/info/update", formData, {
@@ -254,10 +262,6 @@ export default {
 }
 </script>
 <style scoped>
-.bank-list-card {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
 .label-text-font {
   font-size: 25px;
 }

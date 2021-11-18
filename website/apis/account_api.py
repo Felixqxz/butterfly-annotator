@@ -24,8 +24,7 @@ def register():
     else:
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=password_hash)
-        avatar_name = ""
-        user.avatar_name = avatar_name
+        user.avatar_name = ""
         db.session.add(user)
         db.session.commit()
         login_user(user)
