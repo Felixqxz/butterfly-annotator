@@ -277,6 +277,7 @@ def get_image_data(image_id):
     keywords = get_keywords(image.description)
     return jsonify({
         'id': image.id,
+        'bankId': image.image_bank.id,
         'description': image.description,
         'width': image.width,
         'height': image.height,

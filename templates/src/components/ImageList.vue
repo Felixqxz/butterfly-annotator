@@ -223,24 +223,24 @@ export default {
 }
 
 .image-hover-container {
-    overflow: hidden;
-    height: 12em;
+  overflow: hidden;
+  height: 12em;
 }
 
 .image-hover {
-    transform: scale(1.0);
-    transform-origin: center;
-    transition: 400ms transform;
+  transform: scale(1.0);
+  transform-origin: center;
+  transition: 400ms transform;
 }
 
 .image-hover:hover {
-    transform: scale(1.2);
-    transform-origin: center;
+  transform: scale(1.2);
+  transform-origin: center;
 }
 
 .image-to-annotate {
-    margin-top: 1em;
-    margin-bottom: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 </style>

@@ -19,6 +19,12 @@ const actions = {
     sendAnnotations({dispatch}, {data}) {
         return axios.post('/api/image/annotate', data)
     },
+    getAvatar({dispatch}) {
+        return axios.get('/api/avatar/get')
+    },
+    getUserInfo({dispatch}) {
+        return axios.get('/api/info/get')
+    },
 }
 
 export default {

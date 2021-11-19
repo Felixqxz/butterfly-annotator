@@ -27,7 +27,9 @@
             <template #button-content>
               <em>{{ username() }}</em>
             </template>
-            <b-dropdown-item href="#">Profile</b-dropdown-item>
+            <!-- <router-link to="/profile"> -->
+              <b-dropdown-item @click="goProfile()">Profile</b-dropdown-item>
+            <!-- </router-link> -->
             <b-dropdown-item @click="logout()">Sign Out</b-dropdown-item>
           </b-nav-item-dropdown>
         </b-navbar-nav>
@@ -83,6 +85,9 @@ export default {
     },
     username() {
       return this.isLoggedIn ? this.user.username : ''
+    },
+    goProfile() {
+      this.$router.push('/profile')
     }
   },
 }
