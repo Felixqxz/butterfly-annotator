@@ -19,6 +19,9 @@ const actions = {
     sendAnnotations({dispatch}, {data}) {
         return axios.post('/api/image/annotate', data)
     },
+    requestBankJson({dispatch}, {bankId}) {
+        return axios.get('/api/bank/json/' + bankId)
+    }
 }
 
 export default {

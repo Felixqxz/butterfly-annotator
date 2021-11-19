@@ -8,7 +8,7 @@
         </p>
       </b-col>
     </b-row>
-    <b-tabs>
+    <b-tabs justified>
       <b-tab title="Images" active>
         <form>
           <b-row>
@@ -82,6 +82,9 @@
           </b-col>
         </b-row>
       </b-tab>
+      <template #tabs-end>
+        <b-nav-item href="#" role="presentation" @click="downloadJson()"><b-icon-download class="pr-2"></b-icon-download>Export to JSON</b-nav-item>
+      </template>
     </b-tabs>
   </b-container>
 </template>
@@ -110,7 +113,12 @@ export default {
     ...mapGetters({ userInfo: 'currentUser' })
   },
   methods: {
-    ...mapActions({listImages: 'listImages', listAccesses: 'listAccesses', requestPermission: 'requestPermission'}),
+    ...mapActions({
+      listImages: 'listImages',
+      listAccesses: 'listAccesses',
+      requestPermission: 'requestPermission',
+      requestJson: 'requestBankJson',
+    }),
     hasPermissionToAdd() {
       return this.currentAccess ? this.currentAccess >= 70 : false
     },
@@ -205,6 +213,16 @@ export default {
         this.relistAccesses()
       }).catch(e => {
         console.log('could not remove access: ' + e)
+      })
+    },
+    downloadJson() {
+      this.requestJson({bankId: this.$route.params.bankId}).then(res => {
+        const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' })
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = 'bank.json'
+        a.click()
+        URL.revokeObjectURL(a.href)
       })
     },
   },

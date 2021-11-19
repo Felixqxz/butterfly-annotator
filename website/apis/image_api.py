@@ -25,6 +25,19 @@ bank_access_levels = {
 }
 
 
+def gen_annotation_array(image):
+    return [
+        {
+            'id': annotation.id,
+            'description': {
+                'start': annotation.text_start,
+                'end': annotation.text_end,
+            },
+            'regionInfo': annotation.region_info,
+        } for annotation in image.annotations
+    ]
+
+
 def can_access_bank(bank, user, access_level='viewer'):
     """
     Returns `True` iff the given user can access the provided bank.
@@ -289,16 +302,7 @@ def get_annotations(image_id):
         return jsonify({'message': 'not authorized to view this bank'}), HTTPStatus.UNAUTHORIZED
     return jsonify({
         'id': image.id,
-        'annotations': [
-            {
-                'id': annotation.id,
-                'description': {
-                    'start': annotation.text_start,
-                    'end': annotation.text_end,
-                },
-                'regionInfo': annotation.region_info,
-            } for annotation in image.annotations
-        ]
+        'annotations': gen_annotation_array(image),
     })
 
 
@@ -307,3 +311,29 @@ def serve_image(path):
     if path:
         return send_file(os.path.join(default_bank_directory, path), mimetype='image/jpeg')
     return jsonify({'message': 'no such image'}), HTTPStatus.NOT_FOUND
+
+
+@image_api.route('/api/bank/json/<int:bank_id>')
+@login_required
+def request_json(bank_id):
+    bank = db.session.query(ImageBank).filter(ImageBank.id == bank_id).first()
+    if bank is None:
+        return jsonify({'error': 'no such bank'}), HTTPStatus.NOT_FOUND
+    if not can_access_bank(bank, current_user):
+        return jsonify({'error': 'you cannot view this bank'}), HTTPStatus.UNAUTHORIZED
+    return {
+        'id': bank.id,
+        'name': bank.bankname,
+        'description': bank.description,
+        'images': [
+            {
+                'id': image.id,
+                'description': image.description,
+                'width': image.width,
+                'height': image.height,
+                'relativePath': image.file_url,
+                'annotations': gen_annotation_array(image),
+            }
+            for image in bank.images
+        ],
+    }
