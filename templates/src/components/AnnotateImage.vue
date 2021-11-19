@@ -266,10 +266,10 @@ export default {
         return // (not found)
       }
       this.selectedBits.splice(i, 1)
-      console.log(JSON.stringify(this.imageData.annotations))
       // find if annotation assigned
       const annotation = this.imageData.annotations.find(a => a.description.start === start)
       if (annotation) {
+        annotation.toRemove = true
         annotation.description = null
         annotation.polygon.hasDescription = false
       }
