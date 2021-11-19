@@ -34,7 +34,7 @@
         <div v-else>
           <p>This polygon has a description:</p>
           <p><em>{{ descriptionOfSelectedPolygon }}</em></p>
-          <p>Author: <em>{{ authorOfSelectedPolygon }}</em></p>
+          <p>Last editor: <em>{{ authorOfSelectedPolygon }}</em></p>
         </div>
       </div>
       <div id="mouse-position" style="position: absolute !important"></div>
@@ -191,7 +191,6 @@ export default {
       polygon.hasDescription = true
       const selectedDescription = document.getElementById(this.formActualId).value
       const description = this.selectedBits[selectedDescription]
-      description.polygon = this.selectedPolygon
       const annotation = {
         polygon,
         description,
@@ -267,6 +266,13 @@ export default {
         return // (not found)
       }
       this.selectedBits.splice(i, 1)
+      console.log(JSON.stringify(this.imageData.annotations))
+      // find if annotation assigned
+      const annotation = this.imageData.annotations.find(a => a.description.start === start)
+      if (annotation) {
+        annotation.description = null
+        annotation.polygon.hasDescription = false
+      }
     },
     saveAnnotations() {
       // filter the annotations that never were online
@@ -283,8 +289,8 @@ export default {
             'id': id,
             'points': annotation.polygon.dots.map(p => {
               return {
-                x: p.x,
-                y: p.y,
+                x: Math.floor(p.x),
+                y: Math.floor(p.y),
               }
             }),
             'tag': {
