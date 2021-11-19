@@ -668,6 +668,7 @@ export default {
           this.selectedBits.push({start: annotation.description.start, end: annotation.description.end, annotation})
           this.availablePolygons.push(polygon)
         })
+        this.selectedBits.sort((b, a) => b.start - a.start)
         const p5canvas = new P5(script, 'canvas')
       })
     },
