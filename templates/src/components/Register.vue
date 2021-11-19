@@ -91,6 +91,7 @@
 
 <script>
 import {mapActions} from 'vuex'
+import handleError from '../errors/handler'
 
 export default {
   data() {
@@ -119,9 +120,9 @@ export default {
       this.$validator.validateAll().then((valid) => {
         if (valid) {
           const registrationForm = this.registrationForm
-          this.register({registrationForm}).then(_ => t.$router.push('/').catch(e => console.log(e)))
-        } else {
-          // TODO: handle errors correctly
+          this.register({registrationForm}).then(_ => t.$router.push('/'))
+              .catch(e => handleError(this.$bvToast, 'Cannot register',
+                  `Cause ${e.response.data.message}`))
         }
       })
     },

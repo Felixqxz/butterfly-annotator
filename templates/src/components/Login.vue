@@ -54,6 +54,7 @@
 
 <script>
 import {mapActions} from 'vuex'
+import handleError from '../errors/handler'
 
 export default {
   data() {
@@ -80,9 +81,9 @@ export default {
       const formData = this.form
       this.$validator.validateAll().then(valid => {
         if (valid) {
-          this.logIn({formData}).then(_ => t.$router.push({ path: '/' })).catch(e => console.log(e))
-        } else {
-          console.log('error submit') // TODO: handle errors correctly
+          this.logIn({formData}).then(_ => t.$router.push({ path: '/' })).catch(e => {
+            handleError(this.$bvToast, 'Error: could not login', `Cause: ${e.response.data.message}`)
+          })
         }
       })
     },

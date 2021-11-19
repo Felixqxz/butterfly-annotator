@@ -92,6 +92,7 @@
 <script>
 import {mapActions, mapGetters} from 'vuex'
 import PermissionBadge from './PermissionBadge'
+import handleError from '../errors/handler'
 
 export default {
   name: 'ImageList',
@@ -155,16 +156,12 @@ export default {
     fetchImageList() {
       this.listImages({bankId: this.$route.params.bankId})
           .then(res => {
-            if (res.status !== 200) {
-              console.log('Could not load DB => ERROR, HTTP status=' + res.status) // TODO: handle correctly
-            } else {
-              let data = res.data
-              this.images = data.images
-              this.bankName = data.bankName
-            }
+            let data = res.data
+            this.images = data.images
+            this.bankName = data.bankName
           })
           .catch(err => {
-            console.log(err) // TODO: handle errors properly
+            handleError(this.$bvToast, 'Cannot load image list', `Cause ${err.response.data.message}`)
           })
     },
     relistAccesses() {
@@ -183,7 +180,7 @@ export default {
             break
           }
         }
-      }).catch(e => console.log(e))
+      }).catch(e => handleError(this.$bvToast, 'Cannot load accesses', `Cause ${e.response.data.message}`))
     },
     addUser() {
       const targetUser = this.targetUser
@@ -201,9 +198,8 @@ export default {
       const bankId = this.$route.params.bankId
       this.requestPermission({targetUser, level, bankId}).then(_ => {
         this.relistAccesses()
-      }).catch(e => {
-        console.log('could not add access: ' + e) // TODO: handle errors correctly
-      })
+      }).catch(e =>
+        handleError(this.$bvToast, 'Cannot add user', `Cause: ${e.response.data.message}`))
     },
     removeUser(username) {
       const targetUser = username
@@ -211,9 +207,7 @@ export default {
       const bankId = this.$route.params.bankId
       this.requestPermission({targetUser, level, bankId}).then(_ => {
         this.relistAccesses()
-      }).catch(e => {
-        console.log('could not remove access: ' + e)
-      })
+      }).catch(e => handleError(this.$bvToast, 'Cannot remove user', `Cause ${e.response.data.message}`))
     },
     downloadJson() {
       this.requestJson({bankId: this.$route.params.bankId}).then(res => {
