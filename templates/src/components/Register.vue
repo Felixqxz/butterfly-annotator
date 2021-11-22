@@ -95,6 +95,7 @@
 
 <script>
 import {mapActions} from 'vuex'
+import handleError from '../errors/handler'
 
 export default {
   data() {
@@ -123,26 +124,12 @@ export default {
       this.$validator.validateAll().then((valid) => {
         if (valid) {
           const registrationForm = this.registrationForm
-          this.register({registrationForm}).then(_ => {
-            t.$router.push('/')
-            this.$root.$refs.Alert.showSuccessAlert("Login Success!")
-            }).catch(e => {
-            const errorMessage = e.response.data.message
-            this.$root.$refs.Alert.showWarningAlert(errorMessage)
-          })
-        } else {
-          this.$root.$refs.Alert.showWarningAlert("Error submit")
+          this.register({registrationForm}).then(_ => t.$router.push('/'))
+              .catch(e => handleError(this.$bvToast, 'Cannot register',
+                  `Cause ${e.response.data.message}`))
         }
       })
     },
   },
 }
 </script>
-
-<style>
-#email.form-control.is-valid {
-  border-color: #495057;
-  box-shadow: none;
-  background-image: none;
-}
-</style>

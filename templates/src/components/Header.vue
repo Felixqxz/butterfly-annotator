@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-navbar toggleable="lg" type="dark" variant="dark" class="mb-1">
+    <b-navbar toggleable="lg" type="dark" variant="dark" class="mb-5">
       <b-navbar-brand>
         <router-link to="/">Butterfly annotator</router-link>
       </b-navbar-brand>
@@ -64,7 +64,6 @@ nav li a, .navbar-brand a {
 .dropdown-menu li {
   color: red !important;
 }
-
 </style>
 
 <script>

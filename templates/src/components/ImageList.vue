@@ -8,7 +8,7 @@
         </p>
       </b-col>
     </b-row>
-    <b-tabs>
+    <b-tabs justified>
       <b-tab title="Images" active>
         <form>
           <b-row>
@@ -16,7 +16,7 @@
               <b-input-group>
                 <b-input-group-prepend>
                   <b-input-group-text>
-                    <ion-icon name="search-outline"></ion-icon>
+                    <b-icon-search></b-icon-search>
                   </b-input-group-text>
                 </b-input-group-prepend>
                 <input type="text" class="form-control" placeholder="Search..."/>
@@ -71,17 +71,20 @@
             </b-form>
           </b-modal>
         </b-row>
-        <b-row v-for="access in userAccesses" v-bind:key="access.username" class="mb-2">
+        <b-row v-for="access in userAccesses" v-bind:key="access.username" class="mb-2 justify-content-center">
           <b-col cols="12">
             <b-card>
               {{ access.username }}
               <permission-badge :color-variant="levelToVariant(access.level)"
                                 :permission-title="levelToTitle(access.level)"></permission-badge>
-              <b-button variant="danger" @click="removeUser(access.username)" class="float-right"><ion-icon name="close-circle-outline"></ion-icon></b-button>
+              <b-button variant="danger" @click="removeUser(access.username)" class="float-right remove-user-button"><b-icon-x-circle></b-icon-x-circle></b-button>
             </b-card>
           </b-col>
         </b-row>
       </b-tab>
+      <template #tabs-end>
+        <b-nav-item href="#" role="presentation" @click="downloadJson()"><b-icon-download class="pr-2"></b-icon-download>Export to JSON</b-nav-item>
+      </template>
     </b-tabs>
   </b-container>
 </template>
@@ -89,6 +92,7 @@
 <script>
 import {mapActions, mapGetters} from 'vuex'
 import PermissionBadge from './PermissionBadge'
+import handleError from '../errors/handler'
 
 export default {
   name: 'ImageList',
@@ -110,7 +114,12 @@ export default {
     ...mapGetters({ userInfo: 'currentUser' })
   },
   methods: {
-    ...mapActions({listImages: 'listImages', listAccesses: 'listAccesses', requestPermission: 'requestPermission'}),
+    ...mapActions({
+      listImages: 'listImages',
+      listAccesses: 'listAccesses',
+      requestPermission: 'requestPermission',
+      requestJson: 'requestBankJson',
+    }),
     hasPermissionToAdd() {
       return this.currentAccess ? this.currentAccess >= 70 : false
     },
@@ -147,16 +156,12 @@ export default {
     fetchImageList() {
       this.listImages({bankId: this.$route.params.bankId})
           .then(res => {
-            if (res.status !== 200) {
-              console.log('Could not load DB => ERROR, HTTP status=' + res.status) // TODO: handle correctly
-            } else {
-              let data = res.data
-              this.images = data.images
-              this.bankName = data.bankName
-            }
+            let data = res.data
+            this.images = data.images
+            this.bankName = data.bankName
           })
           .catch(err => {
-            console.log(err) // TODO: handle errors properly
+            handleError(this.$bvToast, 'Cannot load image list', `Cause ${err.response.data.message}`)
           })
     },
     relistAccesses() {
@@ -175,7 +180,7 @@ export default {
             break
           }
         }
-      }).catch(e => console.log(e))
+      }).catch(e => handleError(this.$bvToast, 'Cannot load accesses', `Cause ${e.response.data.message}`))
     },
     addUser() {
       const targetUser = this.targetUser
@@ -191,12 +196,10 @@ export default {
       }
       this.$refs['add-modal'].hide()
       const bankId = this.$route.params.bankId
-      console.log(bankId)
       this.requestPermission({targetUser, level, bankId}).then(_ => {
         this.relistAccesses()
-      }).catch(e => {
-        console.log('could not add access: ' + e) // TODO: handle errors correctly
-      })
+      }).catch(e =>
+        handleError(this.$bvToast, 'Cannot add user', `Cause: ${e.response.data.message}`))
     },
     removeUser(username) {
       const targetUser = username
@@ -204,8 +207,16 @@ export default {
       const bankId = this.$route.params.bankId
       this.requestPermission({targetUser, level, bankId}).then(_ => {
         this.relistAccesses()
-      }).catch(e => {
-        console.log('could not remove access: ' + e)
+      }).catch(e => handleError(this.$bvToast, 'Cannot remove user', `Cause ${e.response.data.message}`))
+    },
+    downloadJson() {
+      this.requestJson({bankId: this.$route.params.bankId}).then(res => {
+        const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' })
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = 'bank.json'
+        a.click()
+        URL.revokeObjectURL(a.href)
       })
     },
   },
@@ -223,24 +234,30 @@ export default {
 }
 
 .image-hover-container {
-    overflow: hidden;
-    height: 12em;
+  overflow: hidden;
+  height: 12em;
 }
 
 .image-hover {
-    transform: scale(1.0);
-    transform-origin: center;
-    transition: 400ms transform;
+  transform: scale(1.0);
+  transform-origin: center;
+  transition: 400ms transform;
 }
 
 .image-hover:hover {
-    transform: scale(1.2);
-    transform-origin: center;
+  transform: scale(1.2);
+  transform-origin: center;
 }
 
 .image-to-annotate {
-    margin-top: 1em;
-    margin-bottom: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
+.remove-user-button {
+  padding-bottom: 0.2rem;
+  padding-top: 0.2rem;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+}
 </style>
