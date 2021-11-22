@@ -12,14 +12,16 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(80), unique=True)
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String())
+    has_profile_picture = db.Column(db.Boolean)
 
     accesses = relationship('BankAccess', back_populates='user')
     annotations = relationship('ImageAnnotation', back_populates='author')
 
-    def __init__(self, username, email, password_hash):
+    def __init__(self, username, email, password_hash, has_profile_picture=False):
         self.username = username
         self.email = email
         self.password_hash = password_hash
+        self.has_profile_picture = has_profile_picture
 
     def __repr__(self):
         return '<User %r>' % self.username

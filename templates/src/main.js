@@ -24,8 +24,8 @@ Vue.use(VeeValidate, {
 Vue.use(VueTippy, {
     directive: 'tippy', // => v-tippy
 })
-  
-  Vue.component("tippy", TippyComponent);
+
+Vue.component("tippy", TippyComponent);
 Vue.config.productionTip = false
 Vue.use(BootstrapVue)
 // default Flask port = 5000

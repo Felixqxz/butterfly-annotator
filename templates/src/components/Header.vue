@@ -27,7 +27,7 @@
             <template #button-content>
               <em>{{ username() }}</em>
             </template>
-            <b-dropdown-item href="#">Profile</b-dropdown-item>
+            <b-dropdown-item @click="redirectToProfile()">Profile</b-dropdown-item>
             <b-dropdown-item @click="logout()">Sign Out</b-dropdown-item>
           </b-nav-item-dropdown>
         </b-navbar-nav>
@@ -82,7 +82,10 @@ export default {
     },
     username() {
       return this.isLoggedIn ? this.user.username : ''
-    }
+    },
+    redirectToProfile() {
+      this.$router.push({ path: '/settings' })
+    },
   },
 }
 </script>
