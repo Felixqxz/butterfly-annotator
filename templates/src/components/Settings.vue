@@ -7,7 +7,7 @@
     </b-row>
     <b-row>
       <b-col md="8" xs="12">
-        <b-form id="oscar">
+        <b-form>
           <label for="username-input">Username</label>
           <b-form-input type="text" id="username-input"
                         disabled :value="currentUser.username" class="mb-2"/>

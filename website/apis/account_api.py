@@ -94,3 +94,17 @@ def get_profile_picture(username):
         return send_file(location, mimetype='image/jpeg')
     # not an error, just no picture!
     return jsonify({'message': 'no profile picture'})
+
+
+@account_api.route('/api/user-info/<username>', methods=['GET'])
+@login_required
+def get_user_info(username):
+    if not username:
+        return jsonify({'message': 'no username provided'}), HTTPStatus.BAD_REQUEST
+    user = db.session.query(User).filter(User.username == username).first()
+    if not user:
+        return jsonify({'message': 'no such user'}), HTTPStatus.NOT_FOUND
+    return jsonify({
+        'username': user.username,
+        'email': user.email,
+    })

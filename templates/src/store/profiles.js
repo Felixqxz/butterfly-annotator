@@ -8,6 +8,9 @@ const actions = {
             },
         })
     },
+    fetchUserData({dispatch}, {username}) {
+        return axios.get('/api/user-info/' + username)
+    },
 }
 
 export default {
