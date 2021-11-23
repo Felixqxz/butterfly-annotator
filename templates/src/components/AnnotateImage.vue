@@ -22,6 +22,14 @@
         </b-button>
       </b-col>
     </b-row>
+    <b-row class="justify-content-center mb-2">
+      <b-col cols="1">
+        <b-button @click="undo()"><b-icon-arrow-counterclockwise></b-icon-arrow-counterclockwise></b-button>
+      </b-col>
+      <b-col cols="1">
+        <b-button @click="redo"><b-icon-arrow-clockwise></b-icon-arrow-clockwise></b-button>
+      </b-col>
+    </b-row>
     <!-- P5 canvas -->
     <b-row class="justify-content-center mb-2">
       <div id="tooltip-content" style="display: none">
@@ -47,7 +55,7 @@
           @mouseup="checkTextSelection()"
           @mousedown="checkTextSelection()">
           <!-- IMPORTANT: do not mess with the paragraph! leave as is -->
-          <p style="white-space: pre-wrap"
+          <p style="white-space: pre-wrap; margin-bottom: 0;"
             id="description">
             <span v-for="bit in createChunks()" v-bind:key="bit.start">
               <description-bit v-if="bit.selected" :text="bit.text" 
@@ -76,10 +84,33 @@ import { tippy } from 'vue-tippy'
 
 import DescriptionBit from './DescriptionBit'
 
+const HISTORY_MAX_SIZE = 30
+
+/**
+ * Represents a polygon on the image to annotate.
+ */
 class Polygon {
+  /**
+   * @param dots the dots that constitute the polygon
+   * @param i its position in the `availablePolygons` array
+   */
   constructor(dots, i) {
     this.dots = dots
     this.i = i
+  }
+}
+
+/**
+ * Represents an action that can be done or undone.
+ */
+class Action {
+  /**
+   * @param redo a function that performs the action
+   * @param undo a function that cancels the action
+   */
+  constructor(redo, undo) {
+    this.redo = redo
+    this.undo = undo
   }
 }
 
@@ -102,6 +133,8 @@ export default {
       mousePosX: 0,
       mousePosY: 0,
       previousTippy: null,
+      actionsHistory: [], // for undo/redo
+      historyPointer: 0,
     }
   },
   watch: {
@@ -123,6 +156,8 @@ export default {
           this.previousTippy.destroy()
           this.previousTippy = null
         }
+        this.actionsHistory = []
+        this.historyPointer = 0
         this.initializeAll()
       }
     },
@@ -177,9 +212,6 @@ export default {
       const path = '/annotate/' + this.imageData.hasNext
       this.$router.push({path})
       this.$router.go()
-    },
-    serializePoints(p) {
-      return p.map(v => Math.floor(v.x) + ',' + Math.floor(v.y)).join(';')
     },
     addAnnotation() {
       // invalid selection?
@@ -344,10 +376,21 @@ export default {
       selection.empty()
       this.canAddBit = false
     },
+    undo() {
+
+    },
+    redo() {
+
+    },
     initializeAll() {
       const t = this
       const script = p5 => {
-        // draws lines that connect all (i, i + 1) dots and closes the shape if close is true
+        /**
+         * Draws lines that connect all `(i, i + 1)` dots and closes the shape if `close` is `true`.
+         * @param color the color of the lines
+         * @param dots the dots to connect
+         * @param close whether the last dot should be connected to the first one
+         */
         const connectDotsOpen = (color, dots, close) => {
           p5.stroke(color)
           p5.beginShape()
@@ -381,6 +424,10 @@ export default {
 
         // we will build a color sequence that always assigns the same color to a given index
         // (color(0), color(1), ..., color(n), ...)
+        /**
+         * @param i the integer representing the polygon in the sequence
+         * @returns the color of the `i-th` polygon.
+         */
         const colorSequence = i => p5.color((16 * i) % 256, (64 * (i + 1)) % 256, (30 * i) % 256, 150)
 
         // returns the closest point constituting a polygon in an `EPS` radius
@@ -400,8 +447,13 @@ export default {
           return null
         }
 
-        // returns the distance between the given point and the closest point of
-        // the given polygon
+        /**
+         * @param search the point
+         * @param polygon the polygon
+         * @returns {{distance: number, index: number}} where `distance` is the distance
+         * to the closest point of the provided polygon and `index` is its index in
+         * `availablePolygons`.
+         */
         const polygonDistance = (search, polygon) => {
           let distMin = 0
           let argMin = 0
@@ -440,6 +492,13 @@ export default {
 
         // returns the closest line constituting a polygon in a right angle `EPS` distance
         // to the mouse
+        /**
+         * @returns {{dotsIdx: number, polygon: number, distance: number}} where `dotsIdx`
+         * is the index of the first point constituting the line (the next one being
+         * `(dotsIdx + 1) % dots.length)`, `polygon` is the position of the polygon in the
+         * `availablePolygons` array, and `distance` is the distance of the mouse to that
+         * line.
+         */
         const closestLineInRadius = () => {
           const mousePosition = p5.createVector(p5.mouseX, p5.mouseY)
           let polygonArgmin = -1
@@ -457,24 +516,38 @@ export default {
           return {polygon: polygonArgmin, dotsIdx: dotsArgmin, distance: minDist}
         }
 
-        // allows to check if the mouse is within the canvas
+        /**
+         * @returns `true` if the user's mouse is within the canvas.
+         */
         const mouseInCanvas = () => 0 < p5.mouseX && p5.mouseX < t.imageData.width
             && 0 < p5.mouseY && p5.mouseY < t.imageData.height
 
-        // returns true if the two provided points are considered to be close enough
-        // so that they are at the same position, provided the tolerance radius `EPS`
-        // (used for the user's mouse and another point)
+        /**
+         * @param a a first point
+         * @param b a second point
+         * @returns `true` if the two points are close enough to be considered to be
+         * in "approximately" the same location
+         */
         const closeEnough = (a, b) => a.dist(b) < EPS
 
-        // displays a polygon
+        /**
+         * Displays the provided polygon
+         * @param color the color it should take
+         * @param polygon the polygon object to draq
+         */
         const display = (color, polygon) => connectDotsOpen(color, polygon.dots, true)
 
-        // next polygon index
+        /**
+         * @returns the next index of the polygon
+         */
         const nextIndex = () => t.availablePolygons.length > 0 
           ? t.availablePolygons[t.availablePolygons.length - 1].i + 1
           : 0
 
-        // deletes the provided polygon (`polygon` must be the index of the polygon to delete)
+        /**
+         * Deletes the provided polygon.
+         * @param polygon the index of the polygon
+         */
         const deletePolygon = (polygon) => {
           // delete polygon
           t.availablePolygons.splice(polygon, 1)
