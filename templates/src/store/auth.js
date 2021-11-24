@@ -1,7 +1,18 @@
 import axios from 'axios'
 
+const retrievePreviousState = () => {
+    if (!localStorage.getItem('vuex')) {
+        return null
+    }
+    const parsed = JSON.parse(localStorage.getItem('vuex'))
+    if (!parsed.auth) {
+        return null
+    }
+    return parsed.auth.userInfo
+}
+
 const state = {
-    userInfo: null,
+    userInfo: retrievePreviousState(),
 }
 
 const mutations = {

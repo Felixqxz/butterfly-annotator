@@ -650,7 +650,8 @@ export default {
         // P5 handling
         p5.setup = () => {
           p5.createCanvas(t.imageData.width, t.imageData.height)
-          annotateImage = p5.loadImage(t.$hostname + '/api/' + t.imageData.imageUrl)
+          annotateImage = p5.loadImage('http://127.0.0.1:5000/api/' + t.imageData.imageUrl)
+          // using 127.0.0.1 allows for this to work on Chrome (it doesn't like 'localhost')
         }
 
         p5.draw = () => {
