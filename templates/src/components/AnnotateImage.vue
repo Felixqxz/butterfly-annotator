@@ -12,7 +12,10 @@
         </b-button>
       </b-col>
       <b-col cols="1">
-        <b-button @click="saveAnnotations()">
+        <b-button
+          content="Save the changes made to the image's annotations."
+          v-tippy="{theme: 'google', arrow: true, arrowType: 'round'}"
+          @click="saveAnnotations()">
           Save
         </b-button>
       </b-col>
@@ -22,12 +25,29 @@
         </b-button>
       </b-col>
     </b-row>
+    <!-- Undo/redo buttons -->
     <b-row class="justify-content-center mb-2">
       <b-col cols="1">
-        <b-button @click="undo()"><b-icon-arrow-counterclockwise></b-icon-arrow-counterclockwise></b-button>
+        <div
+            style="display:inline-block;" 
+            :content="currentHistoryNode === firstHistoryNode || lastHistoryNode.previous === firstHistoryNode ?
+              'Nothing to undo!' : 'Undo (Ctrl + Z)'"
+            v-tippy="{arrow: true, arrowType: 'round', theme: 'google'}">
+          <b-button
+            :disabled="currentHistoryNode === firstHistoryNode || lastHistoryNode.previous === firstHistoryNode"
+            @click="undo()"><b-icon-arrow-counterclockwise></b-icon-arrow-counterclockwise></b-button>
+        </div>
       </b-col>
       <b-col cols="1">
-        <b-button @click="redo"><b-icon-arrow-clockwise></b-icon-arrow-clockwise></b-button>
+        <div
+            style="display:inline-block;" 
+            :content="currentHistoryNode === lastHistoryNode || lastHistoryNode.previous === firstHistoryNode ?
+              'Nothing to redo!' : 'Redo (Ctrl + Y)'"
+            v-tippy="{arrow: true, arrowType: 'round', theme: 'google'}">
+          <b-button
+            :disabled="currentHistoryNode.next === lastHistoryNode || lastHistoryNode.previous === firstHistoryNode"
+            @click="redo()"><b-icon-arrow-clockwise></b-icon-arrow-clockwise></b-button>
+        </div>
       </b-col>
     </b-row>
     <!-- P5 canvas -->
@@ -84,8 +104,6 @@ import { tippy } from 'vue-tippy'
 
 import DescriptionBit from './DescriptionBit'
 
-const HISTORY_MAX_SIZE = 30
-
 /**
  * Represents a polygon on the image to annotate.
  */
@@ -114,6 +132,22 @@ class Action {
   }
 }
 
+class HistoryNode {
+  constructor(next, previous, action) {
+    this.next = next
+    this.previous = previous
+    this.action = action
+  }
+
+  hasNext() {
+    return this.next !== null
+  }
+
+  hasPrevious() {
+    return this.previous !== null
+  }
+}
+
 export default {
   name: 'AnnotateImage',
   components: {
@@ -133,8 +167,9 @@ export default {
       mousePosX: 0,
       mousePosY: 0,
       previousTippy: null,
-      actionsHistory: [], // for undo/redo
-      historyPointer: 0,
+      firstHistoryNode: null,
+      lastHistoryNode: null,
+      currentHistoryNode: null,
     }
   },
   watch: {
@@ -156,8 +191,9 @@ export default {
           this.previousTippy.destroy()
           this.previousTippy = null
         }
-        this.actionsHistory = []
-        this.historyPointer = 0
+        this.firstHistoryNode = null
+        this.lastHistoryNode = null
+        this.currentHistoryNode = null
         this.initializeAll()
       }
     },
@@ -377,10 +413,37 @@ export default {
       this.canAddBit = false
     },
     undo() {
-
+      // no history yet!
+      if (this.currentHistoryNode === null || this.lastHistoryNode.previous === this.firstHistoryNode) {
+        return
+      }
+      // already at bottom of what has been done (all undone)
+      if (this.currentHistoryNode === this.firstHistoryNode) {
+        return
+      }
+      const current = this.currentHistoryNode
+      current.action.undo()
+      this.currentHistoryNode = current.previous
     },
     redo() {
-
+      // no history yet!
+      if (this.currentHistoryNode === null || this.lastHistoryNode.previous === this.firstHistoryNode) {
+        return
+      }
+      // already at top of what has been done
+      if (this.currentHistoryNode.next === this.lastHistoryNode) {
+        return
+      }
+      const current = this.currentHistoryNode
+      current.next.action.redo()
+      this.currentHistoryNode = current.next
+    },
+    pushHistory(redo, undo) {
+      // continuing history or branching to new history: same handling
+      const node = new HistoryNode(this.lastHistoryNode, this.currentHistoryNode, new Action(redo, undo))
+      this.currentHistoryNode.next = node
+      this.lastHistoryNode.previous = node
+      this.currentHistoryNode = node
     },
     initializeAll() {
       const t = this
@@ -549,16 +612,34 @@ export default {
          * @param polygon the index of the polygon
          */
         const deletePolygon = (polygon) => {
-          // delete polygon
-          t.availablePolygons.splice(polygon, 1)
+          // copy data
+          const objPolygon = Object.assign({}, t.availablePolygons[polygon]) // deep copy
+          const copySelected = t.selectedPolygon
           const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
-          if (annot !== -1) {
-            const annotation = t.imageData.annotations[annot]
-            // remove the annotation when sending to server
-            annotation.toRemove = true
-            annotation.description.annotation = null
+          const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
+          // delete polygon
+          const redo = () => {
+            t.availablePolygons.splice(polygon, 1)
+            // check if the `annot`-th annotation has not changed
+            if (annotation && t.imageData.annotations[annot] === annotation) {
+              // remove the annotation when sending to server
+              annotation.toRemove = true
+              annotation.description.annotation = null
+            }
+            t.selectedPolygon = -1
           }
-          t.selectedPolygon = -1
+          // repush polygon
+          const undo = () => {
+            t.availablePolygons.splice(polygon, 0, objPolygon)
+            // same as above
+            if (annotation && t.imageData.annotations[annot] === annotation) {
+              annotation.toRemove = false
+              annotation.description.annotation = annotation
+            }
+            t.selectedPolygon = copySelected
+          }
+          redo()
+          t.pushHistory(redo, undo)
         }
 
         // variables
@@ -627,6 +708,14 @@ export default {
             }
             t.selectedPolygon = -1
             currentPoints = []
+          } else if (p5.keyIsDown(p5.CONTROL)) {
+            const UNDO_KEYCODE = 90 // Z
+            const REDO_KEYCODE = 89 // Y
+            if (p5.keyCode === UNDO_KEYCODE) {
+              t.undo()
+            } else if (p5.keyCode === REDO_KEYCODE) {
+              t.redo()
+            }
           }
         }
 
@@ -751,6 +840,11 @@ export default {
   },
   created() {
     window.addAnnotation = this.addAnnotation
+    // setup history nodes
+    this.firstHistoryNode = new HistoryNode(null, null)
+    this.lastHistoryNode = new HistoryNode(null, this.firstHistoryNode)
+    this.firstHistoryNode.next = this.lastHistoryNode
+    this.currentHistoryNode = this.firstHistoryNode
   },
 }
 </script>
