@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -12,6 +13,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     SECRET_KEY = 'super secret key'
     SESSION_TYPE = 'annonation'
+    REMEMBER_COOKIE_DURATION = timedelta(days = 1)
 
 class TestConfig(Config):
     TESTING = True

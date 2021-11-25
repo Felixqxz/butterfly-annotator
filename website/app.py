@@ -28,13 +28,10 @@ def create_super_user():
         print('super user already exists')
 
 
-def create_app(config_name=None):
+def create_app(config_name='default'):
     # create and configure the app
     app = Flask(__name__)
-    if config_name is None:
-        app.config.from_object(config_by_name['default'])
-    else:
-        app.config.from_object(config_by_name[config_name])
+    app.config.from_object(config_by_name[config_name])
     db.init_app(app)
     # enable CORS
     # CORS(app, resources={r'/*': {'origins': '*'}})

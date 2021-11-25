@@ -8,8 +8,8 @@ import {BootstrapVue, BootstrapVueIcons} from 'bootstrap-vue'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import * as VeeValidate from 'vee-validate'
 import * as _ from './permission'
-import VueTippy, { TippyComponent } from "vue-tippy"
-import "tippy.js/themes/google.css";
+import VueTippy, { TippyComponent } from 'vue-tippy'
+import 'tippy.js/themes/google.css'
 
 axios.defaults.withCredentials = true
 axios.defaults.baseURL = 'http://localhost:' + (process.env.PORT ? process.env.PORT : '5000')
