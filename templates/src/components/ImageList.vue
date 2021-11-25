@@ -27,8 +27,8 @@
         <b-row>
           <b-col md="4" sm="6" xs="12" v-for="(image, index) in imagesToShow" v-bind:key="image.id">
             <router-link :to="'/annotate/' + image.id">
-              <!-- Do not use b-card: it creates automatically a b-card-body tag -->
-              <div class="card card-hover no-drag image-to-annotate">
+              <!-- no-body to put custom body -->
+              <b-card class="card-hover no-drag image-to-annotate" no-body>
                 <div class="image-hover-container">
                   <img :src="$hostname + '/api/' + image.url" class="card-img-top image-hover image-in-place"
                        :style="'animation-delay:' + Math.floor(index / 3) * 100 + 'ms'"
@@ -39,7 +39,7 @@
                     <b-card-text>{{ image.fullDescription.substring(0, 120) }}...</b-card-text>
                   </b-col>
                 </b-card-body>
-              </div>
+              </b-card>
             </router-link>
           </b-col>
         </b-row>
