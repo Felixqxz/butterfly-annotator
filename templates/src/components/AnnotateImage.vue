@@ -5,6 +5,7 @@
         <router-link :to="'/bank/' + bankId">Back to bank</router-link>
       </b-col>
     </b-row>
+    <!-- Previous/next image buttons -->
     <b-row class="justify-content-between mb-2">
       <b-col cols="1">
         <b-button @click="previousImage()" :disabled="!hasPreviousImage">
@@ -50,6 +51,7 @@
     </b-row>
     <!-- P5 canvas -->
     <b-row class="justify-content-center mb-2">
+      <!-- Tooltip content (invisible) -->
       <div id="tooltip-content" style="display: none">
         <div v-if="hasNoDescription">
           <p>This polygon has no description!</p>
@@ -63,7 +65,9 @@
           <p>Last editor: <em>{{ authorOfSelectedPolygon }}</em></p>
         </div>
       </div>
+      <!-- The div to track the mouse position -->
       <div id="mouse-position" style="position: absolute !important"></div>
+      <!-- The canvas itself -->
       <div id="canvas"/>
     </b-row>
     <!-- text selection -->
@@ -165,9 +169,10 @@ export default {
       mousePosX: 0,
       mousePosY: 0,
       previousTippy: null,
+      // data for undo/redo history
       firstHistoryNode: null,
       lastHistoryNode: null,
-      currentHistoryNode: null,
+      currentHistoryNode: null, // points to the last action that has been DONE (its change is already effective)
     }
   },
   watch: {
@@ -199,18 +204,19 @@ export default {
   computed: {
     ...mapGetters({user: 'currentUser'}),
     redoDisabled() {
+      // lastHistoryNode still undefined
       if (!this.lastHistoryNode) {
         return true
       }
-      return this.currentHistoryNode === this.lastHistoryNode 
-        || this.lastHistoryNode.previous === this.firstHistoryNode
+      return this.currentHistoryNode.next === this.lastHistoryNode
+        || this.lastHistoryNode.previous === this.firstHistoryNode // if no history at all yet
     },
     undoDisabled() {
       if (!this.lastHistoryNode) {
         return true
       }
-      return this.currentHistoryNode === this.firstHistoryNode 
-        || this.lastHistoryNode.previous === this.firstHistoryNode
+      return this.currentHistoryNode === this.firstHistoryNode // points to the last action done => none is done
+        || this.lastHistoryNode.previous === this.firstHistoryNode // no history at all
     },
     hasNoDescription() {
       return this.selectedPolygon === -1 || !this.availablePolygons[this.selectedPolygon].hasDescription
@@ -242,7 +248,7 @@ export default {
       for (let i = 0; i < this.selectedBits.length; ++i) {
         const bit = this.selectedBits[i]
         ret.push({
-          value: i, text: this.imageData.description.substring(bit.start, bit.end), disabled: bit.annotation !== undefined,
+          value: i, text: this.imageData.description.substring(bit.start, bit.end), disabled: Boolean(bit.annotation),
         })
       }
       return ret
@@ -304,6 +310,7 @@ export default {
           t.previousTippy.show()
         }
       }, 100) // delay to avoid instant close
+      return this.previousTippy
     },
     createChunks() {
       if (!this.imageData) {
@@ -379,6 +386,7 @@ export default {
           }
         }
       })
+      console.log(JSON.stringify(annotations))
       const t = this
       this.sendAnnotations({
         data: {
@@ -424,12 +432,7 @@ export default {
       this.canAddBit = false
     },
     undo() {
-      // no history yet!
-      if (this.currentHistoryNode === null || this.lastHistoryNode.previous === this.firstHistoryNode) {
-        return
-      }
-      // already at bottom of what has been done (all undone)
-      if (this.currentHistoryNode === this.firstHistoryNode) {
+      if (this.undoDisabled) {
         return
       }
       const current = this.currentHistoryNode
@@ -438,11 +441,7 @@ export default {
     },
     redo() {
       // no history yet!
-      if (this.currentHistoryNode === null || this.lastHistoryNode.previous === this.firstHistoryNode) {
-        return
-      }
-      // already at top of what has been done
-      if (this.currentHistoryNode.next === this.lastHistoryNode) {
+      if (this.redoDisabled) {
         return
       }
       const current = this.currentHistoryNode
@@ -455,6 +454,7 @@ export default {
       this.currentHistoryNode.next = node
       this.lastHistoryNode.previous = node
       this.currentHistoryNode = node
+      redo()
     },
     initializeAll() {
       const t = this
@@ -622,7 +622,7 @@ export default {
          * Deletes the provided polygon.
          * @param polygon the index of the polygon
          */
-        const deletePolygon = (polygon) => {
+        const deletePolygon = (polygon, history) => {
           // copy data
           const objPolygon = Object.assign({}, t.availablePolygons[polygon]) // deep copy
           const copySelected = t.selectedPolygon
@@ -643,8 +643,7 @@ export default {
           }
           // repush polygon
           const undo = () => {
-            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
-            const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
+            // restore only the polygon: lose the annotation
             t.availablePolygons.splice(polygon, 0, objPolygon)
             // same as above
             if (annotation && t.imageData.annotations.length > annot && t.imageData.annotations[annot] === annotation) {
@@ -655,8 +654,11 @@ export default {
             }
             t.selectedPolygon = copySelected
           }
-          redo()
-          t.pushHistory(redo, undo)
+          if (history) {
+            t.pushHistory(redo, undo)
+          } else {
+            redo()
+          }
         }
 
         // variables
@@ -764,7 +766,7 @@ export default {
             // is deleting a polygon
             if (p5.keyIsDown(DELETE_KEY)) {
               if (closest && closest.distance < EPS * EPS) {
-                deletePolygon(closest.polygon)
+                deletePolygon(closest.polygon, true)
               }
               return
             }
@@ -811,12 +813,33 @@ export default {
             // check if closing polygon
             const first = currentPoints[0]
             if (closeEnough(first, position)) {
-              // add a new polygon!
+              const tip = t.createTooltip()
               const index = nextIndex()
-              t.availablePolygons.push(new Polygon(currentPoints, index))
-              t.selectedPolygon = index
-              t.createTooltip()
+              // init polygon
+              const poly = new Polygon(currentPoints, index)
+              // reset to new selection
               currentPoints = []
+              const redo = () => {
+                // add a new polygon!
+                t.availablePolygons.push(poly)
+                t.selectedPolygon = index
+                const annot = t.imageData.annotations.find(a => a.polygon.i === poly.i)
+                if (annot) {
+                  annot.toRemove = false
+                  annot.description.annotation = annot
+                }
+              }
+
+              const undo = () => {
+                // delete tooltip
+                if (tip) {
+                  tip.destroy()
+                }
+                // do not restore older points: otherwise the user is going to
+                // be editing the polygon he started just before
+                deletePolygon(index, false)
+              }
+              this.pushHistory(redo, undo)
               return
             }
             // check if the user is deleting the previous point
