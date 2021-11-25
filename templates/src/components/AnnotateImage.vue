@@ -30,22 +30,20 @@
       <b-col cols="1">
         <div
             style="display:inline-block;" 
-            :content="currentHistoryNode === firstHistoryNode || lastHistoryNode.previous === firstHistoryNode ?
-              'Nothing to undo!' : 'Undo (Ctrl + Z)'"
+            :content="undoDisabled ? 'Nothing to undo!' : 'Undo (Ctrl + Z)'"
             v-tippy="{arrow: true, arrowType: 'round', theme: 'google'}">
           <b-button
-            :disabled="currentHistoryNode === firstHistoryNode || lastHistoryNode.previous === firstHistoryNode"
+            :disabled="undoDisabled"
             @click="undo()"><b-icon-arrow-counterclockwise></b-icon-arrow-counterclockwise></b-button>
         </div>
       </b-col>
       <b-col cols="1">
         <div
             style="display:inline-block;" 
-            :content="currentHistoryNode === lastHistoryNode || lastHistoryNode.previous === firstHistoryNode ?
-              'Nothing to redo!' : 'Redo (Ctrl + Y)'"
+            :content="redoDisabled ? 'Nothing to redo!' : 'Redo (Ctrl + Y)'"
             v-tippy="{arrow: true, arrowType: 'round', theme: 'google'}">
           <b-button
-            :disabled="currentHistoryNode.next === lastHistoryNode || lastHistoryNode.previous === firstHistoryNode"
+            :disabled="redoDisabled"
             @click="redo()"><b-icon-arrow-clockwise></b-icon-arrow-clockwise></b-button>
         </div>
       </b-col>
@@ -56,8 +54,8 @@
         <div v-if="hasNoDescription">
           <p>This polygon has no description!</p>
           <p>Please choose one:</p>
-          <b-form-select :id="formDummyId" :options="descriptionOptions" size="sm" class="mb-2"></b-form-select>
-          <b-button variant="primary" size="sm" onclick="addAnnotation()" :disabled="descriptionOptions.length === 0">Add!</b-button>
+          <b-form-select :id="formDummyId" :options="descriptionOptions()" size="sm" class="mb-2"></b-form-select>
+          <b-button variant="primary" size="sm" onclick="addAnnotation()" :disabled="descriptionOptions().filter(b => !b.disabled).length === 0">Add!</b-button>
         </div>
         <div v-else>
           <p>This polygon has a description:</p>
@@ -200,18 +198,22 @@ export default {
   },
   computed: {
     ...mapGetters({user: 'currentUser'}),
+    redoDisabled() {
+      if (!this.lastHistoryNode) {
+        return true
+      }
+      return this.currentHistoryNode === this.lastHistoryNode 
+        || this.lastHistoryNode.previous === this.firstHistoryNode
+    },
+    undoDisabled() {
+      if (!this.lastHistoryNode) {
+        return true
+      }
+      return this.currentHistoryNode === this.firstHistoryNode 
+        || this.lastHistoryNode.previous === this.firstHistoryNode
+    },
     hasNoDescription() {
       return this.selectedPolygon === -1 || !this.availablePolygons[this.selectedPolygon].hasDescription
-    },
-    descriptionOptions() {
-      const ret = []
-      for (let i = 0; i < this.selectedBits.length; ++i) {
-        const bit = this.selectedBits[i]
-        ret.push({
-          value: i, text: this.imageData.description.substring(bit.start, bit.end), disabled: bit.annotation !== undefined,
-        })
-      }
-      return ret
     },
     descriptionOfSelectedPolygon() {
       if (this.hasNoDescription) {
@@ -235,6 +237,16 @@ export default {
   },
   methods: {
     ...mapActions({fetchImageData: 'fetchImageData', sendAnnotations: 'sendAnnotations'}),
+    descriptionOptions() {
+      const ret = []
+      for (let i = 0; i < this.selectedBits.length; ++i) {
+        const bit = this.selectedBits[i]
+        ret.push({
+          value: i, text: this.imageData.description.substring(bit.start, bit.end), disabled: bit.annotation !== undefined,
+        })
+      }
+      return ret
+    },
     trackMouse(event) {
       this.mousePosX = event.pageX
       this.mousePosY = event.pageY
@@ -252,7 +264,6 @@ export default {
     addAnnotation() {
       // invalid selection?
       if (this.selectedPolygon === -1 || this.selectedBits.length === 0) {
-        // TODO: display error message
         return
       }
       const polygon = this.availablePolygons[this.selectedPolygon]
@@ -615,26 +626,32 @@ export default {
           // copy data
           const objPolygon = Object.assign({}, t.availablePolygons[polygon]) // deep copy
           const copySelected = t.selectedPolygon
-          const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
-          const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
           // delete polygon
           const redo = () => {
+            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
+            const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
             t.availablePolygons.splice(polygon, 1)
             // check if the `annot`-th annotation has not changed
-            if (annotation && t.imageData.annotations[annot] === annotation) {
+            if (annotation && t.imageData.annotations.length > annot && t.imageData.annotations[annot] === annotation) {
               // remove the annotation when sending to server
               annotation.toRemove = true
-              annotation.description.annotation = null
+              if (annotation.description) {
+                annotation.description.annotation = null
+              }
             }
             t.selectedPolygon = -1
           }
           // repush polygon
           const undo = () => {
+            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
+            const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
             t.availablePolygons.splice(polygon, 0, objPolygon)
             // same as above
-            if (annotation && t.imageData.annotations[annot] === annotation) {
+            if (annotation && t.imageData.annotations.length > annot && t.imageData.annotations[annot] === annotation) {
               annotation.toRemove = false
-              annotation.description.annotation = annotation
+              if (annotation.description) {
+                annotation.description.annotation = annotation
+              }
             }
             t.selectedPolygon = copySelected
           }
