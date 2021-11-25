@@ -11,8 +11,8 @@ Vue.use(Vuex)
 const userData = new Vuex.Store({
     modules: {auth, images, profiles},
     plugins: [createPersistedState({
-        getState: key => Cookies.get(key),
-        setState: (key, state) => Cookies.set(key, state, { expires: 1 })
+        getState: key => Cookies.get(key) ? JSON.parse(Cookies.get(key)) : null,
+        setState: (key, state) => Cookies.set(key, JSON.stringify(state), { expires: 1 }),
     })],
 })
 

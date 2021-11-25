@@ -86,7 +86,9 @@ export default {
       const formData = this.form
       this.$validator.validateAll().then(valid => {
         if (valid) {
-          this.logIn({formData}).then(_ => t.$router.push({ path: '/' })).catch(e => {
+          this.logIn({formData}).then(_ => {
+            t.$router.push({ path: '/' })
+          }).catch(e => {
             handleError(this.$bvToast, 'Error: could not login', `Cause: ${e.response.data.message}`)
           })
         }
