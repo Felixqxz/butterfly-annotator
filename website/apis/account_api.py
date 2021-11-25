@@ -14,6 +14,10 @@ if not os.path.exists(avatars_dir):
     os.mkdir(avatars_dir)
 
 
+def get_default_data(user):
+    return jsonify({'username': user.username, 'email': user.email})
+
+
 @account_api.route('/register', methods=['POST'])
 def register():
     user_info = request.get_json()
@@ -22,10 +26,9 @@ def register():
     password = user_info.get('password')
 
     user = db.session.query(User).filter(User.username == username).first()
-    duplicate_email = db.session.query(User).filter(User.email == email).first()
-
     if user:
         return jsonify({'message': 'User already exists'}), HTTPStatus.UNAUTHORIZED
+    duplicate_email = db.session.query(User).filter(User.email == email).first()
     if duplicate_email:
         return jsonify({'message': 'Email already exists'}), HTTPStatus.UNAUTHORIZED
     else:
@@ -33,14 +36,14 @@ def register():
         user = User(username=username, email=email, password_hash=password_hash)
         db.session.add(user)
         db.session.commit()
-        login_user(user)
-        return jsonify({'username': user.username, 'email': user.email})
+        login_user(user, remember=True)
+        return get_default_data(current_user)
 
 
 @account_api.route('/login', methods=['POST'])
 def login():
     if current_user.is_authenticated:
-        return jsonify({'message': 'User already logged in'}), HTTPStatus.UNAUTHORIZED
+        return get_default_data(current_user)
 
     user_info = request.get_json(force=True)
     username = user_info.get('username')
@@ -49,8 +52,8 @@ def login():
     user = db.session.query(User).filter(User.username == username).first()
     if user is not None:
         if bcrypt.check_password_hash(user.password_hash, password):
-            login_user(user)
-            return jsonify({'username': user.username, 'email': user.email})
+            login_user(user, remember=True)
+            return get_default_data(current_user)
         else:
             return jsonify({'message': 'Incorrect password'}), HTTPStatus.UNAUTHORIZED
     else:
@@ -64,6 +67,17 @@ def logout():
         return jsonify({'message': 'Log out success'})
     else:
         return jsonify({'message': 'Not logged in'}), HTTPStatus.UNAUTHORIZED
+
+
+@account_api.route('/is-logged-in', methods=['GET'])
+def check_logged_in():
+    return jsonify({'loggedIn': current_user.is_authenticated})
+
+
+@account_api.route('/base-data', methods=['GET'])
+@login_required
+def get_base_data():
+    return get_default_data(current_user)
 
 
 @account_api.route('/api/profile-picture', methods=['POST'])

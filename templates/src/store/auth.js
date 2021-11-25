@@ -38,7 +38,7 @@ const getters = {
         return state.userInfo
     },
     isLoggedIn(state) {
-        return state.userInfo
+        return !!state.userInfo
     },
 }
 
