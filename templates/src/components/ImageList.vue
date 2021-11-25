@@ -12,7 +12,7 @@
       <b-tab title="Images" active>
         <form>
           <b-row>
-            <b-col cols="10" class="mt-2">
+            <b-col cols="12" class="mt-2">
               <b-input-group @keydown.enter.prevent="">
                 <b-input-group-prepend>
                   <b-input-group-text>
@@ -21,9 +21,6 @@
                 </b-input-group-prepend>
                 <input type="text" class="form-control" placeholder="Search..." v-model="searchText"/>
               </b-input-group>
-            </b-col>
-            <b-col cols="2">
-              <!-- sort by: + options (dropdown menu?) TODO -->
             </b-col>
           </b-row>
         </form>
