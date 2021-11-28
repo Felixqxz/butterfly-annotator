@@ -72,11 +72,11 @@ def get_bank_access_level(user, bank_id):
 
 def get_keywords(description):
     """
-    Returns a list of indices of the auto suggested keywords for 
+    Returns a list of indices of the auto suggested keywords for
     annotation using the dictionaries provided.
     """
     # fourth line of the file is always the description.
-    words = (description.split('\n')[3]).split()
+    words = description.split()
     adj_list = []
     pattern_list = []
     keywords = []
@@ -92,7 +92,7 @@ def get_keywords(description):
         with open(pattern_list_path, 'r') as file:
             lines = file.readlines()
             for line in lines:
-                pattern_list.append(line.rstrip())  
+                pattern_list.append(line.rstrip())
     # find start_index and end_index for keywords or phases
     start_index = -1
     end_index = -1
