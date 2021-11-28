@@ -55,7 +55,8 @@
 </template>
 
 <script>
-import {mapActions} from 'vuex'
+import {mapActions, mapGetters} from 'vuex'
+import handleError from '../errors/handler'
 
 export default {
   data() {
@@ -65,6 +66,9 @@ export default {
         password: '',
       },
     }
+  },
+  computed: {
+    ...mapGetters({isLoggedIn: 'isLoggedIn'}),
   },
   methods: {
     ...mapActions({ logIn: 'logIn' }),
@@ -83,25 +87,18 @@ export default {
       this.$validator.validateAll().then(valid => {
         if (valid) {
           this.logIn({formData}).then(_ => {
-            this.$root.$refs.Alert.showSuccessAlert("Login success!")
             t.$router.push({ path: '/' })
-            }).catch(e => {
-            const errorMessage = e.response.data.message
-            this.$root.$refs.Alert.showWarningAlert(errorMessage)
+          }).catch(e => {
+            handleError(this.$bvToast, 'Error: could not login', `Cause: ${e.response.data.message}`)
           })
-        } else {
-          this.$root.$refs.Alert.showWarningAlert("Error submit")
         }
       })
     },
   },
+  created() {
+    if (this.isLoggedIn) {
+      this.$router.push({path: '/'})
+    }
+  },
 }
 </script>
-
-<style>
-#username.form-control.is-valid, #password.form-control.is-valid {
-  border-color: #495057;
-  box-shadow: none;
-  background-image: none;
-}
-</style>

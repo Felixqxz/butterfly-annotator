@@ -28,6 +28,19 @@ bank_access_levels = {
 }
 
 
+def gen_annotation_array(image):
+    return [
+        {
+            'id': annotation.id,
+            'description': {
+                'start': annotation.text_start,
+                'end': annotation.text_end,
+            },
+            'regionInfo': annotation.region_info,
+        } for annotation in image.annotations
+    ]
+
+
 def can_access_bank(bank, user, access_level='viewer'):
     """
     Returns `True` iff the given user can access the provided bank.
@@ -55,7 +68,7 @@ def get_bank_access_level(user, bank_id):
     """
     bank_access = [access for access in user.accesses 
         if access.bank_id == bank_id]
-    return bank_access[0] if bank_access else None 
+    return bank_access[0] if bank_access else None
 
 def get_keywords(description):
     """
@@ -115,30 +128,30 @@ def list_banks():
 def manage_access_bank():
     data = request.get_json()
     if 'id' not in data or 'targetName' not in data or 'level' not in data:
-        return jsonify({'error': 'missing field'}), HTTPStatus.BAD_REQUEST
+        return jsonify({'message': 'missing field'}), HTTPStatus.BAD_REQUEST
     if not data['id'].isnumeric():
-        return jsonify({'error': 'invalid bank id'}), HTTPStatus.BAD_REQUEST
+        return jsonify({'message': 'invalid bank id'}), HTTPStatus.BAD_REQUEST
     level = data['level']
     if level < -1 or level > 90:
         # the maximal assignable level is admin (super-admin is reserved)
-        return jsonify({'error': 'invalid permission level'}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'invalid permission level'}), HTTPStatus.UNAUTHORIZED
     # search target user
     target_user = db.session.query(User).filter(User.username == escape(data['targetName'])).first()
     if target_user is None:
-        return jsonify({'error': 'no such target user'}), HTTPStatus.NOT_FOUND
+        return jsonify({'message': 'no such target user'}), HTTPStatus.NOT_FOUND
     bank = db.session.query(ImageBank).filter(ImageBank.id == int(data['id'])).first()
     if bank is None:
-        return jsonify({'error': 'no such bank'}), HTTPStatus.NOT_FOUND
+        return jsonify({'message': 'no such bank'}), HTTPStatus.NOT_FOUND
     user_access = get_bank_access_level(current_user, bank.id)
     if not user_access:
-        return jsonify({'error': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
     # now that bank & target exist and are accessible,
     # check for permission levels
     if user_access.permission_level < bank_access_levels['moderator']:
-        return jsonify({'error': 'insufficient permissions'}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'insufficient permissions'}), HTTPStatus.UNAUTHORIZED
     if level >= bank_access_levels['moderator'] and user_access.permission_level < user_access['admin']:
         # only admins can assign other admins and moderators
-        return jsonify({'error': 'insufficient permissions'}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'insufficient permissions'}), HTTPStatus.UNAUTHORIZED
     target_access = get_bank_access_level(target_user, bank.id)
     if not target_access or target_access.permission_level < user_access.permission_level:
         # the originating user is able to edit access for target
@@ -157,19 +170,19 @@ def manage_access_bank():
                 db.session.commit()
         return jsonify({'message': 'success'})
     # user is trying to update permissions of someone of the same rank
-    return jsonify({'error': 'insufficient permissions'}), HTTPStatus.UNAUTHORIZED
+    return jsonify({'message': 'insufficient permissions'}), HTTPStatus.UNAUTHORIZED
 
 
 @image_api.route('/api/bank-list-accesses/<bank_id>', methods=['GET'])
 @login_required
 def list_bank_accesses(bank_id):
     if not bank_id.isnumeric():
-        return jsonify({'error': 'invalid bank id'}), HTTPStatus.BAD_REQUEST
+        return jsonify({'message': 'invalid bank id'}), HTTPStatus.BAD_REQUEST
     bank = db.session.query(ImageBank).filter(ImageBank.id == int(bank_id)).first()
     if bank is None:
-        return jsonify({'error': 'no such bank'}), HTTPStatus.NOT_FOUND
+        return jsonify({'message': 'no such bank'}), HTTPStatus.NOT_FOUND
     if not can_access_bank(bank, current_user):
-        return jsonify({'error': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
     return jsonify({
         'users': [
             {
@@ -187,11 +200,11 @@ def list_images(bank_id):
     Returns the list of the images of a given endpoint.
     """
     if not bank_id.isnumeric():
-        return jsonify({'error': 'ill-formed request'}), HTTPStatus.BAD_REQUEST
+        return jsonify({'message': 'ill-formed request'}), HTTPStatus.BAD_REQUEST
     banks_dict = {access.bank_id: access.bank for access in current_user.accesses}
     bank_id = int(bank_id)
     if bank_id not in banks_dict:
-        return jsonify({'error': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'you do not have access to this bank'}), HTTPStatus.UNAUTHORIZED
     return {
         'bankName': banks_dict[bank_id].bankname,
         'images': [
@@ -205,54 +218,72 @@ def list_images(bank_id):
 
 @image_api.route('/api/image/annotate', methods=['POST'])
 @login_required
-def insert_annotation():
+def insert_annotations():
     """
     Allows to push all the annotations of the image to the database.
+    Returns the ids in the order of insertion.
     """
     req = request.get_json()
     image = ensure_image_exists(req['imageId'])
     if image is None:
-        return jsonify({'error': 'there exists no image with such an id'}), HTTPStatus.NOT_FOUND
+        return jsonify({'message': 'there exists no image with such an id'}), HTTPStatus.NOT_FOUND
     if 'annotations' not in req:
         return jsonify({'result': 'success'})
     if not can_access_bank(image.image_bank, current_user, access_level='editor'):
-        return jsonify({'error': 'not authorized to annotate this bank'}), HTTPStatus.UNAUTHORIZED
+        return jsonify({'message': 'not authorized to annotate this bank'}), HTTPStatus.UNAUTHORIZED
     # first pass: verify all data
     for annotation in req['annotations']:
+        if annotation['id'] != -1:
+            # trying to update existing annotation
+            if int(annotation['id']) not in [annot.id for annot in image.annotations]:
+                return jsonify({'message': 'trying to update an annotation that does not exist'}), HTTPStatus.BAD_REQUEST
+        if 'rem' in annotation:
+            continue
         try:
             region = PolygonalRegion.deserialize_from_json(annotation['points'])
         except Exception:
-            return jsonify({'error': 'ill-formed polygonal region'}), HTTPStatus.BAD_REQUEST
+            return jsonify({'message': 'ill-formed polygonal region'}), HTTPStatus.BAD_REQUEST
         if max(map(lambda p: p.x, region.points)) > image.width or \
                 min(map(lambda p: p.x, region.points)) < 0 or \
                 max(map(lambda p: p.y, region.points)) > image.height or \
                 min(map(lambda p: p.y, region.points)) < 0:
-            print("mais oui c'est clair !!!")
-            return jsonify({'error': 'there exists a point out of bounds'}), HTTPStatus.BAD_REQUEST
-        if annotation['id'] != -1:
-            # trying to update existing annotation
-            if int(annotation['id']) not in [annot.id for annot in image.annotations]:
-                return jsonify({'error': 'trying to update an annotation that does not exist'}), HTTPStatus.BAD_REQUEST
+            return jsonify({'message': 'there exists a point out of bounds'}), HTTPStatus.BAD_REQUEST
 
     # second pass: update database
+    ids = []
     for annotation in req['annotations']:
-        region = PolygonalRegion.deserialize_from_json(annotation['points'])
-        stripped_tag = annotation['tag'].strip().lower()
-        if annotation['id'] == -1:
-            # new region
-            a = ImageAnnotation(image.id, stripped_tag, region.sql_serialize_region(), current_user.get_id())
-            db.session.add(a)
-            db.session.commit()
+        if 'rem' in annotation:
+            db.session.query(ImageAnnotation).filter(ImageAnnotation.id == annotation['id']).delete()
         else:
-            db.session.query(ImageAnnotation)\
-                .filter(ImageAnnotation.id == int(annotation['id']))\
-                .update({
-                    ImageAnnotation.region_info: region.sql_serialize_region(),
-                    ImageAnnotation.tag: stripped_tag,
-                    ImageAnnotation.author_id: current_user.get_id()
-                })
-            db.session.commit()
-    return jsonify({'result': 'success'})
+            region = PolygonalRegion.deserialize_from_json(annotation['points'])
+            start = annotation['tag']['start']
+            end = annotation['tag']['end']
+            if annotation['id'] == -1:
+                # new region
+                a = ImageAnnotation(image.id, start, end, region.sql_serialize_region(), current_user.get_id())
+                db.session.add(a)
+                ids.append(a.id)
+            else:
+                existing_annotation = db.session.query(ImageAnnotation)\
+                    .filter(ImageAnnotation.id == annotation['id']).first()
+                if existing_annotation is None: # Ignore: trying to update non existing
+                    continue
+                # no actual change to the data
+                if existing_annotation.text_start != start or existing_annotation.text_end != end \
+                    or PolygonalRegion.sql_serialize_region(region) == existing_annotation.region_info:
+                    continue
+                # perform update
+                db.session.query(ImageAnnotation)\
+                    .filter(ImageAnnotation.id == annotation['id'])\
+                    .update({
+                        ImageAnnotation.region_info: region.sql_serialize_region(),
+                        ImageAnnotation.text_start: start,
+                        ImageAnnotation.text_end: end,
+                        ImageAnnotation.author_id: current_user.get_id()
+                    })
+                ids.append(annotation['id'])
+    db.session.commit()
+    return jsonify({'result': 'success', 'ids': ids})
 
 
 @image_api.route('/api/image/<image_id>', methods=['GET'])
@@ -286,7 +317,11 @@ def get_image_data(image_id):
         'hasPrevious': prev_image.id if prev_image is not None else -1,
         'annotations': [
             {
-                'tag': annotation.tag,
+                'id': annotation.id,
+                'description': {
+                    'start': annotation.text_start,
+                    'end': annotation.text_end,
+                },
                 'regionInfo': annotation.region_info,
                 'author': annotation.author.username,
             }
@@ -309,13 +344,7 @@ def get_annotations(image_id):
         return jsonify({'message': 'not authorized to view this bank'}), HTTPStatus.UNAUTHORIZED
     return jsonify({
         'id': image.id,
-        'annotations': [
-            {
-                'id': annotation.id,
-                'tag': annotation.tag,
-                'regionInfo': annotation.region_info,
-            } for annotation in image.annotations
-        ]
+        'annotations': gen_annotation_array(image),
     })
 
 
@@ -324,3 +353,29 @@ def serve_image(path):
     if path:
         return send_file(os.path.join(default_bank_directory, path), mimetype='image/jpeg')
     return jsonify({'message': 'no such image'}), HTTPStatus.NOT_FOUND
+
+
+@image_api.route('/api/bank/json/<int:bank_id>')
+@login_required
+def request_json(bank_id):
+    bank = db.session.query(ImageBank).filter(ImageBank.id == bank_id).first()
+    if bank is None:
+        return jsonify({'message': 'no such bank'}), HTTPStatus.NOT_FOUND
+    if not can_access_bank(bank, current_user):
+        return jsonify({'message': 'you cannot view this bank'}), HTTPStatus.UNAUTHORIZED
+    return {
+        'id': bank.id,
+        'name': bank.bankname,
+        'description': bank.description,
+        'images': [
+            {
+                'id': image.id,
+                'description': image.description,
+                'width': image.width,
+                'height': image.height,
+                'relativePath': image.file_url,
+                'annotations': gen_annotation_array(image),
+            }
+            for image in bank.images
+        ],
+    }

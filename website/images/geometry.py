@@ -87,4 +87,4 @@ class PolygonalRegion(ImageRegion):
 
         :param raw: the raw JSON array of input points
         """
-        return PolygonalRegion([Point.deserialize(p) for p in raw.split(';')])
+        return PolygonalRegion([Point(p['x'], p['y']) for p in raw])

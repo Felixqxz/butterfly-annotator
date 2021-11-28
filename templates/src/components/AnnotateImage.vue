@@ -1,10 +1,11 @@
 <template>
-  <b-container>
+  <b-container @mousemove="trackMouse">
     <b-row class="mb-2">
       <b-col cols="12">
         <router-link :to="'/bank/' + bankId">Back to bank</router-link>
       </b-col>
     </b-row>
+    <!-- Previous/next image buttons -->
     <b-row class="justify-content-between mb-2">
       <b-col cols="1">
         <b-button @click="previousImage()" :disabled="!hasPreviousImage">
@@ -12,7 +13,10 @@
         </b-button>
       </b-col>
       <b-col cols="1">
-        <b-button @click="saveAnnotations()">
+        <b-button
+          content="Save the changes made to the image's annotations."
+          v-tippy="{theme: 'google', arrow: true, arrowType: 'round'}"
+          @click="saveAnnotations()">
           Save
         </b-button>
       </b-col>
@@ -22,87 +26,153 @@
         </b-button>
       </b-col>
     </b-row>
-    <b-row class="justify-content-center" style="padding-bottom: 2em;">
+    <!-- Undo/redo buttons -->
+    <b-row class="justify-content-center mb-2">
+      <b-col cols="1">
+        <div
+            style="display:inline-block;" 
+            :content="undoDisabled ? 'Nothing to undo!' : 'Undo (Ctrl + Z)'"
+            v-tippy="{arrow: true, arrowType: 'round', theme: 'google'}">
+          <b-button
+            :disabled="undoDisabled"
+            @click="undo()"><b-icon-arrow-counterclockwise></b-icon-arrow-counterclockwise></b-button>
+        </div>
+      </b-col>
+      <b-col cols="1">
+        <div
+            style="display:inline-block;" 
+            :content="redoDisabled ? 'Nothing to redo!' : 'Redo (Ctrl + Y)'"
+            v-tippy="{arrow: true, arrowType: 'round', theme: 'google'}">
+          <b-button
+            :disabled="redoDisabled"
+            @click="redo()"><b-icon-arrow-clockwise></b-icon-arrow-clockwise></b-button>
+        </div>
+      </b-col>
+    </b-row>
+    <!-- P5 canvas -->
+    <b-row class="justify-content-center mb-2">
+      <!-- Tooltip content (invisible) -->
+      <div id="tooltip-content" style="display: none">
+        <div v-if="hasNoDescription">
+          <p>This polygon has no description!</p>
+          <p>Please choose one:</p>
+          <b-form-select :id="formDummyId" :options="descriptionOptions()" size="sm" class="mb-2"></b-form-select>
+          <b-button variant="primary" size="sm" onclick="addAnnotation()" :disabled="descriptionOptions().filter(b => !b.disabled).length === 0">Add!</b-button>
+        </div>
+        <div v-else>
+          <p>This polygon has a description:</p>
+          <p><em>{{ descriptionOfSelectedPolygon }}</em></p>
+          <p>Last editor: <em>{{ authorOfSelectedPolygon }}</em></p>
+        </div>
+      </div>
+      <!-- The div to track the mouse position -->
+      <div id="mouse-position" style="position: absolute !important"></div>
+      <!-- The canvas itself -->
       <div id="canvas"/>
     </b-row>
+    <!-- text selection -->
     <b-row class="mb-2">
-      <b-col md="6" xs="12">
-        <!-- the description part -->
-        <h4>Image description</h4>
-        <b-card class="mb-2">
-          <p @mouseup="checkTextSelection()" id="description-selection" style="white-space: pre-line">
-            {{ textDescription() }}
+      <b-col cols="12">
+        <b-card 
+          @mouseup="checkTextSelection()"
+          @mousedown="checkTextSelection()">
+          <!-- IMPORTANT: do not mess with the paragraph! leave as is -->
+          <p style="white-space: pre-wrap; margin-bottom: 0;"
+            id="description">
+            <span v-for="bit in createChunks()" v-bind:key="bit.start">
+              <description-bit v-if="bit.selected" :text="bit.text" 
+                :start-index="bit.start" :click-handler="handleBitClick"
+                :author="bit.author"></description-bit>
+              <span v-else>{{ bit.text }}</span>
+            </span>
           </p>
         </b-card>
-        <b-button @click="addDescriptionBit()" :disabled="bitButtonDisabled">Add bit</b-button>
-        <br>
-        <b-button @click="addKeyword()" :disabled="bitButtonDisabled">Add Keyword</b-button>
-      </b-col>
-      <!-- auto keywords -->
-      <b-col md="3" xs="12">
-        <h4>Keywords</h4>
-        <b-list-group>
-          <b-list-group-item v-for = "keyword in keywords"
-                             v-bind:key="keyword"
-                             class="no-drag"
-                             :active="selectedKeyword === keyword"
-                             @click="selectKeyword(keyword)">
-            {{ keyword }}
-          </b-list-group-item>
-        </b-list-group>
-
-      </b-col>
-      <!-- the linking between the tags and the polygons -->
-      <b-col md="3" xs="12">
-        <!-- list of polygons -->
-        <h4>Available region</h4>
-        <b-list-group>
-          <b-list-group-item v-for="polygon in availablePolygons"
-                             v-bind:key="polygon.i"
-                             class="no-drag"
-                             :active="selectedPolygon === polygon.i"
-                             @click="selectPolygon(polygon.i)">
-            Polgyon number {{ polygon.i }}
-          </b-list-group-item>
-        </b-list-group>
       </b-col>
     </b-row>
     <b-row>
-      <b-col>
-        <b-list-group>
-          <b-list-group-item v-for="(annotation, idx) in annotations" v-bind:key="idx">
-            {{ annotation.description }}
-          </b-list-group-item>
-        </b-list-group>
+      <b-col cols="12">
+        <b-button @click="addTextBit()" :disabled="!canAddBit">
+          Add bit
+        </b-button>
       </b-col>
     </b-row>
   </b-container>
 </template>
 
 <script>
-import {mapActions} from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import P5 from 'p5'
+import { tippy } from 'vue-tippy'
 
+import DescriptionBit from './DescriptionBit'
+
+/**
+ * Represents a polygon on the image to annotate.
+ */
 class Polygon {
+  /**
+   * @param dots the dots that constitute the polygon
+   * @param i its position in the `availablePolygons` array
+   */
   constructor(dots, i) {
     this.dots = dots
     this.i = i
   }
 }
 
+/**
+ * Represents an action that can be done or undone.
+ */
+class Action {
+  /**
+   * @param redo a function that performs the action
+   * @param undo a function that cancels the action
+   */
+  constructor(redo, undo) {
+    this.redo = redo
+    this.undo = undo
+  }
+}
+
+class HistoryNode {
+  constructor(next, previous, action) {
+    this.next = next
+    this.previous = previous
+    this.action = action
+  }
+
+  hasNext() {
+    return this.next !== null
+  }
+
+  hasPrevious() {
+    return this.previous !== null
+  }
+}
+
 export default {
   name: 'AnnotateImage',
+  components: {
+    DescriptionBit,
+  },
   data() {
     return {
       imageData: null,
       availablePolygons: [],
-      selectedPolygon: -1,
-      selectedKeyword: '',
-      bitButtonDisabled: true,
-      annotations: [],
       hasPreviousImage: false,
       hasNextImage: false,
       bankId: -1,
+      canAddBit: false,
+      selectedBits: [],
+      selectedPolygon: -1,
+      chunkedDescription: [],
+      mousePosX: 0,
+      mousePosY: 0,
+      previousTippy: null,
+      // data for undo/redo history
+      firstHistoryNode: null,
+      lastHistoryNode: null,
+      currentHistoryNode: null, // points to the last action that has been DONE (its change is already effective)
     }
   },
   watch: {
@@ -116,49 +186,76 @@ export default {
         this.hasNextImage = false
         this.hasPreviousImage = false
         this.availablePolygons = []
+        this.selectedBits = []
+        this.chunkedDescription = []
+        this.canAddBit = false
         this.selectedPolygon = -1
-        this.bitButtonDisabled = true
-        this.annotations = []
+        if (this.previousTippy) {
+          this.previousTippy.destroy()
+          this.previousTippy = null
+        }
+        this.firstHistoryNode = null
+        this.lastHistoryNode = null
+        this.currentHistoryNode = null
         this.initializeAll()
       }
     },
   },
+  computed: {
+    ...mapGetters({user: 'currentUser'}),
+    redoDisabled() {
+      // lastHistoryNode still undefined
+      if (!this.lastHistoryNode) {
+        return true
+      }
+      return this.currentHistoryNode.next === this.lastHistoryNode
+        || this.lastHistoryNode.previous === this.firstHistoryNode // if no history at all yet
+    },
+    undoDisabled() {
+      if (!this.lastHistoryNode) {
+        return true
+      }
+      return this.currentHistoryNode === this.firstHistoryNode // points to the last action done => none is done
+        || this.lastHistoryNode.previous === this.firstHistoryNode // no history at all
+    },
+    hasNoDescription() {
+      return this.selectedPolygon === -1 || !this.availablePolygons[this.selectedPolygon].hasDescription
+    },
+    descriptionOfSelectedPolygon() {
+      if (this.hasNoDescription) {
+        return ''
+      }
+      const annotation = this.imageData.annotations.find(annotation => annotation.polygon.i === this.selectedPolygon)
+      return this.imageData.description.substring(annotation.description.start, annotation.description.end)
+    },
+    authorOfSelectedPolygon() {
+      if (this.hasNoDescription) {
+        return ''
+      }
+      return this.imageData.annotations.find(annotation => annotation.polygon.i === this.selectedPolygon).author
+    },
+    formDummyId() {
+      return 'XXXXX'
+    },
+    formActualId() {
+      return 'tooltip-selected-description'
+    },
+  },
   methods: {
     ...mapActions({fetchImageData: 'fetchImageData', sendAnnotations: 'sendAnnotations'}),
-    addKeyword(){
-      const selected = window.getSelection().toString().trim()
-      this.bitButtonDisabled = true
-      window.getSelection().empty()
-      this.keywords.push(selected)
-    },
-    selectKeyword(keyword){
-      this.selectedKeyword = keyword
-      if (this.selectedPolygon !== -1) {
-        this.bitButtonDisabled = false
+    descriptionOptions() {
+      const ret = []
+      for (let i = 0; i < this.selectedBits.length; ++i) {
+        const bit = this.selectedBits[i]
+        ret.push({
+          value: i, text: this.imageData.description.substring(bit.start, bit.end), disabled: Boolean(bit.annotation),
+        })
       }
+      return ret
     },
-    textDescription() {
-      return this.imageData ? this.imageData.description : ''
-    },
-    selectPolygon(i) {
-      this.selectedPolygon = i
-      if (this.selectedKeyword !== '') {
-        this.bitButtonDisabled = false
-      }
-    },
-    checkTextSelection() {
-      const selectedText = window.getSelection().toString().trim()
-      if (!selectedText) {
-        this.bitButtonDisabled = true
-        return
-      }
-      // no overlap, proceed
-      this.bitButtonDisabled = false
-    },
-    addDescriptionBit() {
-      if (this.selectedPolygon !== -1 && this.selectedKeyword !== '') {
-        this.annotations.push({polygon: this.availablePolygons[this.selectedPolygon], description: this.selectedKeyword})
-      }
+    trackMouse(event) {
+      this.mousePosX = event.pageX
+      this.mousePosY = event.pageY
     },
     previousImage() {
       const path = '/annotate/' + this.imageData.hasPrevious
@@ -170,28 +267,203 @@ export default {
       this.$router.push({path})
       this.$router.go()
     },
-    serializePoints(p) {
-      return p.map(v => Math.round(v.x) + ',' + Math.round(v.y)).join(';')
+    addAnnotation() {
+      // invalid selection?
+      if (this.selectedPolygon === -1 || this.selectedBits.length === 0) {
+        return
+      }
+      const polygon = this.availablePolygons[this.selectedPolygon]
+      polygon.hasDescription = true
+      const selectedDescription = document.getElementById(this.formActualId).value
+      const description = this.selectedBits[selectedDescription]
+      const annotation = {
+        polygon,
+        description,
+        author: this.user.username,
+      }
+      description.annotation = annotation
+      // add
+      this.imageData.annotations.push(annotation)
+      if (this.previousTippy) {
+        this.previousTippy.destroy()
+        this.previousTippy = null
+      }
+      this.selectedPolygon = -1
+    },
+    createTooltip() {
+      // position invisible div
+      const posDiv = document.getElementById('mouse-position')
+      posDiv.style.left = this.mousePosX + 'px'
+      posDiv.style.top = this.mousePosY + 'px'
+      if (this.previousTippy) {
+        this.previousTippy.destroy()
+      }
+      // prepare content
+      const content = document.getElementById('tooltip-content').innerHTML.replace(this.formDummyId, this.formActualId)
+      this.previousTippy = tippy('#mouse-position', {
+        content,
+        interactive: true,
+      })[0]
+      const t = this
+      setTimeout(() => {
+        if (t.previousTippy) { 
+          t.previousTippy.show()
+        }
+      }, 100) // delay to avoid instant close
+      return this.previousTippy
+    },
+    createChunks() {
+      if (!this.imageData) {
+        return []
+      }
+      if (this.selectedBits.length === 0) {
+        return [{text: this.imageData.description, selected: false}]
+      }
+      let ret = []
+      let previousEnd = 0
+      // the code assumes that the bits are sorted by their beginning index,
+      // and that there are no overlaps
+      for (let i = 0; i < this.selectedBits.length; ++i) {
+        const bit = this.selectedBits[i]
+        // add beginning
+        // start field for vue keys
+        if (bit.start !== previousEnd) {
+          ret.push({text: this.imageData.description.substring(previousEnd, bit.start), selected: false, start: previousEnd})
+        }
+        // add the actual selected bit
+        ret.push({
+          text: this.imageData.description.substring(bit.start, bit.end), 
+          selected: true, 
+          start: bit.start, 
+          author: bit.annotation ? bit.annotation.author : ''
+        })
+        previousEnd = bit.end
+      }
+      // add remainder, if any
+      const last = this.selectedBits[this.selectedBits.length - 1]
+      if (last.end !== this.imageData.description.length) {
+        ret.push({text: this.imageData.description.substring(last.end), selected: false, start: last.end})
+      }
+      return ret
+    },
+    handleBitClick(start) {
+      const i = this.selectedBits.findIndex(b => b.start === start)
+      if (i === -1) {
+        return // (not found)
+      }
+      this.selectedBits.splice(i, 1)
+      // find if annotation assigned
+      const annotation = this.imageData.annotations.find(a => a.description.start === start)
+      if (annotation) {
+        annotation.toRemove = true
+        annotation.description = null
+        annotation.polygon.hasDescription = false
+      }
     },
     saveAnnotations() {
-      const annotations = this.annotations.map(annotation => {
-        return {
-          'id': -1,
-          'points': this.serializePoints(annotation.polygon.dots),
-          'tag': annotation.description,
+      // filter the annotations that never were online
+      const remPred = a => !(a.toRemove && !a.id)
+      const annotations = this.imageData.annotations.filter(remPred).map(annotation => {
+        const id = annotation.id ? annotation.id : -1 // new annotation!
+        if (annotation.toRemove) {
+          return {
+            'id': id,
+            'rem': true,
+          }
+        } else {
+          return {
+            'id': id,
+            'points': annotation.polygon.dots.map(p => {
+              return {
+                x: Math.floor(p.x),
+                y: Math.floor(p.y),
+              }
+            }),
+            'tag': {
+              'start': annotation.description.start,
+              'end': annotation.description.end,
+            },
+          }
         }
       })
+      const t = this
       this.sendAnnotations({
         data: {
           imageId: this.$route.params.imageId,
-          annotations
+          annotations,
         },
+      }).then(res => {
+        t.imageData.annotations = t.imageData.annotations.filter(remPred)
+        for (let i = 0; i < t.imageData.annotations.length; ++i) {
+          const annot = t.imageData.annotations[i]
+          annot.id = res.data.ids[i]
+        }
       })
+    },
+    descriptionIndices(text) {
+      const start = this.imageData.description.indexOf(text) // TODO: what if beginning trimmed?
+      const end = start + text.trim().length // (exclusive)
+      return { start, end }
+    },
+    checkTextSelection() {
+      const selection = window.getSelection()
+      const rawText = selection.toString()
+      const {start, end} = this.descriptionIndices(rawText)
+      // trying to add an overlapping bit!
+      if (this.selectedBits.some(bit => start <= bit.end && bit.start <= end)) {
+        this.canAddBit = false
+        return
+      }
+      const selectedText = rawText.trim()
+      this.canAddBit = !!selectedText // coerce to boolean
+    },
+    addTextBit() {
+      const selection = window.getSelection()
+      const rawText = selection.toString()
+      const selectedText = rawText.trim()
+      if (!selectedText) {
+        return
+      }
+      const {start, end} = this.descriptionIndices(rawText)
+      this.selectedBits.push({ start, end })
+      this.selectedBits.sort((b, a) => b.start - a.start) // first start first; should be no overlap too
+      selection.empty()
+      this.canAddBit = false
+    },
+    undo() {
+      if (this.undoDisabled) {
+        return
+      }
+      const current = this.currentHistoryNode
+      current.action.undo()
+      this.currentHistoryNode = current.previous
+    },
+    redo() {
+      // no history yet!
+      if (this.redoDisabled) {
+        return
+      }
+      const current = this.currentHistoryNode
+      current.next.action.redo()
+      this.currentHistoryNode = current.next
+    },
+    pushHistory(redo, undo) {
+      // continuing history or branching to new history: same handling
+      const node = new HistoryNode(this.lastHistoryNode, this.currentHistoryNode, new Action(redo, undo))
+      this.currentHistoryNode.next = node
+      this.lastHistoryNode.previous = node
+      this.currentHistoryNode = node
+      redo()
     },
     initializeAll() {
       const t = this
       const script = p5 => {
-        // draws lines that connect all (i, i + 1) dots and closes the shape if close is true
+        /**
+         * Draws lines that connect all `(i, i + 1)` dots and closes the shape if `close` is `true`.
+         * @param color the color of the lines
+         * @param dots the dots to connect
+         * @param close whether the last dot should be connected to the first one
+         */
         const connectDotsOpen = (color, dots, close) => {
           p5.stroke(color)
           p5.beginShape()
@@ -225,7 +497,11 @@ export default {
 
         // we will build a color sequence that always assigns the same color to a given index
         // (color(0), color(1), ..., color(n), ...)
-        const colorSequence = i => p5.color((16 * i) % 256, (128 * i) % 256, (30 * i) % 256)
+        /**
+         * @param i the integer representing the polygon in the sequence
+         * @returns the color of the `i-th` polygon.
+         */
+        const colorSequence = i => p5.color((16 * i) % 256, (64 * (i + 1)) % 256, (30 * i) % 256, 150)
 
         // returns the closest point constituting a polygon in an `EPS` radius
         // to the mouse
@@ -244,8 +520,58 @@ export default {
           return null
         }
 
+        /**
+         * @param search the point
+         * @param polygon the polygon
+         * @returns {{distance: number, index: number}} where `distance` is the distance
+         * to the closest point of the provided polygon and `index` is its index in
+         * `availablePolygons`.
+         */
+        const polygonDistance = (search, polygon) => {
+          let distMin = 0
+          let argMin = 0
+          for (let i = 0; i < polygon.dots.length; ++i) {
+            const pointA = polygon.dots[i]
+            const pointB = polygon.dots[(i + 1) % polygon.dots.length] // (roll)
+            const lineX = pointB.x - pointA.x
+            const lineY = pointB.y - pointA.y
+            const diffX = search.x - pointA.x
+            const diffY = search.y - pointA.y
+            const d = diffX * lineX + diffY * lineY
+            const r = d / (lineX * lineX + lineY * lineY)
+            
+            let compX = 0.0
+            let compY = 0.0
+            if (r < 0) {
+              compX = pointA.x
+              compY = pointA.y
+            } else if (r > 1) {
+              compX = pointB.x
+              compY = pointB.y
+            } else {
+              compX = pointA.x + r * lineX
+              compY = pointA.y + r * lineY
+            }
+            const dx = search.x - compX
+            const dy = search.y - compY
+            const dist = dx * dx + dy * dy
+            if (dist < distMin || i === 0) {
+              distMin = dist
+              argMin = i
+            }
+          }
+          return { distance: distMin, index: argMin }
+        }
+
         // returns the closest line constituting a polygon in a right angle `EPS` distance
         // to the mouse
+        /**
+         * @returns {{dotsIdx: number, polygon: number, distance: number}} where `dotsIdx`
+         * is the index of the first point constituting the line (the next one being
+         * `(dotsIdx + 1) % dots.length)`, `polygon` is the position of the polygon in the
+         * `availablePolygons` array, and `distance` is the distance of the mouse to that
+         * line.
+         */
         const closestLineInRadius = () => {
           const mousePosition = p5.createVector(p5.mouseX, p5.mouseY)
           let polygonArgmin = -1
@@ -253,38 +579,86 @@ export default {
           let minDist = Number.POSITIVE_INFINITY
           for (let i = 0; i < t.availablePolygons.length; ++i) {
             const polygon = t.availablePolygons[i]
-            for (let j = 0; j < polygon.dots.length; ++j) {
-              const pointA = polygon.dots[j]
-              const pointB = polygon.dots[(j + 1) % polygon.dots.length] // cycle back to close
-              const numerator = (pointB.x - pointA.x) * (pointA.y - mousePosition.y)
-                - (pointA.x - mousePosition.x) * (pointB.y - pointA.y)
-              const endDist = Math.abs(numerator) / pointB.dist(pointA)
-              if (endDist < minDist) {
-                minDist = endDist
-                polygonArgmin = i
-                dotsArgmin = i
-              }
+            const {distance, index} = polygonDistance(mousePosition, polygon)
+            if (minDist > distance) {
+              minDist = distance
+              dotsArgmin = index
+              polygonArgmin = i
             }
           }
           return {polygon: polygonArgmin, dotsIdx: dotsArgmin, distance: minDist}
         }
 
-        // allows to check if the mouse is within the canvas
+        /**
+         * @returns `true` if the user's mouse is within the canvas.
+         */
         const mouseInCanvas = () => 0 < p5.mouseX && p5.mouseX < t.imageData.width
             && 0 < p5.mouseY && p5.mouseY < t.imageData.height
 
-        // returns true if the two provided points are considered to be close enough
-        // so that they are at the same position, provided the tolerance radius `EPS`
-        // (used for the user's mouse and another point)
+        /**
+         * @param a a first point
+         * @param b a second point
+         * @returns `true` if the two points are close enough to be considered to be
+         * in "approximately" the same location
+         */
         const closeEnough = (a, b) => a.dist(b) < EPS
 
-        // displays a polygon
+        /**
+         * Displays the provided polygon
+         * @param color the color it should take
+         * @param polygon the polygon object to draq
+         */
         const display = (color, polygon) => connectDotsOpen(color, polygon.dots, true)
 
-        // next polygon index
+        /**
+         * @returns the next index of the polygon
+         */
         const nextIndex = () => t.availablePolygons.length > 0 
           ? t.availablePolygons[t.availablePolygons.length - 1].i + 1
           : 0
+
+        /**
+         * Deletes the provided polygon.
+         * @param polygon the index of the polygon
+         */
+        const deletePolygon = (polygon, history) => {
+          // copy data
+          const objPolygon = Object.assign({}, t.availablePolygons[polygon]) // deep copy
+          const copySelected = t.selectedPolygon
+          // delete polygon
+          const redo = () => {
+            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
+            const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
+            t.availablePolygons.splice(polygon, 1)
+            // check if the `annot`-th annotation has not changed
+            if (annotation && t.imageData.annotations.length > annot && t.imageData.annotations[annot] === annotation) {
+              // remove the annotation when sending to server
+              annotation.toRemove = true
+              if (annotation.description) {
+                annotation.description.annotation = null
+              }
+            }
+            t.selectedPolygon = -1
+          }
+          // repush polygon
+          const undo = () => {
+            // restore only the polygon: lose the annotation
+            t.availablePolygons.splice(polygon, 0, objPolygon)
+            // same as above
+            if (annotation && t.imageData.annotations.length > annot && t.imageData.annotations[annot] === annotation) {
+              annotation.toRemove = false
+              if (annotation.description) {
+                annotation.description.annotation = annotation
+              }
+            }
+            t.selectedPolygon = copySelected
+          }
+          if (history) {
+            t.pushHistory(redo, undo)
+          } else {
+            redo()
+          }
+        }
 
         // variables
         let currentPoints = []
@@ -294,7 +668,8 @@ export default {
         // P5 handling
         p5.setup = () => {
           p5.createCanvas(t.imageData.width, t.imageData.height)
-          annotateImage = p5.loadImage(t.$hostname + '/api/' + t.imageData.imageUrl)
+          annotateImage = p5.loadImage('http://127.0.0.1:5000/api/' + t.imageData.imageUrl)
+          // using 127.0.0.1 allows for this to work on Chrome (it doesn't like 'localhost')
         }
 
         p5.draw = () => {
@@ -319,9 +694,14 @@ export default {
             const last = currentPoints[currentPoints.length - 1]
             p5.line(last.x, last.y, p5.mouseX, p5.mouseY)
           }
-          p5.strokeWeight(MOUSE_STROKE_WEIGHT)
-          p5.fill(colorSequence(t.availablePolygons.length))
-          p5.ellipse(p5.mouseX, p5.mouseY, MOUSE_RAD)
+
+          // hovering and not drawing? then don't suggest new circle
+          const closest = closestLineInRadius()
+          if (!closest || closest.distance >= EPS || currentPoints.length > 0) {
+            p5.strokeWeight(MOUSE_STROKE_WEIGHT)
+            p5.fill(colorSequence(t.availablePolygons.length))
+            p5.ellipse(p5.mouseX, p5.mouseY, MOUSE_RAD)
+          }
 
           // select cursor
           if (p5.keyIsDown(DELETE_KEY)) {
@@ -336,7 +716,27 @@ export default {
           }
         }
 
-        // TODO: sometimes it's not the closest polygon that gets deleted
+        p5.keyPressed = () => {
+          if (p5.keyCode === p5.ESCAPE) {
+            // close tooltip and clear current polygon and selection
+            if (t.previousTippy) {
+              const prev = t.previousTippy
+              t.previousTippy = null
+              prev.hide()
+              setTimeout(() => prev.destroy(), 500)
+            }
+            t.selectedPolygon = -1
+            currentPoints = []
+          } else if (p5.keyIsDown(p5.CONTROL)) {
+            const UNDO_KEYCODE = 90 // Z
+            const REDO_KEYCODE = 89 // Y
+            if (p5.keyCode === UNDO_KEYCODE) {
+              t.undo()
+            } else if (p5.keyCode === REDO_KEYCODE) {
+              t.redo()
+            }
+          }
+        }
 
         p5.mousePressed = () => {
           if (!mouseInCanvas()) {
@@ -353,7 +753,7 @@ export default {
         }
 
         p5.mouseReleased = () => {
-          if (mouseInCanvas()) {
+          if (mouseInCanvas() && (!t.previousTippy || !t.previousTippy.isVisible)) {
             // if the user hasn't started drawing any polygon
             const position = p5.createVector(p5.mouseX, p5.mouseY)
             // was displacing a point
@@ -361,17 +761,29 @@ export default {
               movedPoint = null
               return
             }
+            const closest = closestLineInRadius()
             // is deleting a polygon
             if (p5.keyIsDown(DELETE_KEY)) {
-              const closest = closestLineInRadius()
-              if (closest && closest.distance < EPS) {
-                t.availablePolygons.splice(closest.polygon, 1)
+              if (closest && closest.distance < EPS * EPS) {
+                deletePolygon(closest.polygon, true)
               }
+              return
+            }
+            // clicking on a polygon and not creating a new one
+            if (closest.distance < EPS * EPS && currentPoints.length === 0) {
+              t.selectedPolygon = closest.polygon
+              setTimeout(() => t.createTooltip(), 1)
               return
             }
             // start polygon
             if (currentPoints.length === 0) {
-              currentPoints.push(position)
+              const closest = closestLineInRadius()
+              // clicking existing polygon
+              if (closest && closest.distance < EPS * EPS) {
+                t.selectedPolygon = closest.polygon
+              } else {
+                currentPoints.push(position)
+              }
               return
             }
             // if the user has only put 1 or 2 points so far
@@ -400,10 +812,33 @@ export default {
             // check if closing polygon
             const first = currentPoints[0]
             if (closeEnough(first, position)) {
-              // add a new polygon!
-              t.availablePolygons.push(new Polygon(currentPoints,
-                nextIndex()))
+              const tip = t.createTooltip()
+              const index = nextIndex()
+              // init polygon
+              const poly = new Polygon(currentPoints, index)
+              // reset to new selection
               currentPoints = []
+              const redo = () => {
+                // add a new polygon!
+                t.availablePolygons.push(poly)
+                t.selectedPolygon = index
+                const annot = t.imageData.annotations.find(a => a.polygon.i === poly.i)
+                if (annot) {
+                  annot.toRemove = false
+                  annot.description.annotation = annot
+                }
+              }
+
+              const undo = () => {
+                // delete tooltip
+                if (tip) {
+                  tip.destroy()
+                }
+                // do not restore older points: otherwise the user is going to
+                // be editing the polygon he started just before
+                deletePolygon(index, false)
+              }
+              this.pushHistory(redo, undo)
               return
             }
             // check if the user is deleting the previous point
@@ -422,20 +857,34 @@ export default {
         this.bankId = this.imageData.bankId
         this.hasNextImage = this.imageData.hasNext !== -1
         this.hasPreviousImage = this.imageData.hasPrevious !== -1
+        // add all annotations
         this.imageData.annotations.forEach((annotation, i) => {
           let points = []
           annotation.regionInfo.split(';').forEach(rawPoint => {
             const rawCoord = rawPoint.split(',')
             points.push(new P5.Vector(parseInt(rawCoord[0]), parseInt(rawCoord[1])))
           })
-          this.availablePolygons.push(new Polygon(points, i))
+          const polygon = new Polygon(points, i)
+          polygon.hasDescription = true
+          annotation.polygon = polygon
+          this.selectedBits.push({start: annotation.description.start, end: annotation.description.end, annotation})
+          this.availablePolygons.push(polygon)
         })
+        this.selectedBits.sort((b, a) => b.start - a.start)
         const p5canvas = new P5(script, 'canvas')
       })
     },
   },
   mounted() {
     this.initializeAll()
+  },
+  created() {
+    window.addAnnotation = this.addAnnotation
+    // setup history nodes
+    this.firstHistoryNode = new HistoryNode(null, null)
+    this.lastHistoryNode = new HistoryNode(null, this.firstHistoryNode)
+    this.firstHistoryNode.next = this.lastHistoryNode
+    this.currentHistoryNode = this.firstHistoryNode
   },
 }
 </script>

@@ -12,19 +12,16 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(80), unique=True)
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String())
+    has_profile_picture = db.Column(db.Boolean)
 
     accesses = relationship('BankAccess', back_populates='user')
     annotations = relationship('ImageAnnotation', back_populates='author')
 
-    avatar_name = db.Column(db.String())
-    description = db.Column(db.String())
-    first_name = db.Column(db.String())
-    last_name = db.Column(db.String())
-
-    def __init__(self, username, email, password_hash):
+    def __init__(self, username, email, password_hash, has_profile_picture=False):
         self.username = username
         self.email = email
         self.password_hash = password_hash
+        self.has_profile_picture = has_profile_picture
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -104,7 +101,8 @@ class ImageAnnotation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     image_id = db.Column(db.Integer, db.ForeignKey('image.id'))
-    tag = db.Column(db.String())
+    text_start = db.Column(db.SmallInteger)
+    text_end = db.Column(db.SmallInteger)
     region_info = db.Column(db.String())
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
@@ -112,8 +110,9 @@ class ImageAnnotation(db.Model):
     # The user responsible for this annotation
     author = relationship('User', back_populates='annotations')
 
-    def __init__(self, image_id, tag, region_info, author_id):
+    def __init__(self, image_id, text_start, text_end, region_info, author_id):
         self.image_id = image_id
-        self.tag = tag
+        self.text_start = text_start
+        self.text_end = text_end
         self.region_info = region_info
         self.author_id = author_id

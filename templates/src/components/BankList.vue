@@ -26,6 +26,7 @@
 
 <script>
 import {mapActions} from 'vuex'
+import handleError from '../errors/handler'
 
 export default {
   name: 'BankList',
@@ -38,8 +39,9 @@ export default {
     ...mapActions({listBanks: 'listBanks'}),
     updateBanks() {
       this.listBanks().then(req => this.availableBanks = req.data)
-          .catch(err => console.log(err)) // TODO: handle errors correctly
-    },
+          .catch(err => handleError(this.$bvToast, 'Cannot list banks',
+              `Cause: ${err.response.data.message}`))
+    }
   },
   created() {
     this.updateBanks()

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-navbar toggleable="lg" type="dark" variant="dark" class="mb-1">
+    <b-navbar toggleable="lg" type="dark" variant="dark" class="mb-5">
       <b-navbar-brand>
         <router-link to="/">Butterfly annotator</router-link>
       </b-navbar-brand>
@@ -27,9 +27,7 @@
             <template #button-content>
               <em>{{ username() }}</em>
             </template>
-            <!-- <router-link to="/profile"> -->
-              <b-dropdown-item @click="goProfile()">Profile</b-dropdown-item>
-            <!-- </router-link> -->
+            <b-dropdown-item @click="redirectToProfile()">Profile</b-dropdown-item>
             <b-dropdown-item @click="logout()">Sign Out</b-dropdown-item>
           </b-nav-item-dropdown>
         </b-navbar-nav>
@@ -66,7 +64,6 @@ nav li a, .navbar-brand a {
 .dropdown-menu li {
   color: red !important;
 }
-
 </style>
 
 <script>
@@ -86,9 +83,9 @@ export default {
     username() {
       return this.isLoggedIn ? this.user.username : ''
     },
-    goProfile() {
-      this.$router.push('/profile')
-    }
+    redirectToProfile() {
+      this.$router.push({ path: '/settings' })
+    },
   },
 }
 </script>
