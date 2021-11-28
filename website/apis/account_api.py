@@ -54,13 +54,8 @@ def login():
     user = db.session.query(User).filter(User.username == username).first()
     if user is not None:
         if bcrypt.check_password_hash(user.password_hash, password):
-<<<<<<< HEAD
-            login_user(user)
-            return jsonify({"username": user.username, "email": user.email, "avatar": user.avatar_name})
-=======
             login_user(user, remember=True)
             return get_default_data(current_user)
->>>>>>> develop
         else:
             return jsonify({'message': 'Incorrect password'}), HTTPStatus.UNAUTHORIZED
     else:
