@@ -11,14 +11,15 @@ from ..database.access import db
 from ..database.models import User, BankAccess, ImageToAnnotate, ImageAnnotation, ImageBank
 from ..images.geometry import PolygonalRegion
 from ..images.discovery import default_bank_directory
+from ..textproc.proc import get_keywords
 
 basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
 
 
-TERM_LIST_PATH = 'termlist'
-ADJ_LIST_PATH = 'termlist/adjlist.txt'
-PATTERN_LIST_PATH = 'termlist/patternlist.txt'
+ADJ_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'adjlist.txt')
+COLOR_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'colorlist.txt')
+PATTERN_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'patternlist.txt')
 
 
 bank_access_levels = {
@@ -30,22 +31,22 @@ bank_access_levels = {
 }
 
 
+def load_word_list(p):
+    """
+    Loads a list of provided words.
+    """
+    ls = []
+    if os.path.isfile(p):
+        with open(p, 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                ls.append(line.strip().lower())
+    return ls
+
+
 # lists of words for the automatic suggestions
-adj_list = []
-pattern_list = []
-# get path of provided dictionaries for adjs and patterns
-adj_list_path = os.path.join(ADJ_LIST_PATH)
-pattern_list_path = os.path.join(PATTERN_LIST_PATH)
-if os.path.isfile(adj_list_path):
-    with open(adj_list_path, 'r') as file:
-        lines = file.readlines()
-        for line in lines:
-            adj_list.append(line.strip().lower())
-if os.path.isfile(pattern_list_path):
-    with open(pattern_list_path, 'r') as file:
-        lines = file.readlines()
-        for line in lines:
-            pattern_list.append(line.strip().lower())
+adj_list = load_word_list(ADJ_LIST_PATH) + load_word_list(COLOR_LIST_PATH)
+pattern_list = load_word_list(PATTERN_LIST_PATH)
 
 
 def gen_annotation_array(image):
@@ -91,7 +92,7 @@ def get_bank_access_level(user, bank_id):
     return bank_access[0] if bank_access else None
 
 
-def get_keywords(description):
+def get_keywords_(description):
     """
     Returns a list of indices of the auto suggested keywords for
     annotation using the dictionaries provided.
@@ -103,6 +104,14 @@ def get_keywords(description):
     end_index = -1
     for raw_word in words:
         word = raw_word.strip().lower()
+        # terminal punctuation behaviour (ends proposition); we do not include long
+        # dashes, because of their typographical inconsistencies (spaces before/after and
+        # ambiguity with just a dash within a word)
+        term_punct = word.endswith(';') or word.endswith('.') or word.endswith('!')
+        other_punct = word.endswith(',')
+        if term_punct or other_punct:
+            # remove the punctuation to match words
+            word = word[:-1]
         if word in adj_list:
             start_index = description.find(word, start_index + len(word))
         elif word in pattern_list:
@@ -310,7 +319,6 @@ def get_image_data(image_id):
         .order_by(desc(ImageToAnnotate.id))\
         .first()
     # auto suggested keywords for annotation
-    keywords = get_keywords(image.description)
     return jsonify({
         'id': image.id,
         'bankId': image.image_bank.id,
@@ -333,7 +341,7 @@ def get_image_data(image_id):
             for annotation in image.annotations
         ],
         # provide suggestions if the annotations list is empty
-        'suggestions': get_keywords(image.description) if not image.annotations else '',
+        'suggestions': get_keywords(adj_list, pattern_list, image.description) if not image.annotations else '',
     })
 
 

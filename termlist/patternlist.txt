@@ -32,3 +32,5 @@ banding
 dotting
 squares
 triangles
+centers
+cast
