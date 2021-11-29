@@ -12,7 +12,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(80), unique=True)
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String())
-    has_profile_picture = db.Column(db.Boolean)
+    # has_profile_picture = db.Column(db.Boolean)
 
     accesses = relationship('BankAccess', back_populates='user')
     annotations = relationship('ImageAnnotation', back_populates='author')

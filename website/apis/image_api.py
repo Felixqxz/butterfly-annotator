@@ -20,7 +20,7 @@ image_api = Blueprint('image_api', __name__)
 ADJ_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'adjlist.txt')
 COLOR_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'colorlist.txt')
 PATTERN_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'patternlist.txt')
-
+USER_KEYWORDS_SELECTION_PATH = os.path.join(os.getcwd(), 'termlist', 'user_keywords_selection.txt')
 
 bank_access_levels = {
     'super-admin': 100,  # reserved: one such account per app instance
@@ -48,7 +48,6 @@ def load_word_list(p):
 adj_list = load_word_list(ADJ_LIST_PATH) + load_word_list(COLOR_LIST_PATH)
 pattern_list = load_word_list(PATTERN_LIST_PATH)
 
-
 def gen_annotation_array(image):
     return [
         {
@@ -61,6 +60,19 @@ def gen_annotation_array(image):
         } for annotation in image.annotations
     ]
 
+# save user keywords selection to user_keywords_selection.txt
+def save_user_keywords_selection(description, start, end):
+    path = USER_KEYWORDS_SELECTION_PATH
+    if os.path.isfile(path):
+        ls = []
+        with open(path, 'r') as file:
+            words = description[start:end]
+            lines = file.readlines()
+            for line in lines:
+                ls.append(line.strip().lower())
+            if words not in ls:
+                with open(path, 'a') as file:
+                    file.write(words + '\n')
 
 def can_access_bank(bank, user, access_level='viewer'):
     """
@@ -251,6 +263,9 @@ def insert_annotations():
                 a = ImageAnnotation(image.id, start, end, region.sql_serialize_region(), current_user.get_id())
                 db.session.add(a)
                 ids.append(a.id)
+
+                # save annotations to user_keyword_selection file
+                save_user_keywords_selection(image.description, start, end)
             else:
                 existing_annotation = db.session.query(ImageAnnotation)\
                     .filter(ImageAnnotation.id == annotation['id']).first()

@@ -389,6 +389,7 @@ export default {
           }
         }
       })
+      console.log(annotations)
       const t = this
       this.sendAnnotations({
         data: {
