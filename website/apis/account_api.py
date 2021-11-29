@@ -108,8 +108,8 @@ def get_profile_picture(username):
     if user.has_profile_picture:
         location = os.path.join(avatars_dir, user.username + '.jpg')
         return send_file(location, mimetype='image/jpeg')
-    # not an error, just no picture!
-    return jsonify({'message': 'no profile picture'})
+    # send default picture
+    return send_file(os.path.join(avatars_dir, 'nopic.jpg'), mimetype='image/jpeg')
 
 
 @account_api.route('/api/user-info/<username>', methods=['GET'])

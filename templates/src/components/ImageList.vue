@@ -33,6 +33,10 @@
                   <img :src="$hostname + '/api/' + image.url" class="card-img-top image-hover image-in-place"
                        :style="'animation-delay:' + Math.floor(index / 3) * 100 + 'ms'"
                        :alt=image.id />
+                  <div v-if="Boolean(image.lastEditor)" 
+                    class="last-editor" 
+                    :style="'background-image: url(' + $hostname + '/api/profile-picture/' + image.lastEditor.username + ')'"
+                    v-tippy="{content: `<em>${image.lastEditor.username}</em> last annotated this`, arrow: true, arrowType: 'round', theme: 'google'}"/>
                 </div>
                 <b-card-body class="row justify-content-between align-items-center">
                   <b-col cols="12">
@@ -237,9 +241,11 @@ export default {
   object-fit: cover;
   max-width:100%;
   max-height:100%;
+  z-index: -1;
 }
 
 .image-hover-container {
+  position: relative;
   overflow: hidden;
   height: 12em;
 }
@@ -265,5 +271,18 @@ export default {
   padding-top: 0.2rem;
   padding-left: 0.3rem;
   padding-right: 0.3rem;
+}
+
+.last-editor {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  width: 3em;
+  height: 3em;
+  border-radius: 100%;
+  background-position: center;
+  background-size: cover;
+  margin: 1em;
 }
 </style>

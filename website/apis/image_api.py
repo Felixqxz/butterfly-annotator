@@ -197,6 +197,9 @@ def list_images(bank_id):
                 'id': image.id,
                 'url': 'image-serve/' + image.file_url,
                 'fullDescription': image.description,
+                'lastEditor': {
+                    'username': image.annotations[0].author.username,
+                } if image.annotations else '',
             } for image in banks_dict[bank_id].images
         ]}
 
