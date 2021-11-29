@@ -25,13 +25,12 @@
           </b-row>
         </form>
         <b-row>
-          <b-col md="4" sm="6" xs="12" v-for="(image, index) in imagesToShow" v-bind:key="image.id">
+          <b-col md="4" sm="6" xs="12" v-for="image in imagesToShow" v-bind:key="image.id">
             <router-link :to="'/annotate/' + image.id">
               <!-- no-body to put custom body -->
-              <b-card class="card-hover no-drag image-to-annotate" no-body>
+              <b-card class="card-hover no-drag image-to-annotate fade-in-with-style" no-body>
                 <div class="image-hover-container">
                   <img :src="$hostname + '/api/' + image.url" class="card-img-top image-hover image-in-place"
-                       :style="'animation-delay:' + Math.floor(index / 3) * 100 + 'ms'"
                        :alt=image.id />
                   <div v-if="Boolean(image.lastEditor)" 
                     class="last-editor" 
