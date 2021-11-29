@@ -33,16 +33,16 @@ describe('ImageList.vue', () => {
     expect(wrapper.text()).toContain(pageTitle)
   })
 
-  it('adding banks', () => {
-    let len = wrapper.findAll('availableBanks').length
-    expect(wrapper.findAll('availableBanks')).toHaveLength(len)
+  it('try to add banks', () => {
     wrapper = mount(BankList, {
-      props: {
-        availableBanks: []
+      data() {
+        return {
+          availableBanks: [ {name: 'test1', description: 'test1 bank'}, {name: 'test2', description: 'test2 bank'} ]
+        }
       },
       localVue, 
       store
     })
-    expect(wrapper.findAll('availableBanks')).toHaveLength(0)
+    expect(wrapper.vm.availableBanks).toHaveLength(2)
   })
 })
