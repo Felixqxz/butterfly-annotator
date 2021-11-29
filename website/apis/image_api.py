@@ -92,35 +92,6 @@ def get_bank_access_level(user, bank_id):
     return bank_access[0] if bank_access else None
 
 
-def get_keywords_(description):
-    """
-    Returns a list of indices of the auto suggested keywords for
-    annotation using the dictionaries provided.
-    """
-    keywords = []
-    words = description.split()
-    # find start_index and end_index for keywords or phases
-    start_index = -1
-    end_index = -1
-    for raw_word in words:
-        word = raw_word.strip().lower()
-        # terminal punctuation behaviour (ends proposition); we do not include long
-        # dashes, because of their typographical inconsistencies (spaces before/after and
-        # ambiguity with just a dash within a word)
-        term_punct = word.endswith(';') or word.endswith('.') or word.endswith('!')
-        other_punct = word.endswith(',')
-        if term_punct or other_punct:
-            # remove the punctuation to match words
-            word = word[:-1]
-        if word in adj_list:
-            start_index = description.find(word, start_index + len(word))
-        elif word in pattern_list:
-            end_index = description.find(word, end_index + len(word)) + len(word)
-            if end_index > start_index and start_index not in [pair['start'] for pair in keywords]:
-                keywords.append({'start': start_index, 'end': end_index})
-    return keywords
-
-
 @image_api.route('/api/bank-list', methods=['GET'])
 @login_required
 def list_banks():
