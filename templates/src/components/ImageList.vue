@@ -12,26 +12,23 @@
       <b-tab title="Images" active>
         <form>
           <b-row>
-            <b-col cols="10" class="mt-2">
-              <b-input-group>
+            <b-col cols="12" class="mt-2">
+              <b-input-group @keydown.enter.prevent="">
                 <b-input-group-prepend>
                   <b-input-group-text>
                     <b-icon-search></b-icon-search>
                   </b-input-group-text>
                 </b-input-group-prepend>
-                <input type="text" class="form-control" placeholder="Search..."/>
+                <input type="text" class="form-control" placeholder="Search..." v-model="searchText"/>
               </b-input-group>
-            </b-col>
-            <b-col cols="2">
-              <!-- sort by: + options (dropdown menu?) TODO -->
             </b-col>
           </b-row>
         </form>
         <b-row>
-          <b-col md="4" sm="6" xs="12" v-for="(image, index) in images" v-bind:key="image.id">
+          <b-col md="4" sm="6" xs="12" v-for="(image, index) in imagesToShow" v-bind:key="image.id">
             <router-link :to="'/annotate/' + image.id">
-              <!-- Do not use b-card: it creates automatically a b-card-body tag -->
-              <div class="card card-hover no-drag image-to-annotate">
+              <!-- no-body to put custom body -->
+              <b-card class="card-hover no-drag image-to-annotate" no-body>
                 <div class="image-hover-container">
                   <img :src="$hostname + '/api/' + image.url" class="card-img-top image-hover image-in-place"
                        :style="'animation-delay:' + Math.floor(index / 3) * 100 + 'ms'"
@@ -42,7 +39,7 @@
                     <b-card-text>{{ image.fullDescription.substring(0, 120) }}...</b-card-text>
                   </b-col>
                 </b-card-body>
-              </div>
+              </b-card>
             </router-link>
           </b-col>
         </b-row>
@@ -108,10 +105,19 @@ export default {
       selectedLevel: null,
       permissionOptions: [],
       targetUser: null,
+      searchText: '',
     }
   },
   computed: {
-    ...mapGetters({ userInfo: 'currentUser' })
+    ...mapGetters({ userInfo: 'currentUser' }),
+    imagesToShow() {
+      const search = this.searchText.trim()
+      if (search) {
+        return this.images.filter(image => image.fullDescription.toLowerCase().includes(search.toLowerCase()))
+      } else {
+        return this.images
+      }
+    },
   },
   methods: {
     ...mapActions({
@@ -155,14 +161,14 @@ export default {
     },
     fetchImageList() {
       this.listImages({bankId: this.$route.params.bankId})
-          .then(res => {
-            let data = res.data
-            this.images = data.images
-            this.bankName = data.bankName
-          })
-          .catch(err => {
-            handleError(this.$bvToast, 'Cannot load image list', `Cause ${err.response.data.message}`)
-          })
+        .then(res => {
+          let data = res.data
+          this.images = data.images
+          this.bankName = data.bankName
+        })
+        .catch(err => {
+          handleError(this.$bvToast, 'Cannot load image list', `Cause ${err.response.data.message}`)
+        })
     },
     relistAccesses() {
       this.listAccesses({bankId: this.$route.params.bankId}).then(res => {
