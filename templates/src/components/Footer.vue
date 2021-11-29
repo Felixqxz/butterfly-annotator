@@ -1,6 +1,6 @@
 <template>
   <footer id="footer" class="small mdb-color pt-4">
-    <p class="text-center">&copy; 2021 Copyright: butterfly-annotator</p>
+    <p class="text-center no-drag">&copy; 2021 Copyright: butterfly-annotator</p>
   </footer>
 </template>
 
