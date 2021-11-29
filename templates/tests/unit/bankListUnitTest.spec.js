@@ -12,25 +12,37 @@ localVue.use(Vuex)
 describe('ImageList.vue', () => {
   let actions
   let store
+  let wrapper
 
   beforeEach(() => {
     actions = {
       listBanks: jest.fn(),
-      // actionInput: jest.fn()
     }
     store = new Vuex.Store({
       modules: {
         BankList: {
-          // state: { books: null },
           actions
         }
       }
     })
+    wrapper = shallowMount(BankList, { localVue, store })
   })
 
   it('check title exist', () => {
     const pageTitle = 'Your banks'
-    const wrapper = shallowMount(BankList, { localVue, store })
     expect(wrapper.text()).toContain(pageTitle)
+  })
+
+  it('adding banks', () => {
+    let len = wrapper.findAll('availableBanks').length
+    expect(wrapper.findAll('availableBanks')).toHaveLength(len)
+    wrapper = mount(BankList, {
+      props: {
+        availableBanks: []
+      },
+      localVue, 
+      store
+    })
+    expect(wrapper.findAll('availableBanks')).toHaveLength(0)
   })
 })
