@@ -106,6 +106,7 @@ import P5 from 'p5'
 import { tippy } from 'vue-tippy'
 
 import DescriptionBit from './DescriptionBit'
+import handleError from '../errors/handler'
 
 /**
  * Represents a polygon on the image to annotate.
@@ -400,7 +401,7 @@ export default {
           const annot = t.imageData.annotations[i]
           annot.id = res.data.ids[i]
         }
-      })
+      }).catch(e => handleError(this.$bvToast, 'Could not save annotations', `Cause: ${e.response.data.message}`))
     },
     descriptionIndices(text) {
       const start = this.imageData.description.indexOf(text) // TODO: what if beginning trimmed?
