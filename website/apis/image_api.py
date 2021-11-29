@@ -11,9 +11,15 @@ from ..database.access import db
 from ..database.models import User, BankAccess, ImageToAnnotate, ImageAnnotation, ImageBank
 from ..images.geometry import PolygonalRegion
 from ..images.discovery import default_bank_directory
+from ..textproc.proc import get_keywords
 
 basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
+
+
+ADJ_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'adjlist.txt')
+COLOR_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'colorlist.txt')
+PATTERN_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'patternlist.txt')
 
 
 bank_access_levels = {
@@ -23,6 +29,24 @@ bank_access_levels = {
     'editor': 50,  # only allows to annotate
     'viewer': 0,
 }
+
+
+def load_word_list(p):
+    """
+    Loads a list of provided words.
+    """
+    ls = []
+    if os.path.isfile(p):
+        with open(p, 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                ls.append(line.strip().lower())
+    return ls
+
+
+# lists of words for the automatic suggestions
+adj_list = load_word_list(ADJ_LIST_PATH) + load_word_list(COLOR_LIST_PATH)
+pattern_list = load_word_list(PATTERN_LIST_PATH)
 
 
 def gen_annotation_array(image):
@@ -265,6 +289,7 @@ def get_image_data(image_id):
                      ImageToAnnotate.id < image.id))\
         .order_by(desc(ImageToAnnotate.id))\
         .first()
+    # auto suggested keywords for annotation
     return jsonify({
         'id': image.id,
         'bankId': image.image_bank.id,
@@ -285,7 +310,9 @@ def get_image_data(image_id):
                 'author': annotation.author.username,
             }
             for annotation in image.annotations
-        ]
+        ],
+        # provide suggestions if the annotations list is empty
+        'suggestions': get_keywords(adj_list, pattern_list, image.description) if not image.annotations else '',
     })
 
 

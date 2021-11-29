@@ -52,5 +52,10 @@ export default new Router({
       name: 'Profile',
       component: Profile,
     },
+    {
+      path: '/profile',
+      name: 'Profile',
+      component: Profile,
+    }
   ],
 })

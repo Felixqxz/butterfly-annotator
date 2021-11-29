@@ -6,6 +6,7 @@ from flask_bcrypt import Bcrypt
 from http import HTTPStatus
 from ..database.models import User
 from ..database.access import db
+import os
 
 account_api = Blueprint('account_api', __name__)
 bcrypt = Bcrypt(current_app)
@@ -34,6 +35,7 @@ def register():
     else:
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=password_hash)
+        user.avatar_name = ""
         db.session.add(user)
         db.session.commit()
         login_user(user, remember=True)

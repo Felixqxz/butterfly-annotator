@@ -40,6 +40,8 @@ def create_app(config_name='default'):
     # Add routes
     from .apis.image_api import image_api
     app.register_blueprint(image_api)
+    from .apis.profile_api import profile_api
+    app.register_blueprint(profile_api)
     with app.app_context():
         from .apis.account_api import account_api
         app.register_blueprint(account_api)

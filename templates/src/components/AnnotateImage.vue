@@ -82,7 +82,8 @@
             <span v-for="bit in createChunks()" v-bind:key="bit.start">
               <description-bit v-if="bit.selected" :text="bit.text" 
                 :start-index="bit.start" :click-handler="handleBitClick"
-                :author="bit.author"></description-bit>
+                :author="bit.author"
+                :suggested="bit.suggested"></description-bit>
               <span v-else>{{ bit.text }}</span>
             </span>
           </p>
@@ -335,7 +336,8 @@ export default {
           text: this.imageData.description.substring(bit.start, bit.end), 
           selected: true, 
           start: bit.start, 
-          author: bit.annotation ? bit.annotation.author : ''
+          author: bit.annotation ? bit.annotation.author : '',
+          suggested: bit.suggested,
         })
         previousEnd = bit.end
       }
@@ -870,7 +872,14 @@ export default {
           this.selectedBits.push({start: annotation.description.start, end: annotation.description.end, annotation})
           this.availablePolygons.push(polygon)
         })
+        // no annotations, take suggestions
+        if (!this.imageData.annotations || this.imageData.annotations.length === 0) {
+          this.imageData.suggestions.forEach(suggestion => {
+            this.selectedBits.push({start: suggestion.start, end: suggestion.end, suggested: true})
+          })
+        }
         this.selectedBits.sort((b, a) => b.start - a.start)
+        // finally, load the P5 canvas
         const p5canvas = new P5(script, 'canvas')
       })
     },
