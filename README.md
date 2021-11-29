@@ -1,12 +1,10 @@
-# butterfly annotator
-## Stack
-- Python 3.8
-- Good Ol' Javascript
-- [W3CSS](https://www.w3schools.com/w3css) for simple styling
-- [SQLite](https://www.sqlite.org/index.html) for in memory data storage
+# Butterfly Annotator
+## Welcome!
+Welcome to Butterfly Annotator. Below, in this file, you will find instructions to be able to run application on your own machine. If you want more information on how to use the program, open `USE.md` (located at the same level as this file). *This file does not explain how to setup the software for you data either*---if you are looking for that, go to `USE.md` as well.
 
-## Pre
-Make sure you have Python3.8 on your machine.
+## Stack
+- Python 3 with [Flask](https://flask.palletsprojects.com/en/2.0.x/) and [SQLAlchemy](https://www.sqlalchemy.org/) (running on a local SQLite database);
+- [Vue](https://vuejs.org/) with [Bootstrap-Vue](https://bootstrap-vue.org/).
 
 ## Running the app
 To run the app:
@@ -19,7 +17,4 @@ flask create_all # Create database and tables inside it, you should see a test.d
 flask populate   # Populate tables with some initial data //haven't been deployed yet
 flask run        # Spin the server
 ```
-You can now browse to <http://localhost:5000> and see the app live.
-
-## for future commits
-anything from webgl, add build and template data under static/, rename index to gallery and puth under templates/
+You can now browse to <http://localhost:8080> and see the app live.
