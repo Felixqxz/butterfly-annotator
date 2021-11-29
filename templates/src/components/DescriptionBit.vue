@@ -1,8 +1,8 @@
 <template>
   <b-badge
-    :content="author ? `<em>${author}</em> has used this bit of description` : 'This description bit is not assigned'"
+    :content="tooltipContent"
     v-tippy="{arrow: true, arrowType: 'round', theme: 'google'}" 
-    class="no-drag" variant="primary">{{ text }}<b-icon-x-circle-fill size="sm" class="rem-button" @click="clickHandler(startIndex)" pill></b-icon-x-circle-fill></b-badge>
+    class="no-drag" :variant="badgeVariant">{{ text }}<b-icon-x-circle-fill size="sm" class="rem-button" @click="clickHandler(startIndex)" pill></b-icon-x-circle-fill></b-badge>
 </template>
 
 <script>
@@ -25,7 +25,37 @@ export default {
       type: String,
       required: false,
     },
+    suggested: {
+      type: Boolean,
+      required: false,
+    }
   },
+  computed: {
+    badgeVariant() {
+      // author is present <=> bit assigned 
+      if (this.author) {
+        return "primary"
+      }
+
+      if (this.suggested) {
+        return "secondary" 
+      }
+
+      // not assigned, not suggested
+      return "warning"
+    },
+    tooltipContent() {
+      if (this.author) {
+        return `<em>${this.author}</em> has used this bit of description`
+      }
+      
+      if (this.suggested) {
+        return 'This is an automatic suggestion'
+      }
+
+      return 'This description bit is not assigned'
+    },
+  }
 }
 </script>
 

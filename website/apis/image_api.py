@@ -15,9 +15,11 @@ from ..images.discovery import default_bank_directory
 basedir = os.path.abspath(os.path.dirname(__name__))
 image_api = Blueprint('image_api', __name__)
 
+
 TERM_LIST_PATH = 'termlist'
 ADJ_LIST_PATH = 'termlist/adjlist.txt'
 PATTERN_LIST_PATH = 'termlist/patternlist.txt'
+
 
 bank_access_levels = {
     'super-admin': 100,  # reserved: one such account per app instance
@@ -26,6 +28,24 @@ bank_access_levels = {
     'editor': 50,  # only allows to annotate
     'viewer': 0,
 }
+
+
+# lists of words for the automatic suggestions
+adj_list = []
+pattern_list = []
+# get path of provided dictionaries for adjs and patterns
+adj_list_path = os.path.join(ADJ_LIST_PATH)
+pattern_list_path = os.path.join(PATTERN_LIST_PATH)
+if os.path.isfile(adj_list_path):
+    with open(adj_list_path, 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            adj_list.append(line.strip().lower())
+if os.path.isfile(pattern_list_path):
+    with open(pattern_list_path, 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            pattern_list.append(line.strip().lower())
 
 
 def gen_annotation_array(image):
@@ -70,40 +90,25 @@ def get_bank_access_level(user, bank_id):
         if access.bank_id == bank_id]
     return bank_access[0] if bank_access else None
 
+
 def get_keywords(description):
     """
     Returns a list of indices of the auto suggested keywords for
     annotation using the dictionaries provided.
     """
-    # fourth line of the file is always the description.
-    words = description.split()
-    adj_list = []
-    pattern_list = []
     keywords = []
-    # get path of provided dictionaries for adjs and patterns
-    adj_list_path = os.path.join(ADJ_LIST_PATH)
-    pattern_list_path = os.path.join(PATTERN_LIST_PATH)
-    if os.path.isfile(adj_list_path):
-        with open(adj_list_path, 'r') as file:
-            lines = file.readlines()
-            for line in lines:
-                adj_list.append(line.rstrip())
-    if os.path.isfile(pattern_list_path):
-        with open(pattern_list_path, 'r') as file:
-            lines = file.readlines()
-            for line in lines:
-                pattern_list.append(line.rstrip())
+    words = description.split()
     # find start_index and end_index for keywords or phases
     start_index = -1
     end_index = -1
-    for word in words:
+    for raw_word in words:
+        word = raw_word.strip().lower()
         if word in adj_list:
-            start_index = description.find(word, start_index+len(word))
-        if word in pattern_list:
-            end_index = description.find(word, end_index+len(word)) + len(word)
-            if end_index > start_index and start_index not in [pair[0] for pair in keywords]:
-                pair = [start_index, end_index]
-                keywords.append(pair)
+            start_index = description.find(word, start_index + len(word))
+        elif word in pattern_list:
+            end_index = description.find(word, end_index + len(word)) + len(word)
+            if end_index > start_index and start_index not in [pair['start'] for pair in keywords]:
+                keywords.append({'start': start_index, 'end': end_index})
     return keywords
 
 
@@ -327,7 +332,8 @@ def get_image_data(image_id):
             }
             for annotation in image.annotations
         ],
-        'keywords': keywords,
+        # provide suggestions if the annotations list is empty
+        'suggestions': get_keywords(image.description) if not image.annotations else '',
     })
 
 
