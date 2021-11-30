@@ -1,62 +1,75 @@
-import { createLocalVue, mount } from '@vue/test-utils'
+import { createLocalVue, mount, shallowMount } from '@vue/test-utils'
 import Header from '../../src/components/Header.vue'
 import BootstrapVue, { BDropdownItem, BFormInput } from 'bootstrap-vue';
 import Vuex from 'vuex'
-import {getters} from '../../src/store/auth';
-import {render, fireEvent} from '@testing-library/vue'
+import { render, fireEvent } from '@testing-library/vue'
+import VueRouter from 'vue-router'
+import router from "../../src/router/index.js"
 
 const localVue = createLocalVue()
 localVue.use(Vuex)
 localVue.use(BootstrapVue)
+localVue.use(VueRouter)
 
-const store = new Vuex.Store({
-    getters: getters
+describe('Header.vue', () => {
+  let getters
+  let store
+  let actions
+
+  actions = {
+    logOut: jest.fn()
+  }
+
+  getters = {
+    user: () => {
+      return {
+        username: 'zba',
+        email: 'bz2818@ic.ac.uk'
+      }
+    },
+    isLoggedIn: () => true
+  }
+  
+  store = new Vuex.Store({
+    // state: {
+    //   todos: [
+    //     { username: 'zba', email: 'bz2818@ic.ac.uk' },
+    //   ]
+    // },
+    getters: {
+      // currentUser: state => {
+      //   return state.todos[0]
+      // }
+      currentUser: () => {
+        return { username: 'zba', email: 'bz2818@ic.ac.uk' }
+      },
+      isLoggedIn: () => {
+        return true
+      }
+    },
+    actions
   })
 
+  it('increments value on click', async () => {
+    // The render method returns a collection of utilities to query your component.
+    const {getByText} = render(Header, {
+      localVue,
+      store,
+      router
+    })
 
+    const wrapper = shallowMount(Header, {
+        localVue,
+        store,
+        router
+      })
 
-// it('trigger demo', () => {
-//   const onClick = jest.fn(),
-//   wrapper = mount(Header, {
-//     localVue,
-//     store,
-//     listeners: {
-//       click: onClick
-//     },
-//     stubs: {
-//       // used to register custom components
-//       'b-form-input': BFormInput,
-//       'b-dropdown-item': BDropdownItem,
-//     },
-//   })
-  // expect(wrapper.attributes().id).toBe('foo')
-  // expect(wrapper.attributes('id')).toBe('foo')
+    const button = getByText('Profile')
+    await fireEvent.click(button)
+    console.log('route :', router.currentRoute)
 
-  // const buttonArray = wrapper.attributes('onclick')
-    // const buttonArray = wrapper.attributes().id
-  // const buttonArray = wrapper.get(id = "bdrop1")
-  // buttonArray.trigger('click')
-  // expect(onClick).toHaveBeenCalled()
-//   console.log("-------------------", buttonArray)
-// })
-
-
-test('increments value on click', async () => {
-  // The render method returns a collection of utilities to query your component.
-  const {getByText} = render(Header, {
-    localVue,
-    store,
+    const button2 = getByText('Sign Out')
+    await fireEvent.click(button2)
+    console.log('new route :', router.currentRoute)
   })
-
-  // getByText returns the first matching node for the provided text, and
-  // throws an error if no elements match or if more than one match is found.
-
-  const button = getByText('Profile')
-  console.log(button)
-  // Dispatch a native click event to our button element.
-  await fireEvent.click(button)
-  // await fireEvent.click(button)
-
-  // getByText('Times clicked: 2')
 })
-
