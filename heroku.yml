@@ -3,4 +3,4 @@
 build:
   docker:
     web: Dockerfile
-    web: templates/Dockerfile
+    run: templates/Dockerfile

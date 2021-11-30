@@ -26,3 +26,5 @@ deploy-heroku:
     - apt-get install -y ruby-dev
     - gem install dpl
     - dpl --provider=heroku --app=butterfly-annotator --api-key=02853a5b-551b-48df-a9a5-e101533f2b85
+    - dpl --provider=heroku --app=butterfly-annotator-frontend --api-key=e81a1d8f-41f9-421f-9cd4-78390d81123b
+
