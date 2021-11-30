@@ -12,8 +12,10 @@ import VueTippy, { TippyComponent } from 'vue-tippy'
 import 'tippy.js/themes/google.css'
 
 axios.defaults.withCredentials = true
-axios.defaults.baseURL = 'http://localhost:' + (process.env.PORT ? process.env.PORT : '5000')
-Vue.prototype.$hostname = 'http://localhost:' + (process.env.PORT ? process.env.PORT : '5000')
+// axios.defaults.baseURL = 'http://localhost:' + (process.env.PORT ? process.env.PORT : '5000')
+// Vue.prototype.$hostname = 'http://localhost:' + (process.env.PORT ? process.env.PORT : '5000')
+axios.defaults.baseURL = 'https://butterfly-annotator.herokuapp.com/:' + (process.env.PORT ? process.env.PORT : '5000')
+Vue.prototype.$hostname = 'https://butterfly-annotator.herokuapp.com/:' + (process.env.PORT ? process.env.PORT : '5000')
 Vue.use(BootstrapVue)
 Vue.use(BootstrapVueIcons)
 Vue.use(VeeValidate, {

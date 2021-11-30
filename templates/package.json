@@ -26,6 +26,7 @@
   "devDependencies": {
     "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.16.4",
+    "@testing-library/vue": "^5.8.2",
     "@vue/cli-plugin-babel": "^3.3.0",
     "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-plugin-unit-jest": "~4.5.0",
@@ -44,10 +45,15 @@
       "^@/(.*)$": "<rootDir>/src/$1"
     },
     "collectCoverage": true,
-    "collectCoverageFrom": ["**/*.{js,vue}", "!**/node_modules/**"]
+    "collectCoverageFrom": [
+      "**/*.{js,vue}",
+      "!**/node_modules/**"
+    ]
   },
   "babel": {
-    "presets": ["@babel/preset-env"]
+    "presets": [
+      "@babel/preset-env"
+    ]
   },
   "browserslist": [
     "> 1%",
@@ -55,4 +61,3 @@
     "not dead"
   ]
 }
-
