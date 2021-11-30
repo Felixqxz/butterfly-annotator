@@ -18,8 +18,8 @@ stages:
   
 
 deploy-heroku:
-  only:
-    - master
+  # only:
+  #   - master
   stage: deploy
   script:
     - apt-get update -qy
