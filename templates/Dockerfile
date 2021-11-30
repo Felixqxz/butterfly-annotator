@@ -7,5 +7,7 @@ COPY . /templates
 
 WORKDIR /templates
 
-RUN npm install --production
+RUN rm -rf node_modules
+RUN npm install @vue/cli-service
+RUN npm install 
 CMD npm run serve

@@ -1,0 +1,5 @@
+#!/bin/bash
+cd ../templates
+npm install @vue/cli-service
+npm install 
+npm run serve
