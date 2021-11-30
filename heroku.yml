@@ -2,5 +2,5 @@
 # for heroku
 build:
   docker:
-    web: Dockerfile
+    # web: Dockerfile
     run: templates/Dockerfile
