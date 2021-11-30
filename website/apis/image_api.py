@@ -63,7 +63,6 @@ def gen_annotation_array(image):
 def save_user_keywords_selection(description, image_bank_id, start, end):
 
     words = description[start:end].lower()
-    print(words)
     keyword = db.session.query(UserSelectedKeyword).filter(UserSelectedKeyword.image_bank_id == image_bank_id, UserSelectedKeyword.keyword == words).first()
     if not keyword:
         user_selected_keyword = UserSelectedKeyword(image_bank_id=image_bank_id, keyword=words)

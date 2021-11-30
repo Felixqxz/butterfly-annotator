@@ -34,7 +34,7 @@ def get_keywords(adjectives, patterns, description, image_bank_id):
     word = None
     start_index = -1
     i = 0
-    
+
     user_keywords_list = db.session.query(UserSelectedKeyword).filter(UserSelectedKeyword.image_bank_id == image_bank_id).all()
     
     for user_keyword in user_keywords_list:
@@ -44,7 +44,6 @@ def get_keywords(adjectives, patterns, description, image_bank_id):
             end_index = start_index + len(user_keyword)
             add_keywords(start_index, end_index, user_keywords, user_keywords)
 
-    print(user_keywords)
     start_index = -1
     while i < len(description):
         curr = description[i]
@@ -68,5 +67,4 @@ def get_keywords(adjectives, patterns, description, image_bank_id):
         else:
             i += 1
     all_keywords = user_keywords + keywords
-    print(keywords)
     return all_keywords
