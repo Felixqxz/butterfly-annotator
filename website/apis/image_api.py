@@ -65,14 +65,15 @@ def save_user_keywords_selection(description, start, end):
     path = USER_KEYWORDS_SELECTION_PATH
     if os.path.isfile(path):
         ls = []
-        with open(path, 'r') as file:
-            words = description[start:end]
+        with open(path, 'r+') as file:
+            words = description[start:end].lower()
             lines = file.readlines()
             for line in lines:
                 ls.append(line.strip().lower())
+            print(ls)
             if words not in ls:
-                with open(path, 'a') as file:
-                    file.write(words + '\n')
+                file.write(words)
+                file.write('\n')
 
 def can_access_bank(bank, user, access_level='viewer'):
     """

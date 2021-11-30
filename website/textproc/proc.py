@@ -1,4 +1,4 @@
-from itertools import takewhile
+from itertools import permutations, takewhile
 
 import os
 
@@ -25,9 +25,18 @@ def get_keywords(adjectives, patterns, description):
     start_index = -1
     i = 0
     for user_keyword in user_keywords_list:
-        start_index = description.find(user_keyword)
+        print(user_keyword)
+        start_index = description.lower().find(user_keyword)
         if start_index != -1:
-            user_keywords.append({'start': start_index, 'end': start_index + len(user_keyword)})
+            not_in_bound = True
+            end_index = start_index + len(user_keyword)
+            for keyword in user_keywords:
+                if start_index >= keyword['start'] and start_index <= keyword['end'] or \
+                    end_index >= keyword['start'] and end_index <= keyword['end']:
+                    not_in_bound = False
+                    break
+            if not_in_bound:
+                user_keywords.append({'start': start_index, 'end': end_index})
 
     start_index = -1
     while i < len(description):
@@ -41,9 +50,9 @@ def get_keywords(adjectives, patterns, description):
             elif word in patterns and start_index != -1:
                 not_in_bound = True
                 end_index = i + len(word)
-                for user_keyword in user_keywords:
-                    if start_index >= user_keyword['start'] and start_index <= user_keyword['end'] or \
-                        end_index >= user_keyword['start'] and end_index <= user_keyword['end']:
+                for keyword in user_keywords:
+                    if start_index >= keyword['start'] and start_index <= keyword['end'] or \
+                        end_index >= keyword['start'] and end_index <= keyword['end']:
                         not_in_bound = False
                         break
                 
@@ -55,9 +64,9 @@ def get_keywords(adjectives, patterns, description):
             # termination!
             not_in_bound = True
             end_index = i
-            for user_keyword in user_keywords:
-                if start_index >= user_keyword['start'] and start_index <= user_keyword['end'] or \
-                    end_index >= user_keyword['start'] and end_index <= user_keyword['end']:
+            for keyword in user_keywords:
+                if start_index >= keyword['start'] and start_index <= keyword['end'] or \
+                    end_index >= keyword['start'] and end_index <= keyword['end']:
                     not_in_bound = False
                     break
             if not_in_bound:
@@ -66,4 +75,6 @@ def get_keywords(adjectives, patterns, description):
             i += 1
         else:
             i += 1
+    print(user_keywords)
+    print(keywords)
     return user_keywords + keywords
