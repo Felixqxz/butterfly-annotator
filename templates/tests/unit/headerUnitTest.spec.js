@@ -1,6 +1,5 @@
-import { createLocalVue, mount, shallowMount } from '@vue/test-utils'
+import { createLocalVue, mount } from '@vue/test-utils'
 import Header from '../../src/components/Header.vue'
-import BootstrapVue, { BDropdownItem, BFormInput } from 'bootstrap-vue';
 import Vuex from 'vuex'
 import { render, fireEvent } from '@testing-library/vue'
 import VueRouter from 'vue-router'
@@ -8,7 +7,6 @@ import router from "../../src/router/index.js"
 
 const localVue = createLocalVue()
 localVue.use(Vuex)
-localVue.use(BootstrapVue)
 localVue.use(VueRouter)
 
 describe('Header.vue', () => {
@@ -21,32 +19,16 @@ describe('Header.vue', () => {
   }
 
   getters = {
-    user: () => {
-      return {
-        username: 'zba',
-        email: 'bz2818@ic.ac.uk'
-      }
+    currentUser: () => {
+      return { username: 'zba', email: 'bz2818@ic.ac.uk' }
     },
-    isLoggedIn: () => true
+    isLoggedIn: () => {
+      return true
+    }
   }
   
   store = new Vuex.Store({
-    // state: {
-    //   todos: [
-    //     { username: 'zba', email: 'bz2818@ic.ac.uk' },
-    //   ]
-    // },
-    getters: {
-      // currentUser: state => {
-      //   return state.todos[0]
-      // }
-      currentUser: () => {
-        return { username: 'zba', email: 'bz2818@ic.ac.uk' }
-      },
-      isLoggedIn: () => {
-        return true
-      }
-    },
+    getters,
     actions
   })
 
@@ -58,18 +40,23 @@ describe('Header.vue', () => {
       router
     })
 
-    const wrapper = shallowMount(Header, {
+    const wrapper = mount(Header, {
         localVue,
         store,
         router
       })
 
-    const button = getByText('Profile')
-    await fireEvent.click(button)
-    console.log('route :', router.currentRoute)
+    const profileButton = getByText('Profile')
+    const pathAfterClickProfileButton = '/settings'
+    await fireEvent.click(profileButton)
+    // console.log('route :', router.currentRoute.path)
+    expect(router.currentRoute.path).toMatch(pathAfterClickProfileButton)
 
-    const button2 = getByText('Sign Out')
-    await fireEvent.click(button2)
-    console.log('new route :', router.currentRoute)
+    const signOutButton = getByText('Sign Out')
+    const pathAfterClickSignOutButton = '/login'
+    await fireEvent.click(signOutButton)
+    expect(actions.logOut).toHaveBeenCalled()
+    // console.log('new route :', router.currentRoute.path)
+    expect(router.currentRoute.path).toMatch(pathAfterClickSignOutButton)
   })
 })
