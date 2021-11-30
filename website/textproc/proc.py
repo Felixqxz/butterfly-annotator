@@ -2,6 +2,7 @@ from itertools import permutations, takewhile
 
 from website.database.models import UserSelectedKeyword
 from ..database.access import db
+from sqlalchemy import and_
 import os
 
 def load_word_list(p):
@@ -35,7 +36,9 @@ def get_keywords(adjectives, patterns, description, image_bank_id):
     start_index = -1
     i = 0
 
-    user_keywords_list = db.session.query(UserSelectedKeyword).filter(UserSelectedKeyword.image_bank_id == image_bank_id).all()
+    user_keywords_list = db.session.query(UserSelectedKeyword)\
+        .filter(and_(UserSelectedKeyword.image_bank_id == image_bank_id))\
+        .all()
     
     for user_keyword in user_keywords_list:
         user_keyword = user_keyword.keyword
