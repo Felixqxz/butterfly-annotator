@@ -4,10 +4,12 @@ import Header from '../../src/components/Header.vue'
 import Vuex from 'vuex'
 import VueRouter from 'vue-router'
 import router from "../../src/router/index.js"
+import Vue from 'vue'
 
 const localVue = createLocalVue()
 localVue.use(Vuex)
 localVue.use(VueRouter)
+Vue.config.silent = true
 
 describe('Header.vue', () => {
   let getters
