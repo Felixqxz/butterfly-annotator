@@ -56,8 +56,8 @@ def get_keywords(adjectives, patterns, description):
             not_in_bound = True
             end_index = i
             for user_keyword in user_keywords:
-                if start_index >= user_keyword.start and start_index <= user_keyword.end or \
-                    end_index >= user_keyword.start and end_index <= user_keyword.end:
+                if start_index >= user_keyword['start'] and start_index <= user_keyword['end'] or \
+                    end_index >= user_keyword['start'] and end_index <= user_keyword['end']:
                     not_in_bound = False
                     break
             if not_in_bound:
