@@ -5,9 +5,8 @@ python3.8 -m venv venv
 pip install --upgrade pip
 pip install -r requirements.txt
 
-export FLASK_APP=../website/app.py
+export FLASK_APP=./website/app.py
 export FLASK_ENV=development
-export FLASK_RUN_HOST=0.0.0.0
 
 flask drop_all
 flask create_all
