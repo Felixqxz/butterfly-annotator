@@ -1,8 +1,8 @@
 from itertools import permutations, takewhile
 
+from website.database.models import UserSelectedKeyword
+from ..database.access import db
 import os
-
-USER_KEYWORDS_SELECTION_PATH = os.path.join(os.getcwd(), 'termlist', 'user_keywords_selection.txt')
 
 def load_word_list(p):
     """
@@ -28,15 +28,17 @@ def add_keywords(start_index, end_index, user_keywords, keywords):
     if not_in_bound:
         keywords.append({'start': start_index, 'end': end_index})
 
-def get_keywords(adjectives, patterns, description):
+def get_keywords(adjectives, patterns, description, image_bank_id):
     keywords = []
     user_keywords = []
     word = None
     start_index = -1
     i = 0
-    user_keywords_list = load_word_list(USER_KEYWORDS_SELECTION_PATH)
+    
+    user_keywords_list = db.session.query(UserSelectedKeyword).filter(UserSelectedKeyword.image_bank_id == image_bank_id).all()
     
     for user_keyword in user_keywords_list:
+        user_keyword = user_keyword.keyword
         start_index = description.lower().find(user_keyword)
         if start_index != -1:
             end_index = start_index + len(user_keyword)

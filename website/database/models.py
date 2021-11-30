@@ -38,6 +38,7 @@ class ImageBank(db.Model):
 
     images = relationship('ImageToAnnotate', back_populates='image_bank')
     accesses = relationship('BankAccess', back_populates='bank')
+    keywords = relationship('UserSelectedKeyword', back_populates='image_bank')
 
     def __init__(self, bankname, description):
         self.bankname = bankname
@@ -116,3 +117,20 @@ class ImageAnnotation(db.Model):
         self.text_end = text_end
         self.region_info = region_info
         self.author_id = author_id
+
+
+class UserSelectedKeyword(db.Model):
+    """
+    Represents user-selected keywords.
+    """
+    __tablename__ = 'user_keywords'
+
+    id = db.Column(db.Integer, primary_key=True)
+    image_bank_id = db.Column(db.Integer, db.ForeignKey('image_bank.id'))
+    keyword = db.Column(db.String())
+
+    image_bank = relationship('ImageBank', back_populates='keywords')
+
+    def __init__(self, image_bank_id, keyword):
+        self.image_bank_id = image_bank_id
+        self.keyword = keyword

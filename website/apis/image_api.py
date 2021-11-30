@@ -8,7 +8,7 @@ from sqlalchemy import and_, desc
 from http import HTTPStatus
 import os
 from ..database.access import db
-from ..database.models import User, BankAccess, ImageToAnnotate, ImageAnnotation, ImageBank
+from ..database.models import User, BankAccess, ImageToAnnotate, ImageAnnotation, ImageBank, UserSelectedKeyword
 from ..images.geometry import PolygonalRegion
 from ..images.discovery import default_bank_directory
 from ..textproc.proc import get_keywords
@@ -20,7 +20,6 @@ image_api = Blueprint('image_api', __name__)
 ADJ_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'adjlist.txt')
 COLOR_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'colorlist.txt')
 PATTERN_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'patternlist.txt')
-USER_KEYWORDS_SELECTION_PATH = os.path.join(os.getcwd(), 'termlist', 'user_keywords_selection.txt')
 
 bank_access_levels = {
     'super-admin': 100,  # reserved: one such account per app instance
@@ -61,19 +60,15 @@ def gen_annotation_array(image):
     ]
 
 # save user keywords selection to user_keywords_selection.txt
-def save_user_keywords_selection(description, start, end):
-    path = USER_KEYWORDS_SELECTION_PATH
-    if os.path.isfile(path):
-        ls = []
-        with open(path, 'r+') as file:
-            words = description[start:end].lower()
-            lines = file.readlines()
-            for line in lines:
-                ls.append(line.strip().lower())
-            print(ls)
-            if words not in ls:
-                file.write(words)
-                file.write('\n')
+def save_user_keywords_selection(description, image_bank_id, start, end):
+
+    words = description[start:end].lower()
+    print(words)
+    keyword = db.session.query(UserSelectedKeyword).filter(UserSelectedKeyword.image_bank_id == image_bank_id, UserSelectedKeyword.keyword == words).first()
+    if not keyword:
+        user_selected_keyword = UserSelectedKeyword(image_bank_id=image_bank_id, keyword=words)
+        db.session.add(user_selected_keyword)
+        db.session.commit()
 
 def can_access_bank(bank, user, access_level='viewer'):
     """
@@ -266,7 +261,7 @@ def insert_annotations():
                 ids.append(a.id)
 
                 # save annotations to user_keyword_selection file
-                save_user_keywords_selection(image.description, start, end)
+                save_user_keywords_selection(image.description, image.image_bank_id, start, end)
             else:
                 existing_annotation = db.session.query(ImageAnnotation)\
                     .filter(ImageAnnotation.id == annotation['id']).first()
@@ -331,7 +326,7 @@ def get_image_data(image_id):
             for annotation in image.annotations
         ],
         # provide suggestions if the annotations list is empty
-        'suggestions': get_keywords(adj_list, pattern_list, image.description) if not image.annotations else '',
+        'suggestions': get_keywords(adj_list, pattern_list, image.description, image.image_bank_id) if not image.annotations else '',
     })
 
 
