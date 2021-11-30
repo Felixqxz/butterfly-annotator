@@ -8,4 +8,4 @@ COPY . /templates
 WORKDIR /templates
 
 RUN npm install --production
-CMD npm serve
+CMD npm run serve
