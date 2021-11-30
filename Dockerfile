@@ -22,5 +22,5 @@ ENV FLASK_ENV=development
 ENV FLASK_RUN_HOST=0.0.0.0
 
 CMD flask drop_all
-CMD flask_create_all
+CMD flask create_all
 CMD flask run --host=0.0.0.0 --port=${PORT:-5000}
