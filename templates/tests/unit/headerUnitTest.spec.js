@@ -14,22 +14,24 @@ describe('Header.vue', () => {
   let store
   let actions
 
-  actions = {
-    logOut: jest.fn()
-  }
-
-  getters = {
-    currentUser: () => {
-      return { username: 'zba', email: 'bz2818@ic.ac.uk' }
-    },
-    isLoggedIn: () => {
-      return true
+  beforeEach(() => {
+    actions = {
+      logOut: jest.fn()
     }
-  }
   
-  store = new Vuex.Store({
-    getters,
-    actions
+    getters = {
+      currentUser: () => {
+        return { username: 'josiah', email: 'xxx@ic.ac.uk' }
+      },
+      isLoggedIn: () => {
+        return true
+      }
+    }
+    
+    store = new Vuex.Store({
+      getters,
+      actions
+    })
   })
 
   it('test route redirecting after clicking "Profile" button', async () => {
@@ -39,6 +41,7 @@ describe('Header.vue', () => {
       store,
       router
     })
+    // console.log('-----------------------------', getters.currentUser.username)
     const profileButton = getByText('Profile')
     const pathAfterClickProfileButton = '/settings'
     await fireEvent.click(profileButton)
