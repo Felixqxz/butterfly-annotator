@@ -16,11 +16,9 @@ def load_word_list(p):
                 ls.append(line.strip().lower())
     return ls
 
-user_keywords_list = load_word_list(USER_KEYWORDS_SELECTION_PATH)
-user_keywords = []
 
 # add keywords if it is not in the bound of user_keywords_selection list
-def add_keywords(start_index, end_index, keywords):
+def add_keywords(start_index, end_index, user_keywords, keywords):
     not_in_bound = True
     for keyword in user_keywords:
         if start_index >= keyword['start'] and start_index <= keyword['end'] or \
@@ -32,15 +30,19 @@ def add_keywords(start_index, end_index, keywords):
 
 def get_keywords(adjectives, patterns, description):
     keywords = []
+    user_keywords = []
     word = None
     start_index = -1
     i = 0
+    user_keywords_list = load_word_list(USER_KEYWORDS_SELECTION_PATH)
+    
     for user_keyword in user_keywords_list:
         start_index = description.lower().find(user_keyword)
         if start_index != -1:
             end_index = start_index + len(user_keyword)
-            add_keywords(start_index, end_index, user_keywords)
+            add_keywords(start_index, end_index, user_keywords, user_keywords)
 
+    print(user_keywords)
     start_index = -1
     while i < len(description):
         curr = description[i]
@@ -52,16 +54,17 @@ def get_keywords(adjectives, patterns, description):
                 start_index = i
             elif word in patterns and start_index != -1:
                 end_index = i + len(word)
-                add_keywords(start_index, end_index, keywords)
+                add_keywords(start_index, end_index, user_keywords, keywords)
                 start_index = -1
             i += len(word)
         elif (curr == ';' or curr == '.') and start_index != -1:
             # termination!
             end_index = i
-            add_keywords(start_index, end_index, keywords)
+            add_keywords(start_index, end_index, user_keywords, keywords)
             start_index = -1
             i += 1
         else:
             i += 1
     all_keywords = user_keywords + keywords
+    print(keywords)
     return all_keywords
