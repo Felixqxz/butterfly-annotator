@@ -1,4 +1,5 @@
 import { mount, createLocalVue } from '@vue/test-utils'
+import { render, fireEvent } from '@testing-library/vue'
 import Settings from '../../src/components/Settings.vue'
 import Vuex from 'vuex'
 import Vue from 'vue'
@@ -25,8 +26,15 @@ describe('Settings.vue', () => {
   })
 
   it('test getters: {currentUser: currentUser} ', async () => {
+    const {getByText} = render(Settings, {
+      localVue,
+      store
+    })
 
     const userInput = wrapper.find('#username-input')       
+    console.log(userInput.element.id)
+    console.log(userInput.element.value)
+    // await fireEvent.click(userInput)
     expect(userInput.element.value).toBe(store.getters.currentUser.username)
     expect(userInput.element.value).not.toBe(store.getters.currentUser.email)
 

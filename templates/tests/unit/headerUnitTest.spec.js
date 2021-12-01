@@ -43,7 +43,7 @@ describe('Header.vue', () => {
       store,
       router
     })
-    // console.log('-----------------------------', getters.currentUser.username)
+
     const profileButton = getByText('Profile')
     const pathAfterClickProfileButton = '/settings'
     await fireEvent.click(profileButton)
