@@ -1,4 +1,5 @@
 import axios from 'axios'
+import * as Cookies from 'js-cookie'
 
 const state = {
     userInfo: null,
@@ -38,7 +39,11 @@ const getters = {
         return state.userInfo
     },
     isLoggedIn(state) {
-        return !!state.userInfo
+        // IMPORTANT NOTE: do not remove the two following lines, they somehow fix a bug
+        // noted on Firefox that forced refreshing the page to be logged in.
+        Cookies.get('session')
+        state.userInfo
+        return !!(Cookies.get('session')) && !!(state.userInfo)
     },
 }
 

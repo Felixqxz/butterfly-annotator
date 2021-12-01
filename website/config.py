@@ -1,7 +1,7 @@
 import os
-from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+
 
 class Config:
     """
@@ -13,18 +13,17 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     SECRET_KEY = 'super secret key'
     SESSION_TYPE = 'annonation'
-    REMEMBER_COOKIE_DURATION = timedelta(days = 1)
+    SESSION_COOKIE_HTTPONLY = False
+
 
 class TestConfig(Config):
     TESTING = True
-    SECRET_KEY = 'super secret key'
-    SESSION_TYPE = 'annonation'
+
 
 class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = 'super secret key'
-    SESSION_TYPE = 'annonation'
+
 
 config_by_name = {
     'development': Config,

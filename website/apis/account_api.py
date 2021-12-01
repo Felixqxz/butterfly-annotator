@@ -4,6 +4,7 @@ from flask import Blueprint, current_app, request, jsonify, send_file
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_bcrypt import Bcrypt
 from http import HTTPStatus
+from datetime import timedelta
 from ..database.models import User
 from ..database.access import db
 import os
@@ -35,10 +36,9 @@ def register():
     else:
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=password_hash)
-        user.avatar_name = ""
         db.session.add(user)
         db.session.commit()
-        login_user(user, remember=True)
+        login_user(user, remember=False)
         return get_default_data(current_user)
 
 
@@ -54,7 +54,7 @@ def login():
     user = db.session.query(User).filter(User.username == username).first()
     if user is not None:
         if bcrypt.check_password_hash(user.password_hash, password):
-            login_user(user, remember=True)
+            login_user(user, remember=False)
             return get_default_data(current_user)
         else:
             return jsonify({'message': 'Incorrect password'}), HTTPStatus.UNAUTHORIZED

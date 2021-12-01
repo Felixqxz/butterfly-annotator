@@ -1,5 +1,16 @@
 <template>
   <b-container @mousemove="trackMouse">
+    <div class="helper">
+      <b-button v-b-modal.help style="border-radius: 1rem 1rem 0 0;">Help?</b-button>
+    </div>
+    <b-modal id="help" hide-footer scrollable title="How to annotate images?">
+      <ul>
+        <li>
+          When you first arrive here, there will be automatically generated suggestions for you of
+          text bits that you could want to use for your annotations.
+        </li>
+      </ul>
+    </b-modal>
     <b-row class="mb-2">
       <b-col cols="12">
         <router-link :to="'/bank/' + bankId">Back to bank</router-link>
@@ -882,7 +893,7 @@ export default {
         this.selectedBits.sort((b, a) => b.start - a.start)
         // finally, load the P5 canvas
         const p5canvas = new P5(script, 'canvas')
-      })
+      }).catch(e => handleError(this.$bvToast, 'Could not load annotations', `Cause ${e.response.data.message}`))
     },
   },
   mounted() {
@@ -900,4 +911,10 @@ export default {
 </script>
 
 <style scoped>
+.helper {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  margin-right: 2em;
+}
 </style>

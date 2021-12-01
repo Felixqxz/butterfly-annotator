@@ -68,6 +68,7 @@ nav li a, .navbar-brand a {
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
+import handleError from '../errors/handler'
 
 export default {
   name: 'Header',
@@ -79,6 +80,7 @@ export default {
     logout() {
       const t = this
       this.doLogOut().then(_ => t.$router.push('/login'))
+        .catch(e => handleError(this.$bvToast, 'Could not log out', `Cause: ${e.response.data.message}`))
     },
     username() {
       return this.isLoggedIn ? this.user.username : ''
