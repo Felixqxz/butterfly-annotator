@@ -80,7 +80,8 @@
           <p style="white-space: pre-wrap; margin-bottom: 0;"
             id="description">
             <span v-for="bit in createChunks()" v-bind:key="bit.start">
-              <description-bit v-if="bit.selected" :text="bit.text" 
+              <description-bit v-if="(bit.selected && !bit.suggested) || (bit.suggested && showSuggestion)"
+                :text="bit.text"
                 :start-index="bit.start" :click-handler="handleBitClick"
                 :author="bit.author"
                 :suggested="bit.suggested"></description-bit>
@@ -91,9 +92,14 @@
       </b-col>
     </b-row>
     <b-row>
-      <b-col cols="12">
+      <b-col cols="10">
         <b-button @click="addTextBit()" :disabled="!canAddBit">
           Add bit
+        </b-button>
+      </b-col>
+      <b-col cols="2">
+        <b-button @click="turnOnOffSuggestions()">
+          Auto suggestions
         </b-button>
       </b-col>
     </b-row>
@@ -175,6 +181,7 @@ export default {
       firstHistoryNode: null,
       lastHistoryNode: null,
       currentHistoryNode: null, // points to the last action that has been DONE (its change is already effective)
+      showSuggestion: true,
     }
   },
   watch: {
@@ -321,7 +328,7 @@ export default {
       if (this.selectedBits.length === 0) {
         return [{text: this.imageData.description, selected: false}]
       }
-      let ret = []
+      let ret = [];
       let previousEnd = 0
       // the code assumes that the bits are sorted by their beginning index,
       // and that there are no overlaps
@@ -335,7 +342,7 @@ export default {
         // add the actual selected bit
         ret.push({
           text: this.imageData.description.substring(bit.start, bit.end), 
-          selected: true, 
+          selected: true,
           start: bit.start, 
           author: bit.annotation ? bit.annotation.author : '',
           suggested: bit.suggested,
@@ -433,6 +440,9 @@ export default {
       this.selectedBits.sort((b, a) => b.start - a.start) // first start first; should be no overlap too
       selection.empty()
       this.canAddBit = false
+    },
+    turnOnOffSuggestions() {
+      this.showSuggestion = !this.showSuggestion
     },
     undo() {
       if (this.undoDisabled) {
