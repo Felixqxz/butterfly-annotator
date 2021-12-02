@@ -483,20 +483,23 @@ export default {
          */
         const connectDotsOpen = (color, dots, close) => {
           p5.stroke(color)
-          p5.noFill()
-          p5.beginShape()
-          for (let i = 0; i < dots.length; i++) {
+          for (let i = 0; i < dots.length - 1; i++) {
             const currentPoint = dots[i]
-            p5.vertex(currentPoint.x, currentPoint.y)
+            const nextPoint = dots[i + 1]
+            p5.line(currentPoint.x, currentPoint.y, nextPoint.x, nextPoint.y)
           }
           if (close) {
-            p5.endShape(p5.CLOSE)
-          } else {
-            p5.endShape()
+            // join the first and last points of the polygon
+            const first = dots[0]
+            const last = dots[dots.length - 1]
+            p5.line(last.x, last.y, first.x, first.y)
           }
           p5.noStroke()
           p5.fill(color)
-          dots.forEach(dot => p5.ellipse(dot.x, dot.y, MOUSE_RAD))
+          for (let i = 0; i < dots.length; ++i) {
+            const dot = dots[i]
+            p5.ellipse(dot.x, dot.y, MOUSE_RAD)
+          }
         }
 
         // the radius around a point we allow
