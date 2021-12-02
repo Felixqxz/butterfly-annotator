@@ -704,7 +704,13 @@ export default {
         const deletePolygon = (polygon, history) => {
           // copy data
           const objPolygon = Object.assign({}, t.availablePolygons[polygon]) // deep copy
+          objPolygon.hasDescription = false
           const copySelected = t.selectedPolygon
+          const nowAnnot = t.imageData.annotations.find(a => a.polygon && a.polygon.i === polygon)
+          if (nowAnnot) {
+            const bit = t.selectedBits.find(b => b.annotation === nowAnnot)
+            bit.annotation = null
+          }
           // delete polygon
           const redo = () => {
             const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon && annotation.polygon.i === objPolygon.i)
