@@ -4,10 +4,48 @@
       <b-button v-b-modal.help style="border-radius: 1rem 1rem 0 0;">Help?</b-button>
     </div>
     <b-modal id="help" hide-footer scrollable title="How to annotate images?">
+      <h5>General advice:</h5>
       <ul>
         <li>
           When you first arrive here, there will be automatically generated suggestions for you of
           text bits that you could want to use for your annotations.
+        </li>
+        <li>
+          You can delete bits by clicking the cross in their badge, and add some by selecting the bit of
+          text you want and then pressing the <b-badge>Add bit</b-badge> button.
+        </li>
+        <li>
+          Click points on the canvas to start drawing a polygon. Click the first point you've drawn
+          to finish a polygon. Then, choose one of the bits of text you've chosen to associate it with
+          and create a complete annotation. If you don't want to add it now, you can always press <b-badge>Escape</b-badge>
+          or click elsewhere, and come back to the selection menu of the polygon by simply clicking that
+          polygon again.
+        </li>
+        <li>
+          Don't forget to press <b-badge>Save</b-badge> to make your changes effective!
+        </li>
+      </ul>
+      <hr/>
+      <h5>
+        Basic commands
+      </h5>
+      <ul>
+        <li>
+          Press <b-badge>Escape</b-badge> to stop your drawing.
+        </li>
+        <li>
+          Click the last point you've created to remove it.
+        </li>
+        <li>
+          <b-badge>Shift + Click</b-badge> when your cursor is close enough to a polygon to delete it.
+        </li>
+        <li>
+          Place your cursor over a point of a polygon and start dragging it (hold your mouse's left button) 
+          to move it.
+        </li>
+        <li>
+          You can Undo (<b-badge>Ctrl + Z</b-badge>) and Redo (<b-badge>Ctrl + Y</b-badge>) the following actions:
+          adding a polygon, removing a polygon, moving a point in a polygon.
         </li>
       </ul>
     </b-modal>
@@ -412,6 +450,11 @@ export default {
           const annot = t.imageData.annotations[i]
           annot.id = res.data.ids[i]
         }
+        t.$bvToast.toast('Done.', {
+          title: 'Successfully saved annotations!',
+          variant: 'success',
+          solid: true,
+        })
       }).catch(e => handleError(this.$bvToast, 'Could not save annotations', `Cause: ${e.response.data.message}`))
     },
     descriptionIndices(text) {
