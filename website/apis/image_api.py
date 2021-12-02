@@ -261,7 +261,6 @@ def insert_annotations():
                 db.session.add(a)
                 # commit now to get proper ID
                 db.session.commit()
-                print(a.id)
                 ids.append(a.id)
 
                 # save annotations to user_keyword_selection file
