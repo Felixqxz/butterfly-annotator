@@ -681,6 +681,7 @@ export default {
         let currentPoints = []
         let annotateImage = undefined
         let movedPoint = null
+        let movedPointOriginalLocation = null
 
         // P5 handling
         p5.setup = () => {
@@ -767,6 +768,10 @@ export default {
           }
 
           movedPoint = closest
+          // not set yet
+          if (!movedPointOriginalLocation) {
+            movedPointOriginalLocation = p5.createVector(closest.dot.x, closest.dot.y)
+          }
         }
 
         p5.mouseReleased = () => {
@@ -775,7 +780,17 @@ export default {
             const position = p5.createVector(p5.mouseX, p5.mouseY)
             // was displacing a point
             if (movedPoint) {
+              const location = movedPointOriginalLocation
+              const point = movedPoint
+              const redo = () => {
+                t.availablePolygons[point.polygon].dots[point.dotIdx] = position
+              }
+              const undo = () => {
+                t.availablePolygons[point.polygon].dots[point.dotIdx] = location
+              }
+              movedPointOriginalLocation = null
               movedPoint = null
+              t.pushHistory(redo, undo)
               return
             }
             const closest = closestLineInRadius()
