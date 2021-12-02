@@ -276,14 +276,14 @@ export default {
       if (this.hasNoDescription) {
         return ''
       }
-      const annotation = this.imageData.annotations.find(annotation => annotation.polygon.i === this.selectedPolygon)
+      const annotation = this.imageData.annotations.find(annotation => annotation.polygon && annotation.polygon.i === this.selectedPolygon)
       return this.imageData.description.substring(annotation.description.start, annotation.description.end)
     },
     authorOfSelectedPolygon() {
       if (this.hasNoDescription) {
         return ''
       }
-      return this.imageData.annotations.find(annotation => annotation.polygon.i === this.selectedPolygon).author
+      return this.imageData.annotations.find(annotation => annotation.polygon && annotation.polygon.i === this.selectedPolygon).author
     },
     formDummyId() {
       return 'XXXXX'
@@ -409,7 +409,9 @@ export default {
       if (annotation) {
         annotation.toRemove = true
         annotation.description = null
-        annotation.polygon.hasDescription = false
+        if (annotation.polygon) {
+          annotation.polygon.hasDescription = false
+        }
       }
     },
     saveAnnotations() {
@@ -703,7 +705,7 @@ export default {
           const copySelected = t.selectedPolygon
           // delete polygon
           const redo = () => {
-            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
+            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon && annotation.polygon.i === polygon)
             const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
             t.availablePolygons.splice(polygon, 1)
             // check if the `annot`-th annotation has not changed
@@ -719,7 +721,7 @@ export default {
           }
           // repush polygon
           const undo = () => {
-            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
+            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon && annotation.polygon.i === polygon)
             const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
             // restore only the polygon: lose the annotation
             t.availablePolygons.splice(polygon, 0, objPolygon)
