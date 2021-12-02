@@ -472,6 +472,9 @@ export default {
     initializeAll() {
       const t = this
       const script = p5 => {
+        // optimizes performance
+        p5.disableFriendlyErrors = true
+
         /**
          * Draws lines that connect all `(i, i + 1)` dots and closes the shape if `close` is `true`.
          * @param color the color of the lines
@@ -480,19 +483,17 @@ export default {
          */
         const connectDotsOpen = (color, dots, close) => {
           p5.stroke(color)
+          p5.noFill()
           p5.beginShape()
-          for (let i = 0; i < dots.length - 1; i++) {
+          for (let i = 0; i < dots.length; i++) {
             const currentPoint = dots[i]
-            const nextPoint = dots[i + 1]
-            p5.line(currentPoint.x, currentPoint.y, nextPoint.x, nextPoint.y)
+            p5.vertex(currentPoint.x, currentPoint.y)
           }
           if (close) {
-            // join the first and last points of the polygon
-            const first = dots[0]
-            const last = dots[dots.length - 1]
-            p5.line(last.x, last.y, first.x, first.y)
+            p5.endShape(p5.CLOSE)
+          } else {
+            p5.endShape()
           }
-          p5.endShape()
           p5.noStroke()
           p5.fill(color)
           dots.forEach(dot => p5.ellipse(dot.x, dot.y, MOUSE_RAD))
@@ -508,6 +509,9 @@ export default {
 
         // the key to be pressed to delete a polygon
         const DELETE_KEY = p5.SHIFT
+
+        // the maximal framerate (setting it to 60 had no effect)
+        const MAX_FPS = 50
 
         // we will build a color sequence that always assigns the same color to a given index
         // (color(0), color(1), ..., color(n), ...)
@@ -580,7 +584,7 @@ export default {
         // returns the closest line constituting a polygon in a right angle `EPS` distance
         // to the mouse
         /**
-         * @returns {{dotsIdx: number, polygon: number, distance: number}} where `dotsIdx`
+         * @returns {{dotsIdx: number, polygon: number, distance: number}} `dotsIdx`
          * is the index of the first point constituting the line (the next one being
          * `(dotsIdx + 1) % dots.length)`, `polygon` is the position of the polygon in the
          * `availablePolygons` array, and `distance` is the distance of the mouse to that
@@ -610,12 +614,23 @@ export default {
             && 0 < p5.mouseY && p5.mouseY < t.imageData.height
 
         /**
+         * @param u first point
+         * @param v second point
+         * @returns the squared distance between points `u` and `v`.
+         */
+        const distanceSquared = (u, v) => {
+          const dx = u.x - v.x
+          const dy = u.y - v.y
+          return dx * dx + dy * dy
+        }
+
+        /**
          * @param a a first point
          * @param b a second point
          * @returns `true` if the two points are close enough to be considered to be
          * in "approximately" the same location
          */
-        const closeEnough = (a, b) => a.dist(b) < EPS
+        const closeEnough = (a, b) => distanceSquared(a, b) < EPS * EPS
 
         /**
          * Displays the provided polygon
@@ -683,16 +698,17 @@ export default {
         let movedPoint = null
         let movedPointOriginalLocation = null
 
-        // P5 handling
+        // setup the canvas
         p5.setup = () => {
+          // canvas
           p5.createCanvas(t.imageData.width, t.imageData.height)
-          annotateImage = p5.loadImage('http://127.0.0.1:5000/api/' + t.imageData.imageUrl)
           // using 127.0.0.1 allows for this to work on Chrome (it doesn't like 'localhost')
+          annotateImage = p5.loadImage('http://127.0.0.1:' + (process.env.PORT ? process.env.PORT : '5000') + '/api/' + t.imageData.imageUrl)
+          // cap framerate
+          p5.frameRate(MAX_FPS)
         }
 
         p5.draw = () => {
-          p5.clear()
-          p5.background(255, 204, 0) // just a default background
           // display the image to be annotated
           p5.image(annotateImage, 0, 0, t.imageData.width, t.imageData.height)
           // display all polygons
