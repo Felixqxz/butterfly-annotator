@@ -257,6 +257,7 @@ def insert_annotations():
     for annotation in req['annotations']:
         if 'rem' in annotation:
             db.session.query(ImageAnnotation).filter(ImageAnnotation.id == annotation['id']).delete()
+            db.session.commit()
         else:
             region = PolygonalRegion.deserialize_from_json(annotation['points'])
             start = annotation['tag']['start']
@@ -290,8 +291,8 @@ def insert_annotations():
                         ImageAnnotation.text_end: end,
                         ImageAnnotation.author_id: current_user.get_id()
                     })
+                db.session.commit()
                 ids.append(annotation['id'])
-    db.session.commit()
     return jsonify({'result': 'success', 'ids': ids})
 
 
