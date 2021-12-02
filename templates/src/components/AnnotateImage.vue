@@ -640,10 +640,10 @@ export default {
           // copy data
           const objPolygon = Object.assign({}, t.availablePolygons[polygon]) // deep copy
           const copySelected = t.selectedPolygon
-          const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
-          const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
           // delete polygon
           const redo = () => {
+            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
+            const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
             t.availablePolygons.splice(polygon, 1)
             // check if the `annot`-th annotation has not changed
             if (annotation && t.imageData.annotations.length > annot && t.imageData.annotations[annot] === annotation) {
@@ -657,6 +657,8 @@ export default {
           }
           // repush polygon
           const undo = () => {
+            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
+            const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
             // restore only the polygon: lose the annotation
             t.availablePolygons.splice(polygon, 0, objPolygon)
             // same as above
