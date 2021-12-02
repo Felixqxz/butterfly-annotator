@@ -21,6 +21,7 @@ ADJ_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'adjlist.txt')
 COLOR_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'colorlist.txt')
 PATTERN_LIST_PATH = os.path.join(os.getcwd(), 'termlist', 'patternlist.txt')
 
+
 bank_access_levels = {
     'super-admin': 100,  # reserved: one such account per app instance
     'admin': 90,
@@ -47,6 +48,7 @@ def load_word_list(p):
 adj_list = load_word_list(ADJ_LIST_PATH) + load_word_list(COLOR_LIST_PATH)
 pattern_list = load_word_list(PATTERN_LIST_PATH)
 
+
 def gen_annotation_array(image):
     return [
         {
@@ -59,9 +61,11 @@ def gen_annotation_array(image):
         } for annotation in image.annotations
     ]
 
-# save user keywords selection to user_keywords_selection.txt
-def save_user_keywords_selection(description, image_bank_id, start, end):
 
+def save_user_keywords_selection(description, image_bank_id, start, end):
+    """
+    Adds user's provided selection to the database for future suggestions.
+    """
     words = description[start:end].lower()
     keyword = db.session.query(UserSelectedKeyword)\
         .filter(and_(UserSelectedKeyword.image_bank_id == image_bank_id, UserSelectedKeyword.keyword == words))\
@@ -70,6 +74,7 @@ def save_user_keywords_selection(description, image_bank_id, start, end):
         user_selected_keyword = UserSelectedKeyword(image_bank_id=image_bank_id, keyword=words)
         db.session.add(user_selected_keyword)
         db.session.commit()
+
 
 def can_access_bank(bank, user, access_level='viewer'):
     """
@@ -233,7 +238,8 @@ def insert_annotations():
         if annotation['id'] != -1:
             # trying to update existing annotation
             if int(annotation['id']) not in [annot.id for annot in image.annotations]:
-                return jsonify({'message': 'trying to update an annotation that does not exist'}), HTTPStatus.BAD_REQUEST
+                return jsonify({'message': 'trying to update an annotation that does not exist'}), \
+                       HTTPStatus.BAD_REQUEST
         if 'rem' in annotation:
             continue
         try:
@@ -307,7 +313,6 @@ def get_image_data(image_id):
                      ImageToAnnotate.id < image.id))\
         .order_by(desc(ImageToAnnotate.id))\
         .first()
-    # auto suggested keywords for annotation
     return jsonify({
         'id': image.id,
         'bankId': image.image_bank.id,
@@ -330,7 +335,8 @@ def get_image_data(image_id):
             for annotation in image.annotations
         ],
         # provide suggestions if the annotations list is empty
-        'suggestions': get_keywords(adj_list, pattern_list, image.description, image.image_bank_id) if not image.annotations else '',
+        'suggestions': get_keywords(adj_list, pattern_list, image.description,
+                                    image.image_bank_id) if not image.annotations else '',
     })
 
 

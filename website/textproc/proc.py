@@ -5,6 +5,7 @@ from ..database.access import db
 from sqlalchemy import and_
 import os
 
+
 def load_word_list(p):
     """
     Loads a list of provided words.
@@ -22,24 +23,23 @@ def load_word_list(p):
 def add_keywords(start_index, end_index, user_keywords, keywords):
     not_in_bound = True
     for keyword in user_keywords:
-        if start_index >= keyword['start'] and start_index <= keyword['end'] or \
-            end_index >= keyword['start'] and end_index <= keyword['end']:
+        if keyword['start'] <= start_index <= keyword['end'] or \
+                keyword['start'] <= end_index <= keyword['end']:
             not_in_bound = False
             break
     if not_in_bound:
         keywords.append({'start': start_index, 'end': end_index})
 
+
 def get_keywords(adjectives, patterns, description, image_bank_id):
     keywords = []
     user_keywords = []
-    word = None
-    start_index = -1
     i = 0
 
-    user_keywords_list = db.session.query(UserSelectedKeyword)\
-        .filter(and_(UserSelectedKeyword.image_bank_id == image_bank_id))\
+    user_keywords_list = db.session.query(UserSelectedKeyword) \
+        .filter(and_(UserSelectedKeyword.image_bank_id == image_bank_id)) \
         .all()
-    
+
     for user_keyword in user_keywords_list:
         user_keyword = user_keyword.keyword
         start_index = description.lower().find(user_keyword)
