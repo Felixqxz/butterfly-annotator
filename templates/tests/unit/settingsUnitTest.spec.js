@@ -26,10 +26,10 @@ describe('Settings.vue', () => {
   })
 
   it('test getters: {currentUser: currentUser} ', async () => {
-    const {getByText} = render(Settings, {
-      localVue,
-      store
-    })
+    // const {getByText} = render(Settings, {
+    //   localVue,
+    //   store
+    // })
 
     // const userInput = wrapper.find('#username-input')       
     // console.log(userInput.element.id)
