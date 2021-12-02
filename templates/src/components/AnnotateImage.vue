@@ -634,15 +634,16 @@ export default {
         /**
          * Deletes the provided polygon.
          * @param polygon the index of the polygon
+         * @param history `true` if this action should be undoable (add it to history)
          */
         const deletePolygon = (polygon, history) => {
           // copy data
           const objPolygon = Object.assign({}, t.availablePolygons[polygon]) // deep copy
           const copySelected = t.selectedPolygon
+          const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
+          const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
           // delete polygon
           const redo = () => {
-            const annot = t.imageData.annotations.findIndex(annotation => annotation.polygon.i === polygon)
-            const annotation = annot !== -1 ? t.imageData.annotations[annot] : null
             t.availablePolygons.splice(polygon, 1)
             // check if the `annot`-th annotation has not changed
             if (annotation && t.imageData.annotations.length > annot && t.imageData.annotations[annot] === annotation) {

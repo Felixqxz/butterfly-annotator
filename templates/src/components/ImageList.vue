@@ -176,6 +176,7 @@ export default {
     relistAccesses() {
       this.listAccesses({bankId: this.$route.params.bankId}).then(res => {
         this.userAccesses = res.data.users
+        this.userAccesses.sort((b, a) => a.level - b.level)
         for (let i = 0; i < res.data.users.length; ++i) {
           const access = res.data.users[i]
           if (access.username === this.userInfo.username) {

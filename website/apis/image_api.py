@@ -259,6 +259,9 @@ def insert_annotations():
                 # new region
                 a = ImageAnnotation(image.id, start, end, region.sql_serialize_region(), current_user.get_id())
                 db.session.add(a)
+                # commit now to get proper ID
+                db.session.commit()
+                print(a.id)
                 ids.append(a.id)
 
                 # save annotations to user_keyword_selection file
@@ -266,11 +269,12 @@ def insert_annotations():
             else:
                 existing_annotation = db.session.query(ImageAnnotation)\
                     .filter(ImageAnnotation.id == annotation['id']).first()
-                if existing_annotation is None: # Ignore: trying to update non existing
+                if existing_annotation is None:  # Ignore: trying to update non existing
                     continue
                 # no actual change to the data
                 if existing_annotation.text_start != start or existing_annotation.text_end != end \
                     or PolygonalRegion.sql_serialize_region(region) == existing_annotation.region_info:
+                    ids.append(annotation['id'])
                     continue
                 # perform update
                 db.session.query(ImageAnnotation)\
