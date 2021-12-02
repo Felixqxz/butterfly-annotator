@@ -667,6 +667,7 @@ export default {
             if (annotation && t.imageData.annotations.length > annot && t.imageData.annotations[annot] === annotation) {
               // remove the annotation when sending to server
               annotation.toRemove = true
+              annotation.polygon = null
               if (annotation.description) {
                 annotation.description.annotation = null
               }
@@ -682,6 +683,7 @@ export default {
             // same as above
             if (annotation && t.imageData.annotations.length > annot && t.imageData.annotations[annot] === annotation) {
               annotation.toRemove = false
+              annotation.polygon = objPolygon
               if (annotation.description) {
                 annotation.description.annotation = annotation
               }
@@ -873,7 +875,7 @@ export default {
                 // add a new polygon!
                 t.availablePolygons.push(poly)
                 t.selectedPolygon = index
-                const annot = t.imageData.annotations.find(a => a.polygon.i === poly.i)
+                const annot = t.imageData.annotations.find(a => a.polygon && a.polygon.i === poly.i)
                 if (annot) {
                   annot.toRemove = false
                   annot.description.annotation = annot
