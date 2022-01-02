@@ -15,7 +15,6 @@ class Config:
     SECRET_KEY = 'super secret key'
     SESSION_TYPE = 'annonation'
     SESSION_COOKIE_HTTPONLY = False
-    PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=1)
 
 
 class TestConfig(Config):

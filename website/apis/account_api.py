@@ -18,7 +18,6 @@ if not os.path.exists(avatars_dir):
 
 def do_login(user):
     login_user(user)
-    session.permanent = True
 
 
 def get_default_data(user):
