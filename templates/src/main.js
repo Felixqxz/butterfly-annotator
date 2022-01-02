@@ -28,7 +28,7 @@ Vue.use(VueTippy, {
     directive: 'tippy',
 })
 
-Vue.component("tippy", TippyComponent);
+Vue.component('tippy', TippyComponent)
 Vue.config.productionTip = false
 Vue.use(BootstrapVue)
 

@@ -1,10 +1,10 @@
 import os
 
-from flask import Blueprint, current_app, request, jsonify, send_file
+from flask import Blueprint, current_app, request, jsonify, send_file, session
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_bcrypt import Bcrypt
 from http import HTTPStatus
-from datetime import timedelta
+
 from ..database.models import User
 from ..database.access import db
 import os
@@ -14,6 +14,11 @@ bcrypt = Bcrypt(current_app)
 avatars_dir = os.getcwd() + os.sep + 'avatars'
 if not os.path.exists(avatars_dir):
     os.mkdir(avatars_dir)
+
+
+def do_login(user):
+    login_user(user)
+    session.permanent = True
 
 
 def get_default_data(user):
@@ -38,7 +43,7 @@ def register():
         user = User(username=username, email=email, password_hash=password_hash)
         db.session.add(user)
         db.session.commit()
-        login_user(user, remember=False)
+        do_login(user)
         return get_default_data(current_user)
 
 
@@ -54,7 +59,7 @@ def login():
     user = db.session.query(User).filter(User.username == username).first()
     if user is not None:
         if bcrypt.check_password_hash(user.password_hash, password):
-            login_user(user, remember=False)
+            do_login(user)
             return get_default_data(current_user)
         else:
             return jsonify({'message': 'Incorrect password'}), HTTPStatus.UNAUTHORIZED
