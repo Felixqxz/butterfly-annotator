@@ -1,6 +1,16 @@
 <template>
   <b-container>
-    <h2 class="page-title">Bank: {{ bankName }}</h2>
+    <h2 class="page-title">
+      Bank: {{ bankName }}
+      <b-button variant="secondary" v-b-modal.settings-modal>
+        <b-icon-gear/>
+      </b-button>
+      <b-modal id="settings-modal" title="Settings" hide-footer>
+        <b-button variant="danger" @click="deleteBank" :disabled="currentAccess >= 90">
+          Delete bank
+        </b-button>
+      </b-modal>
+    </h2>
     <b-row>
       <b-col>
         <p>
@@ -128,6 +138,7 @@ export default {
       listAccesses: 'listAccesses',
       requestPermission: 'requestPermission',
       requestJson: 'requestBankJson',
+      requestDeleteBank: 'deleteBank',
     }),
     hasPermissionToAdd() {
       return this.currentAccess ? this.currentAccess >= 70 : false
@@ -216,7 +227,7 @@ export default {
       const bankId = this.$route.params.bankId
       this.requestPermission({targetUser, level, bankId}).then(_ => {
         this.relistAccesses()
-      }).catch(e => handleError(this.$bvToast, 'Cannot remove user', `Cause ${e.response.data.message}`))
+      }).catch(e => handleError(this.$bvToast, 'Cannot remove user', `Cause: ${e.response.data.message}`))
     },
     downloadJson() {
       this.requestJson({bankId: this.$route.params.bankId}).then(res => {
@@ -227,6 +238,16 @@ export default {
         a.click()
         URL.revokeObjectURL(a.href)
       })
+    },
+    deleteBank() {
+      this.requestDeleteBank({bankId: this.$route.params.bankId}).then(res => {
+        this.$router.push({'path': '/'})
+        this.$bvToast.toast('Successfully deleted bank', {
+          title: 'Deleted ' + this.bankName,
+          variant: 'success',
+          solid: true,
+        })
+      }).catch(e => handleError(this.$bvToast, 'Could not delete bank', `Cause: ${e.response.data.message}`))
     },
   },
   created() {
