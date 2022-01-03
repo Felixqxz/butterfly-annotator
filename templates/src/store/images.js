@@ -21,7 +21,14 @@ const actions = {
     },
     requestBankJson({dispatch}, {bankId}) {
         return axios.get('/api/bank/json/' + bankId)
-    }
+    },
+    uploadBank({dispatch}, {formData}) {
+        return axios.post('/api/bank/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        })
+    },
 }
 
 export default {

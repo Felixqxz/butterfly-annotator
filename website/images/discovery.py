@@ -1,7 +1,7 @@
 import os
 import glob
 from pathlib import Path
-from ..database.models import ImageBank, ImageToAnnotate, BankAccess, User
+from ..database.models import ImageAnnotation, ImageBank, ImageToAnnotate, BankAccess, User
 from ..database.access import db
 from PIL import Image
 
@@ -26,7 +26,10 @@ def discover_all_banks():
     for bank in db.session.query(ImageBank).all():
         if bank.bankname not in bank_names:
             db.session.delete(bank)
+            db.session.commit()
             for image in bank.images:
+                db.session.query(ImageAnnotation).filter(ImageAnnotation.image_id == image.id).delete()
+                db.session.commit()
                 db.session.delete(image)
             for access in bank.accesses:
                 db.session.delete(access)
@@ -60,7 +63,7 @@ def discover_bank(bank_path):
             continue
         data_description_file = os.path.join(bank_path, splits[0] + '.txt')
         if not os.path.isfile(data_description_file):
-            print('!> could not find a description for image ' + name_no_ext + '.jpg')
+            print('!> could not find a description for image ' + name_no_ext + '.jpg (skipping image)')
             # no description available! skip
             continue
         # matching description found, read it, and add it to list
@@ -75,6 +78,8 @@ def discover_bank(bank_path):
     print('>> found ' + str(len(all_images)) + ' image(s)')
     # now that we have all images, push them to the database
     if existing_bank is None:
+        if not all_pairs:
+            return None, 'No valid content found'
         # create the bank
         bank = ImageBank(bank_name, bank_description)
         db.session.add(bank)
@@ -85,6 +90,11 @@ def discover_bank(bank_path):
             img = ImageToAnnotate(bank.id, pair['name'], pair['description'], width, height)
             db.session.add(img)
         db.session.commit()
+        # + give access to admin by default 
+        admin = db.session.query(User).filter(User.username == 'admin').first()
+        db.session.add(BankAccess(admin.id, bank.id, 100))
+        db.session.commit()
+        return bank, 'Found ' + str(len(all_pairs)) + ' images'
     else:
         # first, delete images that have been removed
         urls = [image['name'] for image in all_pairs]
@@ -103,9 +113,4 @@ def discover_bank(bank_path):
         if add:
             db.session.commit()
             print('>> added ' + str(len(add)) + ' images')
-    # + give access to admin by default
-    if existing_bank is None:
-        admin = db.session.query(User).filter(User.username == 'admin').first()
-        db.session.add(BankAccess(admin.id, bank.id, 100))
-        db.session.commit()
-    print('>> done!')
+        return existing_bank, 'Found ' + str(len(all_pairs)) + ' images'

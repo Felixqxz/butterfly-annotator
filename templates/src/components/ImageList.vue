@@ -208,8 +208,7 @@ export default {
       const bankId = this.$route.params.bankId
       this.requestPermission({targetUser, level, bankId}).then(_ => {
         this.relistAccesses()
-      }).catch(e =>
-        handleError(this.$bvToast, 'Cannot add user', `Cause: ${e.response.data.message}`))
+      }).catch(e => handleError(this.$bvToast, 'Cannot add user', `Cause: ${e.response.data.message}`))
     },
     removeUser(username) {
       const targetUser = username
