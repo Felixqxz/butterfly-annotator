@@ -1,16 +1,19 @@
 """
 The part of the API that allows access to the images of a database.
 """
+from pathlib import Path
 from flask.json import jsonify
 from flask import Blueprint, request, escape, send_file
 from flask_login import login_required, current_user
 from sqlalchemy import and_, desc
 from http import HTTPStatus
 import os
+import shutil
+import zipfile
 from ..database.access import db
 from ..database.models import User, BankAccess, ImageToAnnotate, ImageAnnotation, ImageBank, UserSelectedKeyword
 from ..images.geometry import PolygonalRegion
-from ..images.discovery import default_bank_directory
+from ..images.discovery import default_bank_directory, discover_bank
 from ..textproc.proc import get_keywords
 
 basedir = os.path.abspath(os.path.dirname(__name__))
@@ -389,3 +392,32 @@ def request_json(bank_id):
             for image in bank.images
         ],
     }
+
+
+@image_api.route('/api/bank/upload', methods=['POST'])
+@login_required
+def upload_bank():
+    if not request.files:
+        return jsonify({'message': 'no file provided'}), HTTPStatus.BAD_REQUEST
+    archive = request.files['file']
+    if not archive.filename.endswith('.zip'):
+        return jsonify({'message': 'provided bank is not a zip archive'}), HTTPStatus.BAD_REQUEST
+    location = os.path.join(default_bank_directory, archive.filename)
+    bankname = Path(archive.filename).stem
+    bank_loc = os.path.join(default_bank_directory, bankname)
+    if os.path.isdir(bank_loc):
+        return jsonify({'message': 'a bank having this name already exists'}), HTTPStatus.BAD_REQUEST
+    os.mkdir(bank_loc)
+    archive.save(location)
+    with zipfile.ZipFile(location, 'r') as z:
+        z.extractall(default_bank_directory)
+    os.remove(location)
+    new_bank, message = discover_bank(bank_loc)
+    # could not add bank (eg nothing inside)
+    if new_bank is None:
+        shutil.rmtree(bank_loc)
+        return jsonify({'message': message}), HTTPStatus.BAD_REQUEST
+    # OK
+    db.session.add(BankAccess(current_user.id, new_bank.id, bank_access_levels['admin']))
+    db.session.commit()
+    return jsonify({'message': message})

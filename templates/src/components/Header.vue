@@ -23,7 +23,6 @@
           </b-navbar-nav>
 
           <b-nav-item-dropdown right v-show="isLoggedIn">
-
             <template #button-content>
               <em>{{ username() }}</em>
             </template>
@@ -59,10 +58,6 @@ nav li a, .navbar-brand a {
 
 .nav-item a:hover {
   color: rgb(172, 172, 172) !important;
-}
-
-.dropdown-menu li {
-  color: red !important;
 }
 </style>
 
