@@ -10,6 +10,8 @@ from http import HTTPStatus
 import os
 import shutil
 import zipfile
+
+from website.images.banks import delete_bank
 from ..database.access import db
 from ..database.models import User, BankAccess, ImageToAnnotate, ImageAnnotation, ImageBank, UserSelectedKeyword
 from ..images.geometry import PolygonalRegion
@@ -421,3 +423,16 @@ def upload_bank():
     db.session.add(BankAccess(current_user.id, new_bank.id, bank_access_levels['admin']))
     db.session.commit()
     return jsonify({'message': message})
+
+
+@image_api.route('/api/bank/delete/<int:bank_id>', methods=['GET'])
+@login_required
+def request_delete_bank(bank_id):
+    bank = db.session.query(ImageBank).filter(ImageBank.id == bank_id).first()
+    if not can_access_bank(bank, current_user, access_level='admin'):
+        return jsonify({'message': 'must be admin to delete a bank'}), HTTPStatus.UNAUTHORIZED
+    delete_bank(bank)
+    bank_loc = os.path.join(default_bank_directory, bank.bankname)
+    if os.path.isdir(bank_loc):
+        shutil.rmtree(bank_loc)
+    return jsonify({'message': 'OK'})

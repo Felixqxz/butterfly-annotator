@@ -29,6 +29,9 @@ const actions = {
             },
         })
     },
+    deleteBank({dispatch}, {bankId}) {
+        return axios.get('/api/bank/delete/' + bankId)
+    },
 }
 
 export default {

@@ -1,7 +1,9 @@
 import os
 import glob
 from pathlib import Path
-from ..database.models import ImageAnnotation, ImageBank, ImageToAnnotate, BankAccess, User
+
+from website.images.banks import delete_bank
+from ..database.models import ImageBank, ImageToAnnotate, BankAccess, User
 from ..database.access import db
 from PIL import Image
 
@@ -25,15 +27,7 @@ def discover_all_banks():
     bank_names = [os.path.basename(os.path.normpath(bank_path)) for bank_path in bank_list]
     for bank in db.session.query(ImageBank).all():
         if bank.bankname not in bank_names:
-            db.session.delete(bank)
-            db.session.commit()
-            for image in bank.images:
-                db.session.query(ImageAnnotation).filter(ImageAnnotation.image_id == image.id).delete()
-                db.session.commit()
-                db.session.delete(image)
-            for access in bank.accesses:
-                db.session.delete(access)
-            db.session.commit()
+            delete_bank(bank)
             print('> bank ' + bank.bankname + ' has been removed; deleted its entries in the database')
 
 

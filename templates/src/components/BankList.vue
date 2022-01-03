@@ -125,11 +125,15 @@ export default {
       
       const formData = new FormData()
       formData.append('file', this.bankFile)
-      this.uploadBankRemote({formData}).then(res => this.$bvToast.toast(res.data.message, {
-        title: 'Successfully uploaded bank!',
-        variant: 'success',
-        solid: true,
-      })).catch(e => handleError(this.$bvToast, 'Could not upload bank', `Cause: ${e.response.data.message}`))
+      this.uploadBankRemote({formData}).then(res => {
+        this.$bvToast.toast(res.data.message, {
+          title: 'Successfully uploaded bank!',
+          variant: 'success',
+          solid: true,
+        })
+        this.showUpload = false
+        this.updateBanks()
+      }).catch(e => handleError(this.$bvToast, 'Could not upload bank', `Cause: ${e.response.data.message}`))
     },
   },
   created() {
