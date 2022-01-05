@@ -12,7 +12,7 @@ import VueTippy, { TippyComponent } from 'vue-tippy'
 import 'tippy.js/themes/google.css'
 
 axios.defaults.withCredentials = true
-const apiUrl = 'http://localhost:' + (process.env.PORT ? process.env.PORT : '5000')
+const apiUrl = process.env.VUE_APP_ROOT_API
 // default Flask port = 5000
 axios.defaults.baseURL = apiUrl
 Vue.prototype.$hostname = apiUrl
