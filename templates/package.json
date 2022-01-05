@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "build": "vue-cli-service build",
+    "local": "vue-cli-service build --mode local"
   },
   "dependencies": {
     "axios": "^0.21.1",
