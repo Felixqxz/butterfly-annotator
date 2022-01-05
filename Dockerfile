@@ -25,7 +25,7 @@ WORKDIR /butterfly-annotator
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV FLASK_APP=website/app.py
-ENV FLASK_ENV=development
+# ENV FLASK_ENV=development
 ENV FLASK_RUN_HOST=0.0.0.0
 
 RUN flask drop_all

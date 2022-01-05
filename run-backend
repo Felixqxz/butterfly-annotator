@@ -8,7 +8,7 @@ pip install -r requirements.txt
 pip install python-dotenv
 
 set FLASK_APP=./website/app.py
-set FLASK_ENV=development
+# set FLASK_ENV=development
 
 flask drop_all
 flask create_all

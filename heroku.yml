@@ -1,6 +1,0 @@
-# heroku.yml
-# for heroku
-build:
-  docker:
-    web: Dockerfile
-    web: templates/Dockerfile

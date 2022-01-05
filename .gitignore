@@ -5,3 +5,4 @@ butterfly.db
 .idea/
 banks/
 avatars/
+node_modules
