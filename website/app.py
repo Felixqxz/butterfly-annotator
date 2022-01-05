@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_cors import CORS
 from flask_login import LoginManager
 import os
@@ -30,7 +30,7 @@ def create_super_user():
 
 def create_app(config_name='default'):
     # create and configure the app
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../dist/static', template_folder='../dist')
     app.config.from_object(config_by_name[config_name])
     db.init_app(app)
     # enable CORS
@@ -65,6 +65,11 @@ def create_app(config_name='default'):
         db.create_all()
         create_super_user()
         discover_all_banks()
+
+    # render main page
+    @app.route('/')
+    def index():
+        return render_template('index.html')
 
     app.config['SECRET_KEY'] = '766574a7486ff3209b5b2a347a854f168d0a5d2af588b681cf592fb7f61f99e2'
 
