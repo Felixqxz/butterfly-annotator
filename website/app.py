@@ -67,8 +67,9 @@ def create_app(config_name='default'):
         discover_all_banks()
 
     # render main page
-    @app.route('/')
-    def index():
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def index(path):
         return render_template('index.html')
 
     app.config['SECRET_KEY'] = '766574a7486ff3209b5b2a347a854f168d0a5d2af588b681cf592fb7f61f99e2'
