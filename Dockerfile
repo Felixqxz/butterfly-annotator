@@ -17,6 +17,7 @@ RUN pip install -r requirements.txt
 
 WORKDIR /butterfly-annotator/templates
 
+RUN npm install
 RUN npm run build
 
 WORKDIR /butterfly-annotator
