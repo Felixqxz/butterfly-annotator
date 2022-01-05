@@ -760,8 +760,7 @@ export default {
         p5.setup = () => {
           // canvas
           p5.createCanvas(t.imageData.width, t.imageData.height)
-          // using 127.0.0.1 allows for this to work on Chrome (it doesn't like 'localhost')
-          annotateImage = p5.loadImage('http://127.0.0.1:' + (process.env.PORT ? process.env.PORT : '5000') + '/api/' + t.imageData.imageUrl)
+          annotateImage = p5.loadImage(this.$hostname + '/api/' + t.imageData.imageUrl)
           // cap framerate
           p5.frameRate(MAX_FPS)
         }
