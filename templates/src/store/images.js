@@ -22,11 +22,12 @@ const actions = {
     requestBankJson({dispatch}, {bankId}) {
         return axios.get('/api/bank/json/' + bankId)
     },
-    uploadBank({dispatch}, {formData}) {
+    uploadBank({dispatch}, {formData, progressHandler}) {
         return axios.post('/api/bank/upload', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
+            onUploadProgress: event => progressHandler(event),
         })
     },
     deleteBank({dispatch}, {bankId}) {

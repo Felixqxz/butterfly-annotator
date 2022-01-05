@@ -57,7 +57,11 @@
               <div class="upload-input" v-else>
                 <p>You chose the file {{ bankFile.name }}.
                 <br><a href="javascript:void(0)" style="font-size: 80%;" @click="clearSelection">Clear selection</a></p>
-                <b-button variant="primary" class="cloud-upload-button" style="font-size: 1em;" @click="uploadBank">Upload</b-button>
+                <waiting-button
+                  style="font-size: 1em;" 
+                  :startAction="uploadBank"
+                  :loading="uploadProgress !== -1"
+                  :progressPercentage="uploadProgress">Upload</waiting-button>
               </div>
             </b-col>
           </b-row>
@@ -70,6 +74,7 @@
 <script>
 import {mapActions} from 'vuex'
 import handleError from '../errors/handler'
+import WaitingButton from './WaitingButton'
 
 export default {
   name: 'BankList',
@@ -78,7 +83,11 @@ export default {
       availableBanks: [],
       showUpload: false,
       bankFile: null,
+      uploadProgress: -1,
     }
+  },
+  components: {
+    WaitingButton
   },
   methods: {
     ...mapActions({listBanks: 'listBanks', uploadBankRemote: 'uploadBank'}),
@@ -123,16 +132,26 @@ export default {
         return
       }
       
+      // progress handler
+      const progressHandler = e => {
+        this.uploadProgress = Math.floor(e.loaded * 100 / e.total)
+      }
+      // prepare file
       const formData = new FormData()
       formData.append('file', this.bankFile)
-      this.uploadBankRemote({formData}).then(res => {
+      // upload
+      this.uploadBankRemote({formData, progressHandler}).then(res => {
         this.$bvToast.toast(res.data.message, {
           title: 'Successfully uploaded bank!',
           variant: 'success',
           solid: true,
         })
+        // clear state
         this.showUpload = false
+        this.bankFile = null
         this.updateBanks()
+        this.loading = false
+        this.uploadProgress = -1
       }).catch(e => handleError(this.$bvToast, 'Could not upload bank', `Cause: ${e.response.data.message}`))
     },
   },

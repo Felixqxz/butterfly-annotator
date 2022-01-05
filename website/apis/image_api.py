@@ -420,8 +420,9 @@ def upload_bank():
         shutil.rmtree(bank_loc)
         return jsonify({'message': message}), HTTPStatus.BAD_REQUEST
     # OK
-    db.session.add(BankAccess(current_user.id, new_bank.id, bank_access_levels['admin']))
-    db.session.commit()
+    if current_user.username != 'admin':
+        db.session.add(BankAccess(current_user.id, new_bank.id, bank_access_levels['admin']))
+        db.session.commit()
     return jsonify({'message': message})
 
 
