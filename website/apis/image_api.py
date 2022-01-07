@@ -430,7 +430,7 @@ def upload_bank():
 @login_required
 def request_delete_bank(bank_id):
     bank = db.session.query(ImageBank).filter(ImageBank.id == bank_id).first()
-    if not can_access_bank(bank, current_user, access_level='admin'):
+    if bank is None or not can_access_bank(bank, current_user, access_level='admin'):
         return jsonify({'message': 'must be admin to delete a bank'}), HTTPStatus.UNAUTHORIZED
     delete_bank(bank)
     bank_loc = os.path.join(default_bank_directory, bank.bankname)
