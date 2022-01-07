@@ -14,18 +14,22 @@ config_name = 'default'
 
 
 def create_super_user():
+    password = 'admin'
+    if os.path.isfile('password.txt'):
+        with open('password.txt', 'r') as file:
+            password = file.read().strip()
     find = db.session.query(User).filter(User.username == 'admin').first()
+    from .apis.account_api import bcrypt
+    h = bcrypt.generate_password_hash(password)
     if find is None:
-        password = 'admin'
-        if os.path.isfile('password.txt'):
-            with open('password.txt', 'r') as file:
-                password = file.read().strip()
-        from .apis.account_api import bcrypt
-        db.session.add(User('admin', 'none-required', bcrypt.generate_password_hash(password)))
+        db.session.add(User('admin', 'none-required', h))
         db.session.commit()
         print('added super user!')
-    else:
-        print('super user already exists')
+    elif find.password_hash != h:
+        # password update
+        find.password_hash = h
+        db.session.commit()
+        print('super user: changed password')
 
 
 def create_app(config_name='default'):
