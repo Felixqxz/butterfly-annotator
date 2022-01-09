@@ -14,21 +14,23 @@ source venv/bin/activate        # enables commands such as `flask run` (see late
 pip install -r requirements.txt # installs Python dependencies
 ```
 For the same above step on Windows:
-```batch
-python3.8 -m venv venv
-venv\bin\Activate
+```bash
+python3.8 -m venv venv # or "py" instead of "python3.8", depending on your installation
+venv\Scripts\Activate
 pip install -r requirements.txt
 ```
 
 Then (for both OS, from now on), create the static content that will be served by running:
 ```bash
 cd templates
+npm install
 npm run local
 ```
 
-Finally you can run your server by executing in the root path
+Finally you can run your server by executing in the root path:
 ```bash
-flask create_all # Create database and tables inside it, you should see a test.db in current folder
+cd ..            # if you have followed all the previous steps
+flask create_all # Create database and tables
 flask run        # Start the server
 ```
 
