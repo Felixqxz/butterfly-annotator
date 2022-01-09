@@ -1,19 +1,35 @@
-# Butterfly Annotator
+# Butterfly annotator
+
 ## Welcome!
-Welcome to Butterfly Annotator. Below, in this file, you will find instructions to be able to run application on your own machine. If you want more information on how to use the program, open `USE.md` (located at the same level as this file). *This file does not explain how to setup the software for you data either*---if you are looking for that, go to `USE.md` as well.
+Welcome to Butterfly Annotator. Below, in this file, you will find instructions to be able to run application on your own machine. If you want more information on how to use the program, open USE.md (located at the same level as this file). This file does not explain how to setup the software for you data either---if you are looking for that, go to USE.md as well.
 
-## Stack
-- Python 3 with [Flask](https://flask.palletsprojects.com/en/2.0.x/) and [SQLAlchemy](https://www.sqlalchemy.org/) (running on a local SQLite database);
-- [Vue](https://vuejs.org/) with [Bootstrap-Vue](https://bootstrap-vue.org/).
+## Running the program
 
-## Running the app
-To run the app:
+Independent of your OS, make sure you have both NodeJS and Python3 installed. 
+
+On Linux: create a virtual environment and install all required Python dependencies:
 ```bash
-cd butterfly-annotator
 python3.8 -m venv venv
-source venv/bin/activate
-pip install --upgrade pip && pip install -r requirements.txt
-flask create_all # Create database and tables inside it, you should see a test.db in current folder
-flask run        # Spin the server
+source venv/bin/activate        # enables commands such as `flask run` (see later)
+pip install -r requirements.txt # installs Python dependencies
 ```
-You can now browse to <http://127.0.0.1:8080> and see the app live.
+For the same above step on Windows:
+```batch
+python3.8 -m venv venv
+venv\bin\Activate
+pip install -r requirements.txt
+```
+
+Then (for both OS, from now on), create the static content that will be served by running:
+```bash
+cd templates
+npm run local
+```
+
+Finally you can run your server by executing in the root path
+```bash
+flask create_all # Create database and tables inside it, you should see a test.db in current folder
+flask run        # Start the server
+```
+
+By default, a web page will be served at http://127.0.0.1:5000/.
