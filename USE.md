@@ -6,7 +6,9 @@ Now that the app is up and running, we can start setting the software for your d
 First things first, the only existing account by default goes by the username of "admin". Its password is editable in the `password.txt` file situated at the root of the project. *Whenever you will add a new dataset/"image bank", this account will be the only to have access to it*; it will have access to each and every image bank and its access is irrevocable. Note that, of course, other users can have access to banks as we will see in sections below.
 
 ### How to add a bank
-Simply move your folder containing your data in the `banks/` folder at the root of the project. The name of the folder will be the name of the image bank. The folder should be discovered if you re-run the application. (It suffices to re-run the Flask back-end.)
+Simply move your folder containing your data in the `banks/` folder at the root of the project. The name of the folder will be the name of the image bank. The folder should be discovered if you re-run the application. (It suffices to re-run the Flask back-end.) The structure that the folder should have is described in the section below. 
+
+Otherwise, when you are on the home page of the application (where you can see "Your Banks"), you can drag and drop an archive containing the folder that holds your bank and upload it.
 
 ### How to organize your bank's folder
 All files should be at the same level. Your folder should contain the images you want to annotate and their corresponding descriptions. To connect descriptions to images:

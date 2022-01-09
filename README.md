@@ -1,64 +1,35 @@
-## Butterfly annotator
+# Butterfly annotator
 
-#### Quick Start
+## Welcome!
+Welcome to Butterfly Annotator. Below, in this file, you will find instructions to be able to run application on your own machine. If you want more information on how to use the program, open USE.md (located at the same level as this file). This file does not explain how to setup the software for you data either---if you are looking for that, go to USE.md as well.
 
-Firstly, make sure you created a virtual environment and installed all required dependences
+## Running the program
 
+Independent of your OS, make sure you have both NodeJS and Python3 installed. 
+
+On Linux: create a virtual environment and install all required Python dependencies:
 ```bash
 python3.8 -m venv venv
-source venv/bin/activate
+source venv/bin/activate        # enables commands such as `flask run` (see later)
+pip install -r requirements.txt # installs Python dependencies
+```
+For the same above step on Windows:
+```batch
+python3.8 -m venv venv
+venv\bin\Activate
 pip install -r requirements.txt
 ```
 
-Then, you need to setup client by executing in the root path
-
+Then (for both OS, from now on), create the static content that will be served by running:
 ```bash
 cd templates
 npm run local
 ```
 
-Finally you can run server by executing in the root path
-
+Finally you can run your server by executing in the root path
 ```bash
 flask create_all # Create database and tables inside it, you should see a test.db in current folder
-flask run        # Spin the server
+flask run        # Start the server
 ```
 
 By default, a web page will be served at http://127.0.0.1:5000/.
-
-After first creating *test.db* file, you can run server by executing `flask run`
-
-#### Dependences
-
-You can install all required dependences by `requirements.txt`
-
-#### Server
-
-You can run the server by the following commands:
-
-```bash
-flask create_all # Create database and tables inside it, you should see a test.db in current folder
-flask run        # Spin the server
-flask drop_all	 # Delete database and tables inside it, you should see the test.db removed in current folder
-```
-
-#### Client
-
-Client is automatically setted up by executing
-
-```bash
-npm run local
-```
-
-#### Environment Parameters
-
-By default, both client and server will be configured based on `.flaskenv` file in the root path.
-
-You can change to a production environment by deleting `FLASK_ENV = development` in the file.
-
-```
-# /.flaskenv
-FLASK_APP = website/app.py
-FLASK_ENV = development
-```
-
