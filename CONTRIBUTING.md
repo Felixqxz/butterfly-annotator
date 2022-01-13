@@ -1,6 +1,6 @@
 Git
 ===
-- do not files proper to your computer to Git; use .gitignore files
+- do not files proper to your computer to Git; instead use .gitignore files
 - please do not push code that is used for debugging (especially NOT on master)
 - do not push dead code (i.e. unused code in comments)
 - name your branches following this convention: `words-separated-by-a-dash`, NOT `words_separated_by_underscores`
