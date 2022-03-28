@@ -1,25 +1,37 @@
-# butterfly annotator
-## Stack
-- Python 3.8
-- Good Ol' Javascript
-- [W3CSS](https://www.w3schools.com/w3css) for simple styling
-- [SQLite](https://www.sqlite.org/index.html) for in memory data storage
+# Butterfly annotator
 
-## Pre
-Make sure you have Python3.8 on your machine.
+## Welcome!
+Welcome to Butterfly Annotator. Below, in this file, you will find instructions to be able to run application on your own machine. If you want more information on how to use the program, open USE.md (located at the same level as this file). This file does not explain how to setup the software for you data either---if you are looking for that, go to USE.md as well.
 
-## Running the app
-To run the app:
+## Running the program
+
+Independent of your OS, make sure you have both NodeJS and Python3 installed. 
+
+On Linux: create a virtual environment and install all required Python dependencies:
 ```bash
-cd butterfly-annotator
 python3.8 -m venv venv
-source venv/bin/activate
-pip install --upgrade pip && pip install -r requirements.txt
-flask create_all # Create database and tables inside it, you should see a test.db in current folder
-flask populate   # Populate tables with some initial data //haven't been deployed yet
-flask run        # Spin the server
+source venv/bin/activate        # enables commands such as `flask run` (see later)
+pip install -r requirements.txt # installs Python dependencies
 ```
-You can now browse to <http://localhost:5000> and see the app live.
+For the same above step on Windows:
+```bash
+python3.8 -m venv venv # or "py" instead of "python3.8", depending on your installation
+venv\Scripts\Activate
+pip install -r requirements.txt
+```
 
-## for future commits
-anything from webgl, add build and template data under static/, rename index to gallery and puth under templates/
+Then (for both OS, from now on), create the static content that will be served by running:
+```bash
+cd templates
+npm install
+npm run local
+```
+
+Finally you can run your server by executing in the root path:
+```bash
+cd ..            # if you have followed all the previous steps
+flask create_all # Create database and tables
+flask run        # Start the server
+```
+
+By default, a web page will be served at http://127.0.0.1:5000/.
